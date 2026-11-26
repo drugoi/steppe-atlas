@@ -144,9 +144,10 @@ function draw() {
   const dpr = window.devicePixelRatio || 1;
   const s = scale();
   context.setTransform(dpr,0,0,dpr,0,0);
-  context.fillStyle = '#202f27';
+  context.fillStyle = '#213a37';
   context.fillRect(0,0,view.width,view.height);
   const local=localCity();
+  const surveyBorder=local && state.layer==='terrain' ? new Path2D() : null;
   const cities=shownCityMarkers();
   const [left,top] = mapPoint(-20,-20);
   const [right,bottom] = mapPoint(view.width+12,view.height+12);
@@ -160,27 +161,34 @@ function draw() {
     const [x,y,terrain,id,inside] = tile;
     if (x<left || x>right || y<top || y>bottom) continue;
     drawHex(x,y);
+    const inSurvey=nearby(tile,local);
     const textured=hasRelief && x>=reliefX && x<=reliefX+reliefWidth && y>=reliefY && y<=reliefY+reliefHeight;
     if (!textured) {
       context.fillStyle = state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
       context.fill();
     } else if (local) {
-      context.fillStyle=nearby(tile,local)?'#f6db8615':'#101f241c';
+      context.fillStyle=inSurvey ? '#e7dea024' : '#14293f35';
       context.fill();
     }
     context.lineWidth = textured ? (s<1.2 ? .68 : .82)/s : view.zoom>2.45 ? .32 : .52;
     context.strokeStyle = textured ? (s<1.2 ? '#263d333c' : '#263d334f') : inside ? '#243b2a76' : '#12251965';
     context.stroke();
-    if (textured && s>=1.65) shadeHexEdge(x,y,s);
+    if (textured && s>=1.45) shadeHexEdge(x,y,s,terrain===0);
     tileArtwork(tile,s);
-    if (state.layer!=='density' && view.zoom>=2.5 && nearby(tile,local)) {
+    if (state.layer!=='density' && inSurvey) {
+      drawHex(x,y);
       context.lineWidth=.26;
-      context.strokeStyle='#f4de976d';
+      context.strokeStyle=surveyBorder ? '#e4edb57d' : '#f4de976d';
       context.stroke();
       for (let j=0;j<6;j++) {
         const [dx,dy]=hexOffsets[j], [ex,ey]=hexOffsets[(j+1)%6];
         const neighbor=data.tiles[nearestTile(x+dx+ex,y+dy+ey)];
         if (!neighbor || !nearby(neighbor,local)) {
+          if (surveyBorder) {
+            surveyBorder.moveTo(x+dx,y+dy);
+            surveyBorder.lineTo(x+ex,y+ey);
+            continue;
+          }
           context.beginPath();
           context.moveTo(x+dx,y+dy);
           context.lineTo(x+ex,y+ey);
@@ -202,12 +210,13 @@ function draw() {
       context.stroke();
     }
   }
+  if (surveyBorder) drawSurveyBorder(surveyBorder,s);
   drawNetwork(s,local);
-  context.lineWidth = 1.25/s;
-  context.strokeStyle = view.zoom>=2.5 ? '#4395aaae' : '#66a5a173';
+  context.lineWidth = 1.35/s;
+  context.strokeStyle = view.zoom>=2.5 ? '#5cb4c5c2' : '#66a5a183';
   context.stroke(rivers);
   context.lineWidth = .8/s;
-  context.strokeStyle = state.layer==='terrain' ? '#e9e2aa69' : '#171e187c';
+  context.strokeStyle = state.layer==='terrain' ? '#ddd1a557' : '#171e187c';
   for (const region of regions) context.stroke(paths.get(region.id));
   if (state.region) {
     const selected = paths.get(state.region);
@@ -218,10 +227,10 @@ function draw() {
     context.stroke(selected);
   }
   context.lineWidth = 3.6/s;
-  context.strokeStyle = '#1d231cb9';
+  context.strokeStyle = '#203135d9';
   context.stroke(country);
   context.lineWidth = 1.65/s;
-  context.strokeStyle = '#ded5a6bd';
+  context.strokeStyle = '#dfc196c2';
   context.stroke(country);
   for (const city of cities) {
     const [x,y] = city.xy;
@@ -231,10 +240,11 @@ function draw() {
   drawLabels(cities,local);
   drawMinimap();
   drawMapTitle();
-  const approx = data.metersPerUnit / s * 88 / 1000;
+  const scaleBar = document.querySelector('.scale');
+  const approx = data.metersPerUnit / s * Math.min(88,scaleBar.clientWidth) / 1000;
   const km = [10,20,25,50,100,200,250,500,1000,2000].filter(x=>x<=approx).at(-1) || 5;
-  document.querySelector('.scale span').textContent = km+' km';
-  document.querySelector('.scale i').style.width = (km*1000/data.metersPerUnit*s)+'px';
+  scaleBar.firstElementChild.textContent = km+' km';
+  scaleBar.lastElementChild.style.width = (km*1000/data.metersPerUnit*s)+'px';
   $('zoom-in').disabled = view.zoom>=maxZoom;
   $('zoom-out').disabled = view.zoom<=.8;
 }

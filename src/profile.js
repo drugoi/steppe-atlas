@@ -17,8 +17,8 @@ function timeline(values,labels,heading) {
   const coords=points.map(([sx,sy])=>sx+','+sy).join(' ');
   const change=(values.at(-1)-values[0])/values[0]*100;
   return '<div class="spark-box"><div class="bar-label"><span>'+heading+'</span><span class="'+(change>=0?'positive':'negative')+'">'+sign(Number(change.toFixed(1)))+'%</span></div>'
-    +'<svg viewBox="0 0 294 73" role="img" aria-label="'+values.map((v,i)=>labels[i]+' '+fmt.format(v)).join(', ')+'"><path d="M20 49H274" stroke="#485c4e"/><polyline points="'+coords+'" fill="none" stroke="#ecc883" stroke-width="1.7"/>'
-    +points.map(([sx,sy],i)=>'<circle cx="'+sx+'" cy="'+sy+'" r="2.4" fill="#f3d595"/><text x="'+sx+'" y="66" text-anchor="middle" font-size="9.5" fill="#b6c4b4">'+labels[i]+'</text><text x="'+sx+'" y="'+(sy-6)+'" text-anchor="middle" font-size="9" fill="#ead8a5">'+compact.format(values[i])+'</text>').join('')+'</svg></div>';
+    +'<svg viewBox="0 0 294 73" role="img" aria-label="'+values.map((v,i)=>labels[i]+' '+fmt.format(v)).join(', ')+'"><path d="M20 49H274" stroke="var(--line)"/><polyline points="'+coords+'" fill="none" stroke="var(--chart)" stroke-width="1.7"/>'
+    +points.map(([sx,sy],i)=>'<circle cx="'+sx+'" cy="'+sy+'" r="2.4" fill="var(--chart)"/><text x="'+sx+'" y="66" text-anchor="middle" font-size="9.5" fill="var(--muted)">'+labels[i]+'</text><text x="'+sx+'" y="'+(sy-6)+'" text-anchor="middle" font-size="9" fill="var(--text)">'+compact.format(values[i])+'</text>').join('')+'</svg></div>';
 }
 function peopleProfile(region) {
   const share=shareOf(region.urban,region.pop);
@@ -94,8 +94,7 @@ function atlasProfile(region,city) {
   const pop=city?.pop || region.pop;
   const subtitle=city ? (city.official ? region.kk : 'Statistics for '+region.name) : (region.kk||'Қазақстан Республикасы');
   const ranks=region.id ? '<div class="rank-row">'+categoryRanks.map(([key,name])=>'<p><strong>#'+rankMetric(region,key)+'</strong>'+name+'</p>').join('')+'</div>' : '';
-  const header='<header class="profile"><div class="profile-lead"><div class="profile-badge" aria-hidden="true">'+compact.format(pop)+'</div>'
-    +'<div><div class="eyebrow">'+detailScope+'</div><h2>'+escape(title)+'</h2><p class="sub">'+escape(subtitle)+'</p></div></div>'
+  const header='<header class="profile"><h2>'+escape(title)+'</h2><p class="sub">'+detailScope+' <span aria-hidden="true">·</span> '+escape(subtitle)+'</p>'
     +'<div class="profile-metrics">'+primary(city?'City population':'Population',fmt.format(pop),city?populationSource(city):'1 Oct 2026')
     +primary(region.id?'Regional product':'GDP',money(region.grp),'₸'+compact.format(region.capita)+' per person · 2025')+'</div>'+ranks+'</header>';
   const tabs='<div class="panel-tabs" role="group" aria-label="Profile sections">'+Object.entries(profileTabs).map(([id,title])=>

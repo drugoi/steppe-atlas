@@ -20,8 +20,8 @@ WORLD_COVER = np.array([
     (180, 180, 180), (240, 240, 240), (0, 100, 200), (0, 150, 160), (0, 207, 117), (250, 230, 160),
 ], dtype=np.int32)
 LAND_COLORS = np.array([
-    (64, 102, 70), (143, 130, 82), (111, 129, 77), (145, 147, 82), (151, 131, 105),
-    (170, 143, 102), (219, 216, 197), (44, 100, 115), (83, 125, 104), (70, 116, 88), (149, 142, 109),
+    (46, 91, 67), (150, 128, 78), (111, 131, 72), (151, 149, 82), (158, 133, 107),
+    (182, 151, 105), (225, 223, 199), (39, 96, 113), (65, 116, 99), (55, 112, 87), (152, 143, 107),
 ], dtype=np.float32)
 WATER = 7
 
@@ -64,7 +64,7 @@ def surface_colors():
     coast_land = LAND_COLORS.copy()
     coast_land[WATER] = LAND_COLORS[2]
     land = Image.fromarray(coast_land[classes].astype(np.uint8)).filter(ImageFilter.GaussianBlur(.95))
-    water = Image.fromarray(np.uint8(classes == WATER)*255).filter(ImageFilter.GaussianBlur(.47))
+    water = Image.fromarray(np.uint8(classes == WATER)*255).filter(ImageFilter.GaussianBlur(.34))
     return np.dstack((np.asarray(land),np.asarray(water)))
 
 
@@ -103,29 +103,32 @@ def render():
         small = rng.integers(0, 255, (height//step+2,width//step+2), dtype=np.uint8)
         return np.asarray(Image.fromarray(small).resize((width,height),Image.Resampling.BICUBIC), dtype=np.float32)/255-.5
 
-    region, texture = cloud(115), cloud(14)
-    grain = rng.uniform(-.5,.5,(height,width)).astype(np.float32)
+    region, mottling = cloud(95), cloud(24)
+    brush = cloud(6)
+    grain = rng.uniform(-.5, .5, (height, width)).astype(np.float32)
     dy, dx = np.gradient(z / ((w / width) / scale))
     # Northwest light on the exaggerated elevation surface, with a low-contrast ambient component.
-    dx *= 5.0
-    dy *= 5.0
-    slope = np.hypot(dx,dy)
-    normal_light = (.78 + .5*dx + .36*dy)/np.sqrt(1+slope*slope)
-    relief = np.clip((normal_light-.78)*.57,-.40,.30)
-    rugged = np.clip((z-1100+region*440)/2200+slope*.13,0,.93)
-    snow = np.clip((z-3050+region*680)/1550-slope*.14,0,.90)
-    # A warm altitude tint and cool shaded relief leave different rock faces legible.
-    rgb = surface[...,:3]
-    rgb = rgb*(1-rugged[...,None]) + np.array([163,151,124],dtype=np.float32)*rugged[...,None]
-    rgb = rgb*(1-snow[...,None]) + np.array([237,231,209],dtype=np.float32)*snow[...,None]
-    variation = region*21 + texture*12 + grain*4
-    rgb *= (1 + relief)[...,None]
-    rgb += variation[...,None]
+    dx *= 5.7
+    dy *= 5.7
+    slope = np.hypot(dx, dy)
+    light = (.74 + .57*dx + .42*dy) / np.sqrt(1 + slope*slope)
+    shade = np.clip((light-.74)*.77, -.43, .35)
+    rugged = np.clip((z-1050+region*480)/2080+slope*.135, 0, .92)
+    snow = np.clip((z-2900+mottling*400+region*440)/1110-slope*.16, 0, .96)
+    # Warm exposed stone and cool shadows keep ridges legible in the sculpted palette.
+    rgb = surface[..., :3]*(1-rugged[..., None]) + np.array([165, 145, 114])*rugged[..., None]
+    rgb = rgb*(1-snow[..., None]) + np.array([234, 232, 212])*snow[..., None]
+    rgb *= (1 + shade)[..., None]
+    rgb += np.maximum(-shade, 0)[..., None]*np.array([-13, 4, 17])
+    land_texture = region*26 + mottling*19 + brush*15 + grain*8
+    rgb += land_texture[..., None]
     water = surface[...,3] / 255
-    wet = np.clip((water-.40)/.28,0,1)
-    shallows = np.clip((.98-water)*29,0,12)
-    water_color = LAND_COLORS[WATER] + (shallows+region*13+texture*6+grain*3)[...,None]
-    rgb = rgb*(1-wet[...,None]) + water_color*wet[...,None]
+    wet = np.clip((water-.38)/.27, 0, 1)
+    shallows = np.clip((1-water)*3.3, 0, 1)
+    water_color = LAND_COLORS[WATER] + shallows[..., None]*np.array([25, 41, 28])
+    waves = np.sin(np.arange(height)[:, None]*1.6 + mottling*6.5)*1.25
+    water_color += (region*13 + mottling*9 + brush*5 + waves)[..., None]
+    rgb = rgb*(1-wet[..., None]) + water_color*wet[..., None]
     image = Image.fromarray(np.clip(rgb,0,255).astype(np.uint8))
     image.save(ROOT/'src'/'assets'/'terrain-relief.webp',quality=83,method=6)
     (ROOT/'data'/'terrain-relief.json').write_text(json.dumps(dict(bounds=AREA))+'\n')

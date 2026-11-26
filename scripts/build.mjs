@@ -15,12 +15,14 @@ if (!atlas.tiles?.length || atlas.worldPop?.hexes?.length !== atlas.tiles.length
 }
 const javascript = scripts.join('');
 new Script(javascript, { filename: 'atlas.js' });
-const [relief, texture] = await Promise.all([
+const [relief, texture, font, fontLicense] = await Promise.all([
   read('data/terrain-relief.json'),
   readFile(new URL('src/assets/terrain-relief.webp', root)),
+  readFile(new URL('src/assets/crimson-pro-latin.woff2', root)),
+  read('src/assets/crimson-pro-OFL.txt'),
 ]);
 const values = {
-  CSS: css,
+  CSS: '/*\n'+fontLicense.trim()+'\n*/\n'+css.replace('__DISPLAY_FONT__', 'data:font/woff2;base64,'+font.toString('base64')),
   DATA: snapshot.trimEnd().replaceAll('</', '<\\/'),
   RELIEF: JSON.stringify({...JSON.parse(relief), image:'data:image/webp;base64,'+texture.toString('base64')}),
   APP: javascript,

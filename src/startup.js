@@ -1,12 +1,13 @@
 $('national').innerHTML = [
-  ['●',compact.format(countryStats.pop),'National population'],
-  ['₸',compact.format(countryStats.grp*1e6),'National GDP'],
-  ['◆',compact.format(countryStats.labor.employed.at(-1)),'Employed residents'],
-  ['◒',pct(unemployment(countryStats)),'Unemployment rate']
-].map(([glyph,value,name])=>'<button title="'+name+'" class="quiet"><i aria-hidden="true">'+glyph+'</i><span>'+value+'</span></button>').join('');
+  ['●',compact.format(countryStats.pop),'Population','National population'],
+  ['₸',compact.format(countryStats.grp*1e6),'GDP','National GDP'],
+  ['◆',compact.format(countryStats.labor.employed.at(-1)),'Employment','Employed residents'],
+  ['◒',pct(unemployment(countryStats)),'Unemployment','Unemployment rate']
+].map(([glyph,value,label,name])=>'<button title="'+name+'" aria-label="'+name+' '+value+'"><i aria-hidden="true">'+glyph+'</i><span><small>'+label+'</small><strong>'+value+'</strong></span></button>').join('');
 $('national').onclick = event=>{
   if (event.target.closest('button')) document.querySelector('[data-mode="overview"]').click();
 };
+document.fonts.ready.then(requestDraw);
 $('more-layers').onclick = ()=>{
   const menu=$('extra-layers'), hidden=!menu.hidden;
   menu.hidden=hidden;

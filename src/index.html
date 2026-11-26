@@ -12,7 +12,7 @@
 <meta property="og:url" content="https://kazakhstan.drugoi.dev/">
 <meta property="og:title" content="Steppe Atlas — Interactive map of Kazakhstan">
 <meta property="og:description" content="Explore Kazakhstan’s cities, terrain, and population on an interactive hex map.">
-<meta property="og:image" content="https://kazakhstan.drugoi.dev/social-card.jpg">
+<meta property="og:image" content="https://kazakhstan.drugoi.dev/social-card.jpg?v=2">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -20,34 +20,33 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Steppe Atlas — Interactive map of Kazakhstan">
 <meta name="twitter:description" content="Explore Kazakhstan’s cities, terrain, and population on an interactive hex map.">
-<meta name="twitter:image" content="https://kazakhstan.drugoi.dev/social-card.jpg">
+<meta name="twitter:image" content="https://kazakhstan.drugoi.dev/social-card.jpg?v=2">
 <meta name="twitter:image:alt" content="Steppe Atlas cover showing a hex terrain map of Kazakhstan with its major cities.">
 <style>
 __CSS__</style>
 </head>
 <body>
 <header class="topbar">
-  <div class="brand"><span class="mark" aria-hidden="true">✧</span><div><strong>Steppe Atlas</strong><small>Қазақстан</small></div></div>
+  <div class="brand"><span class="mark" aria-hidden="true"></span><div><strong>Steppe Atlas</strong><small lang="kk">Қазақстан</small></div></div>
   <div class="national" id="national" role="group" aria-label="National indicators"></div>
-  <div class="search"><span class="search-symbol" aria-hidden="true">⌕</span><input id="search" type="search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="results" aria-autocomplete="list" aria-label="Find a city or region" placeholder="Search places"><kbd aria-hidden="true">/</kbd><div id="results" class="results" role="listbox" hidden></div></div>
+  <div class="search"><span class="search-symbol" aria-hidden="true"></span><input id="search" type="search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="results" aria-autocomplete="list" aria-label="Find a city or region" placeholder="Find a place"><kbd aria-hidden="true">/</kbd><div id="results" class="results" role="listbox" hidden></div></div>
   <button class="action" id="sources">Sources</button>
 </header>
 <main class="workspace">
   <section class="map" aria-label="Interactive map of Kazakhstan">
     <canvas id="map" tabindex="0" aria-label="Kazakhstan hex map. Use the arrow keys to pan, plus and minus to zoom, Home to reset, and Enter to inspect the centre hex in local view or the Density layer. Use search to select places by keyboard.">Explore places using the search box or the lists in the atlas panel.</canvas>
-    <div class="title"><div class="eyebrow" id="map-kicker">Қазақстан</div><h1 id="map-title">Kazakhstan</h1><p id="subtitle"></p></div>
+    <div class="title"><h1 id="map-title">Kazakhstan</h1><p id="subtitle"></p><span class="sr" id="map-kicker">Қазақстан</span></div>
     <div class="legend" id="legend" aria-label="Map legend"></div>
     <div class="inspector" id="inspector" hidden></div>
-    <div class="minimap"><button id="minimap-reset" title="Fit Kazakhstan">Country map</button><canvas id="minimap" aria-label="Click the minimap to jump"></canvas></div>
+    <div class="minimap"><button id="minimap-reset" title="Fit Kazakhstan">Country map</button><canvas id="minimap" aria-label="Click the minimap to jump"></canvas><div class="scale" aria-hidden="true"><span></span><i></i></div></div>
     <div class="controls" aria-label="Map navigation"><button id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button><button id="zoom-out" title="Zoom out" aria-label="Zoom out">−</button><button id="reset" title="Fit Kazakhstan" aria-label="Fit Kazakhstan">⌂</button></div>
-    <div class="scale" aria-hidden="true"><span></span><i></i></div>
     <div class="layers" role="group" aria-label="Map layers">
-      <button id="show-sites" class="overlay-action" aria-pressed="true" title="Show or hide mapped sites">Sites</button>
-      <button data-layer="terrain"><span class="layer-icon" aria-hidden="true">▲</span>Terrain</button>
-      <button data-layer="population"><span class="layer-icon" aria-hidden="true">●</span>People</button>
-      <button data-layer="economy"><span class="layer-icon" aria-hidden="true">◈</span>Economy</button>
-      <button data-layer="density" title="WorldPop population density"><span class="layer-icon" aria-hidden="true">◉</span>Density</button>
-      <button id="more-layers" aria-expanded="false" aria-controls="extra-layers">More</button>
+      <button id="show-sites" class="overlay-action" aria-pressed="true" title="Show or hide mapped sites"><span class="layer-icon pin" aria-hidden="true"></span>Sites</button>
+      <button data-layer="terrain"><span class="layer-icon peaks" aria-hidden="true"></span>Terrain</button>
+      <button data-layer="population"><span class="layer-icon figures" aria-hidden="true"></span>People</button>
+      <button data-layer="economy"><span class="layer-icon coins" aria-hidden="true"></span>Economy</button>
+      <button data-layer="density" title="WorldPop population density"><span class="layer-icon cells" aria-hidden="true"></span>Density</button>
+      <button id="more-layers" aria-expanded="false" aria-controls="extra-layers"><span class="layer-icon chevron" aria-hidden="true"></span>More</button>
       <div id="extra-layers" class="layer-extra" hidden>
         <button data-layer="industry">Industry</button><button data-layer="land">Land cover</button><button data-layer="migration">Migration</button>
         <button data-layer="labor">Labour</button><button data-layer="transport">Transport</button>
