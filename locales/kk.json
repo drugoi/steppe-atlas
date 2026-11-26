@@ -564,6 +564,7 @@
   "{count} residents": "{count} адам",
   "{count} residents. {density}. WorldPop {year}.": "{count} адам. {density}. WorldPop {year}.",
   "{count} selected sites": "Картада {count} нысан",
+  "{cover} · elevation {elevation} m": "{cover} · биіктігі {elevation} м",
   "{density} people/km²": "{density} адам/км²",
   "{distance} km": "{distance} км",
   "{distance} km from the atlas centre": "Елді мекен орталығынан {distance} км",

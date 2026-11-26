@@ -470,7 +470,11 @@ function updateTooltip(x,y) {
       const value=winterTemperature(hover.tile);
       t.textContent=value===null?msg("No winter temperature data"):msg("{temperature} · Dec–Feb mean",{temperature:celsius(value)});
     }
-    else t.textContent=coverLabel[tile[7]]+(tile[2]===0?'':' · '+msg("{elevation} m",{elevation:fmt.format(tile[6])}));
+    else {
+      const cover=coverLabel[tile[7]];
+      t.textContent=tile[2]===0 ? cover :
+        msg("{cover} · elevation {elevation} m",{cover,elevation:fmt.format(tile[6])});
+    }
   } else {
     const r=regionById(hover.region);
     const values={population:fmt.format(r.pop),economy:msg("{amount} per person",{amount:'₸'+compact.format(r.capita)}),
