@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101715">
+<meta name="description" content="Explore Kazakhstan through a hex atlas built from public geographic and statistical data.">
+<title>Steppe Atlas · Kazakhstan</title>
+<style>
+__CSS__</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="mark" aria-hidden="true">✧</span><div><strong>Steppe Atlas</strong><small>Қазақстан</small></div></div>
+  <div class="national" id="national" role="group" aria-label="National indicators"></div>
+  <div class="search"><span class="search-symbol" aria-hidden="true">⌕</span><input id="search" type="search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="results" aria-autocomplete="list" aria-label="Find a city or region" placeholder="Search places"><kbd aria-hidden="true">/</kbd><div id="results" class="results" role="listbox" hidden></div></div>
+  <button class="action" id="sources">Sources</button>
+</header>
+<main class="workspace">
+  <section class="map" aria-label="Interactive map of Kazakhstan">
+    <canvas id="map" tabindex="0" aria-label="Kazakhstan hex map. Use the arrow keys to pan, plus and minus to zoom, Home to reset, and Enter to inspect the centre hex in local view or the Density layer. Use search to select places by keyboard.">Explore places using the search box or the lists in the atlas panel.</canvas>
+    <div class="title"><div class="eyebrow" id="map-kicker">Қазақстан</div><h1 id="map-title">Kazakhstan</h1><p id="subtitle"></p></div>
+    <div class="legend" id="legend" aria-label="Map legend"></div>
+    <div class="inspector" id="inspector" hidden></div>
+    <div class="minimap"><button id="minimap-reset" title="Fit Kazakhstan">Country map</button><canvas id="minimap" aria-label="Click the minimap to jump"></canvas></div>
+    <div class="controls" aria-label="Map navigation"><button id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button><button id="zoom-out" title="Zoom out" aria-label="Zoom out">−</button><button id="reset" title="Fit Kazakhstan" aria-label="Fit Kazakhstan">⌂</button></div>
+    <div class="scale" aria-hidden="true"><span></span><i></i></div>
+    <div class="layers" role="group" aria-label="Map layers">
+      <button id="show-sites" class="overlay-action" aria-pressed="true" title="Show or hide mapped sites">Sites</button>
+      <button data-layer="terrain"><span class="layer-icon" aria-hidden="true">▲</span>Terrain</button>
+      <button data-layer="population"><span class="layer-icon" aria-hidden="true">●</span>People</button>
+      <button data-layer="economy"><span class="layer-icon" aria-hidden="true">◈</span>Economy</button>
+      <button data-layer="density" title="WorldPop population density"><span class="layer-icon" aria-hidden="true">◉</span>Density</button>
+      <button id="more-layers" aria-expanded="false" aria-controls="extra-layers">More</button>
+      <div id="extra-layers" class="layer-extra" hidden>
+        <button data-layer="industry">Industry</button><button data-layer="land">Land cover</button><button data-layer="migration">Migration</button>
+        <button data-layer="labor">Labour</button><button data-layer="transport">Transport</button>
+        <button data-layer="heritage">Heritage</button><button id="rail-overlay" class="overlay-action" aria-pressed="true" title="Toggle rail lines in zoomed views">Rail overlay</button>
+      </div>
+    </div>
+    <div class="tooltip" id="tooltip" hidden></div>
+  </section>
+  <aside class="panel" aria-label="Atlas details">
+    <div class="panel-nav"><div role="group" aria-label="Browse atlas"><button data-mode="overview">Overview</button><button data-mode="cities">Cities</button><button data-mode="regions">Regions</button></div><button id="share" title="Copy a link to this view">Copy link</button></div>
+    <div id="detail" class="detail"></div>
+  </aside>
+</main>
+<dialog id="credits">
+  <header><h2>Data and methods</h2><button class="action" id="close-sources">Close</button></header>
+  <ul>
+    <li>Population, urban share and population change come from Kazakhstan’s Bureau of National Statistics as of 1 October 2026. Change and net migration cover January through September. <a href="https://stat.gov.kz/api/iblock/element/348013/file/ru/" target="_blank" rel="noopener">Download the statistical workbook</a></li>
+    <li>Gross regional product and industrial gross value added cover 2025 in current tenge. Industry colors compare mining and manufacturing as shares of industrial value added. <a href="https://stat.gov.kz/en/industries/economy/national-accounts/publications/513538/" target="_blank" rel="noopener">Regional accounts</a> · <a href="https://stat.gov.kz/api/iblock/element/39176/file/en/" target="_blank" rel="noopener">Industry workbook</a></li>
+    <li>Hex population and density use <a href="https://hub.worldpop.org/doi/10.5258/SOTON/WP00840" target="_blank" rel="noopener">WorldPop Global2 R2025A v1</a> (Bondarenko et al., University of Southampton, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>). The <a href="https://data.worldpop.org/GIS/Population/Global_2015_2030/R2025A/2025/KAZ/v1/1km_ua/constrained/kaz_pop_2025_CN_1km_R2025A_UA_v1.tif" target="_blank" rel="noopener">Kazakhstan raster for 2025</a> contains modeled people per pixel at 30 arc-seconds (about 1 km at the equator). Each pixel counts towards the hex containing its centre. Density divides that sum by the entire hex area, including any water or land outside Kazakhstan. Hexes with no valid pixels are shown as unavailable.</li>
+    <li>Settlement populations use the Bureau’s <a href="https://stat.gov.kz/api/iblock/element/280746/file/ru/" target="_blank" rel="noopener">1 January 2025 workbook</a> where matched. Astana, Almaty and Shymkent use the official October 2026 figures. Locations, aliases and any fallback population estimates come from <a href="https://www.geonames.org/export/" target="_blank" rel="noopener">GeoNames</a> (CC BY 4.0). Industry statistics on city profiles apply to the named administrative division.</li>
+    <li>Boundaries use simplified <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap data</a> (ODbL) via <a href="https://github.com/ashimov/toponym-kz" target="_blank" rel="noopener">Toponym KZ</a>. Water and rivers use <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> cartography and may show historical shorelines.</li>
+    <li>Elevation is sampled from <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a> (USGS GMTED2010 and SRTM among the <a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">source datasets</a>). The relief view combines elevation with land cover. The hex inspection uses coarse samples of the ESA WorldCover 2021 color map.</li>
+    <li>Land cover © ESA WorldCover project 2021. Contains modified Copernicus Sentinel data (2021) processed by the ESA WorldCover consortium. <a href="https://esa-worldcover.org/en/data-access" target="_blank" rel="noopener">ESA WorldCover</a></li>
+    <li>Economic districts compare each activity’s share of a division’s gross regional product with its national share. Cards show value added, and map positions are schematic. <a href="https://stat.gov.kz/api/iblock/element/39180/file/en/" target="_blank" rel="noopener">Value added by activity</a> · <a href="https://stat.gov.kz/en/industries/labor-and-income/stat-empt-unempl/dynamic-tables/" target="_blank" rel="noopener">Labour force survey</a></li>
+    <li>Rail geometry comes from Natural Earth. The Aktau port marker uses coordinates from Kazakhstan’s published port boundary. Scheduled airport locations come from <a href="https://ourairports.com/data/" target="_blank" rel="noopener">OurAirports</a>. Heritage markers are selected <a href="https://whc.unesco.org/en/statesparties/kz/" target="_blank" rel="noopener">UNESCO-listed sites and components</a>. Power sites use the <a href="https://datasets.wri.org/datasets/global-power-plant-database" target="_blank" rel="noopener">WRI Global Power Plant Database</a> 2021 release (CC BY 4.0). MW describes archived nameplate capacity.</li>
+  </ul>
+  <p>Inspired by <a href="https://karpathy.ai/usaciv/" target="_blank" rel="noopener">USA Civ</a>.</p>
+</dialog>
+<div id="announcement" class="sr" role="status"></div>
+<script id="atlas-data" type="application/json">__DATA__</script>
+<script>
+__APP__
+</script>
+</body>
+</html>

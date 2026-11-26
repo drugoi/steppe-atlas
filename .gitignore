@@ -1,0 +1,9 @@
+/dist/
+/node_modules/
+/.cache/
+/.wrangler/
+/.venv/
+__pycache__/
+.env
+.env.*
+.DS_Store
