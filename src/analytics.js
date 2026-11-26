@@ -6,7 +6,7 @@ const atlasCookiePrefix = 'steppe_atlas';
 let analyticsEnabled = false;
 
 function atlasEvent(name, parameters={}) {
-  if (analyticsEnabled) window.gtag('event', name, parameters);
+  if (analyticsEnabled) window.gtag('event',name,{...parameters,...analyticsPage});
 }
 
 function atlasAnalyticsLocation() {
@@ -17,6 +17,21 @@ function atlasAnalyticsLocation() {
     if (query.get(name)===value) url.searchParams.set(name,value);
   }
   return url.href;
+}
+
+const analyticsPage = analyticsAvailable ? {
+  page_location: atlasAnalyticsLocation(),
+  page_referrer: document.referrer ? new URL(document.referrer).origin : '',
+} : {};
+
+function prepareAnalyticsAddress() {
+  // The Google tag can read the browser address when it starts.
+  const url = new URL(location.href);
+  const campaign = new URL(analyticsPage.page_location);
+  const language = url.searchParams.get('lang');
+  url.search = campaign.search;
+  if (Object.hasOwn(localeNames,language)) url.searchParams.set('lang',language);
+  if (url.search!==location.search) history.replaceState(history.state,'',url);
 }
 
 function setAtlasAnalytics(allow) {
@@ -37,6 +52,7 @@ function setAtlasAnalytics(allow) {
     return;
   }
   if (!window.gtag) {
+    prepareAnalyticsAddress();
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
     window.gtag('consent','default',{
@@ -44,15 +60,17 @@ function setAtlasAnalytics(allow) {
     });
     window.gtag('consent','update',{analytics_storage:'granted'});
     window.gtag('js',new Date());
+    window.gtag('set',analyticsPage);
     window.gtag('config',measurementId,{
+      send_page_view:false,
       allow_google_signals:false,
       allow_ad_personalization_signals:false,
       cookie_prefix:atlasCookiePrefix,
       cookie_domain:location.hostname,
       cookie_flags:'SameSite=Lax;Secure',
-      page_location:atlasAnalyticsLocation(),
-      page_referrer:document.referrer ? new URL(document.referrer).origin : '',
+      ...analyticsPage,
     });
+    atlasEvent('page_view');
     const tag = document.createElement('script');
     tag.async = true;
     tag.src = 'https://www.googletagmanager.com/gtag/js?id='+measurementId;
