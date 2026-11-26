@@ -136,73 +136,138 @@ function ellipse(x,y,rx,ry,color) {
   context.fillStyle=color;
   context.fill();
 }
-function tree(x,y,size,variant) {
-  ellipse(x+.7*size,y+.58*size,.9*size,.35*size,'#27392266');
-  context.fillStyle='#6c5134';
-  context.fillRect(x-.10*size,y-.3*size,.20*size,.92*size);
-  if (variant) {
-    shapeFill([[x-.80*size,y+.31*size],[x,y-1.53*size],[x+.86*size,y+.31*size]],'#315842','#233d30');
-    shapeFill([[x-.80*size,y+.31*size],[x,y-1.53*size],[x+.14*size,y+.05*size]],'#61805a');
-    return;
-  }
-  ellipse(x,y-.50*size,.90*size,.98*size,'#2c573b');
-  ellipse(x-.23*size,y-.78*size,.67*size,.72*size,'#597f49');
-  ellipse(x-.4*size,y-.99*size,.34*size,.39*size,'#91a769');
+const reliefAsset = JSON.parse($('terrain-relief').textContent);
+const reliefImage = new Image();
+const outsideCountry = new Path2D(country);
+outsideCountry.rect(...reliefAsset.bounds);
+reliefImage.addEventListener('load', requestDraw, {once:true});
+reliefImage.src = reliefAsset.image;
+
+function drawReliefSurface() {
+  if (state.layer !== 'terrain' || !reliefImage.naturalWidth) return false;
+  context.drawImage(reliefImage,...reliefAsset.bounds);
+  context.fillStyle='#112a251c';
+  context.fill(outsideCountry,'evenodd');
+  return true;
 }
-function peak(x,y,size,snow) {
-  shapeFill([[x-1.17*size,y+.66*size],[x-.13*size,y-.86*size],[x+1.15*size,y+.67*size]],'#504f45');
-  shapeFill([[x-1.19*size,y+.61*size],[x-.13*size,y-.86*size],[x+.25*size,y+.47*size]],'#a79976');
-  shapeFill([[x-.13*size,y-.86*size],[x+.25*size,y+.47*size],[x+1.18*size,y+.6*size]],'#6c6859');
-  if (snow) shapeFill([[x-.51*size,y-.32*size],[x-.13*size,y-.86*size],[x+.37*size,y-.26*size],
-     [x+.08*size,y-.34*size],[x-.01*size,y-.16*size],[x-.28*size,y-.38*size]],'#e7deca');
-}
-function field(x,y,size,variant) {
-  const colors = ['#9da257','#abb467','#b2a362','#778d51'];
-  shapeFill([[x-size,y],[x,y-size*.62],[x+size,y],[x,y+size*.76]],colors[variant%colors.length],'#465643');
-  for (let i=1;i<=4;i++) {
+
+function shadeHexEdge(x,y,scale) {
+  for (const [edges,color] of [[[2,3,4],'#f6ecc338'],[[5,0,1],'#15261e59']]) {
     context.beginPath();
-    context.moveTo(x-size+i*.25*size,y-i*.155*size);
-    context.lineTo(x+i*.25*size,y+size*.76-i*.19*size);
-    context.lineWidth=.09*size;
-    context.strokeStyle=i%2 ? '#dfcc845b' : '#44543754';
+    for (const edge of edges) {
+      const [ax,ay]=hexOffsets[edge], [bx,by]=hexOffsets[(edge+1)%6];
+      context.moveTo(x+ax*.966,y+ay*.966);
+      context.lineTo(x+bx*.966,y+by*.966);
+    }
+    context.strokeStyle=color;
+    context.lineWidth=.85/scale;
     context.stroke();
   }
 }
-function tileArtwork(tile,s) {
-  const [x,y,terrain,,inside,,z,cover,trees,crops] = tile;
-  if (s<1.35 || !['terrain','land','transport','heritage'].includes(state.layer)) return;
-  const choice = rasterNoise(x,y,12);
-  if (cover===80 || terrain===0) {
-    for (let i=0;i<2;i++) {
-      const ox=(rasterNoise(x,y,i)-.5)*8,oy=(rasterNoise(x,y,i+9)-.5)*7;
-      context.beginPath();
-      context.moveTo(x+ox-1,y+oy);
-      context.quadraticCurveTo(x+ox,y+oy-.34,x+ox+1,y+oy);
-      context.strokeStyle='#9dd5d56b'; context.lineWidth=.18; context.stroke();
+
+function tree(x,y,size,variant) {
+  ellipse(x+.76*size,y+.32*size,1.48*size,.40*size,'#142b2690');
+  ellipse(x+.18*size,y+.34*size,.92*size,.29*size,'#1d35289c');
+  context.fillStyle='#66503a';
+  context.fillRect(x-.1*size,y-.48*size,.20*size,.95*size);
+  if (variant) {
+    for (let branch=0;branch<3;branch++) {
+      const top=y-(1.12+branch*.36)*size;
+      const base=y+(.37-branch*.40)*size;
+      const width=(.66-branch*.14)*size;
+      shapeFill([[x-width,base],[x-.09*size,top],[x+width,base-.09*size]],'#294e39','#213b30');
+      shapeFill([[x-width,base],[x-.09*size,top],[x+.04*size,base-.12*size]],'#6c8b55');
     }
     return;
   }
-  if (crops>=6 && z<1700) {
-    if (choice>.13) field(x-2.4,y+1.75,2.8,Math.round(choice*10));
-    if (choice>.44) field(x+2.6,y-1.85,2.35,Math.floor(choice*17));
+  ellipse(x+.10*size,y-.53*size,.89*size,.80*size,'#274d37');
+  ellipse(x-.29*size,y-.76*size,.65*size,.62*size,'#6b8950');
+  ellipse(x+.27*size,y-.96*size,.54*size,.55*size,'#557d49');
+  ellipse(x-.35*size,y-.98*size,.28*size,.30*size,'#9aab64');
+}
+
+function fieldStrip(x,y,w,h,tone,skew) {
+  const [a,b,c,d]=[[x,y],[x+w,y+skew],[x+w-.55,y+h+skew],[x-.55,y+h]];
+  shapeFill([a,b,c,d],tone,'#293b2b80',.17);
+  context.lineWidth=.10;
+  context.strokeStyle='#f6e7ac65';
+  context.beginPath();
+  for (let row=1;row<5;row++) {
+    const k=row/5;
+    context.moveTo(a[0]+(d[0]-a[0])*k,a[1]+(d[1]-a[1])*k);
+    context.lineTo(b[0]+(c[0]-b[0])*k,b[1]+(c[1]-b[1])*k);
   }
-  if (z>980 && (inside || s>=2.4)) {
-    const size=clamp((z-690)/620,1.35,4.25)*(.82+choice*.35);
-    peak(x-2,y+1.0,size*.77,z>=2700);
-    if (z>1650) peak(x+1.2,y-.35,size,z>=2650);
-    if (z>2450 && choice>.23) peak(x+3.5,y+2.5,size*.56,z>=3100);
-  }
-  const treeCount = Math.min(7,trees===0?0:Math.ceil(trees/3));
-  for (let i=0;i<treeCount;i++) {
-    const ox=(rasterNoise(x,y,i+40)-.5)*10,oy=(rasterNoise(x,y,i+57)-.5)*8;
-    tree(x+ox,y+oy,.60+rasterNoise(x,y,i+39)*.72,z>1050);
-  }
-  if (!crops && z<1500 && (cover===60 || cover===20 || cover===30)) {
+  context.stroke();
+}
+
+const landscapeLayers = new Set(['terrain','land','transport','heritage']);
+function tileArtwork(tile,s) {
+  const [x,y,terrain,,,shade,z,cover,trees,crops] = tile;
+  if (s<1.20 || !landscapeLayers.has(state.layer)) return;
+  const detail=clamp((s-1.20)/.90,0,1);
+  const choice=rasterNoise(x,y,12);
+  context.save();
+  context.globalAlpha=detail*(state.layer==='terrain'?1:.58);
+  if (cover===80 || terrain===0) {
+    context.lineWidth=.13;
     for (let i=0;i<4;i++) {
-      const ox=(rasterNoise(x,y,i+23)-.5)*9,oy=(rasterNoise(x,y,i+35)-.5)*8;
-      ellipse(x+ox,y+oy,.32+choice*.5,.18+choice*.16,cover===60?'#825d3e4d':'#35533461');
+      const ox=(rasterNoise(x,y,i)-.5)*10,oy=(rasterNoise(x,y,i+9)-.5)*8;
+      const w=.9+rasterNoise(x,y,i+13)*2.5;
+      context.beginPath();
+      context.moveTo(x+ox-w/2,y+oy);
+      context.quadraticCurveTo(x+ox,y+oy-.15,x+ox+w/2,y+oy+.06);
+      context.strokeStyle=i%2?'#a8d7c782':'#1d587087';
+      context.stroke();
+    }
+  } else {
+    if (crops>=5 && z<1750) {
+      const colors=['#ac9e5b','#b9b375','#7c9256','#8d9c59'];
+      const ox=(choice-.5)*2, oy=(rasterNoise(x,y,11)-.5)*2;
+      const tilt=(rasterNoise(x,y,16)-.5)*1.7;
+      const width=1.78 + Math.min(crops,25)*.061;
+      context.save();
+      context.translate(x+ox,y+oy);
+      context.rotate((rasterNoise(x,y,27)-.5)*1.26);
+      fieldStrip(-3.6,-.5,width,.95+choice*.65,colors[Math.floor(choice*4)],tilt);
+      fieldStrip(-.45,-.5+tilt,width*.78,1.6,colors[Math.floor(choice*4+.9)%4],tilt*.6);
+      if (crops>=10) fieldStrip(-3.92,1.38,width+.95,1.20+choice*.24,colors[1],tilt*.5);
+      if (crops>=17) fieldStrip(.16,1.38+tilt*.5,width*.78,1.35,colors[2],tilt);
+      context.restore();
+    }
+    if (trees) {
+      const count=Math.min(12,Math.ceil(trees*.62));
+      const ox=(choice-.5)*3,oy=(rasterNoise(x,y,31)-.5)*3;
+      const grove=Array.from({length:count},(_,i)=>[
+        x+ox+(rasterNoise(x,y,i+40)-.5)*7.3,
+        y+oy+(rasterNoise(x,y,i+57)-.5)*6.1,
+        .46+rasterNoise(x,y,i+70)*.62,
+      ]).sort((a,b)=>a[1]-b[1]);
+      for (const [tx,ty,size] of grove) tree(tx,ty,size,z>1250);
+    }
+    if (crops<6 && trees<4 && z<2300) {
+      const dry=cover===60 || cover===20;
+      const marks=cover===30 || cover===90 ? 5 : dry ? 3 : 0;
+      for (let i=0;i<marks;i++) {
+        const ox=(rasterNoise(x,y,i+23)-.5)*10,oy=(rasterNoise(x,y,i+35)-.5)*9;
+        const width=.55+rasterNoise(x,y,i+89)*1.35;
+        context.lineWidth=dry?.19:.15;
+        context.lineCap='round';
+        context.beginPath();
+        context.moveTo(x+ox-width*.5,y+oy+.15);
+        context.quadraticCurveTo(x+ox,y+oy-.44,x+ox+width*.5,y+oy+.05);
+        context.strokeStyle=dry?'#815f40a3':'#405a389f';
+        context.stroke();
+        if (shade>-8) {
+          context.beginPath();
+          context.moveTo(x+ox-width*.5,y+oy);
+          context.quadraticCurveTo(x+ox,y+oy-.50,x+ox+width*.5,y+oy-.07);
+          context.strokeStyle=dry?'#f1d1979e':'#c3c880a9';
+          context.stroke();
+        }
+      }
     }
   }
+  context.restore();
 }
 function building(x,y,w,d,h,style) {
   const [face,side,roof] = style;
@@ -290,20 +355,24 @@ function mapSiteVisible(site) {
   return view.zoom>=3.3 || site.kind==='heritage'||(site.kind==='energy' && site.mw>=220);
 }
 function drawNetwork(s,local) {
-  const style = state.layer==='transport' || (mapOverlay.rail && view.zoom>=1.85);
-  if (!style) return;
-  context.lineJoin='round';context.lineCap='round';
-  context.lineWidth=Math.max(.42,1.35/s);
-  context.strokeStyle='#292c20ab';context.stroke(railPath);
-  context.lineWidth=Math.max(.18,.62/s);
-  context.strokeStyle=local?'#e2c395af':'#ddc594a7';
+  if (state.layer!=='transport' && !(mapOverlay.rail && view.zoom>=1.85)) return;
+  context.save();
+  context.lineJoin='round';
+  context.lineCap='round';
+  const detailed=s>2.3 && state.layer==='terrain';
+  context.lineWidth=detailed ? .68 : Math.max(.42,1.35/s);
+  context.strokeStyle=detailed ? '#202b24ad' : '#292c20ab';
+  context.stroke(railPath);
+  context.lineWidth=detailed ? .42 : Math.max(.18,.62/s);
+  context.strokeStyle=local ? '#e2c395af' : '#ddc594a7';
   context.stroke(railPath);
   if (s>2.3) {
-    context.setLineDash([.18,.62]);
-    context.strokeStyle='#523f2c';
+    if (detailed) context.lineCap='butt';
+    context.setLineDash(detailed ? [.13,.45] : [.18,.62]);
+    context.strokeStyle=detailed ? '#574731ba' : '#523f2c';
     context.stroke(railPath);
-    context.setLineDash([]);
   }
+  context.restore();
 }
 function drawAssets(local) {
   const candidates=data.sites.filter(mapSiteVisible).sort((a,b)=>

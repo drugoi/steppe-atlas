@@ -15,12 +15,17 @@ if (!atlas.tiles?.length || atlas.worldPop?.hexes?.length !== atlas.tiles.length
 }
 const javascript = scripts.join('');
 new Script(javascript, { filename: 'atlas.js' });
+const [relief, texture] = await Promise.all([
+  read('data/terrain-relief.json'),
+  readFile(new URL('src/assets/terrain-relief.webp', root)),
+]);
 const values = {
   CSS: css,
   DATA: snapshot.trimEnd().replaceAll('</', '<\\/'),
+  RELIEF: JSON.stringify({...JSON.parse(relief), image:'data:image/webp;base64,'+texture.toString('base64')}),
   APP: javascript,
 };
-const html = template.replace(/__(CSS|DATA|APP)__/g, (_, name) => values[name]);
+const html = template.replace(/__(CSS|DATA|RELIEF|APP)__/g, (_, name) => values[name]);
 await mkdir(new URL('dist/', root), { recursive: true });
 await Promise.all([
   writeFile(new URL('dist/index.html', root), html),

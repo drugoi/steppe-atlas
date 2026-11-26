@@ -1,6 +1,6 @@
 const defaultCity = 1526384;
 const profileTabs = {people:'People',districts:'Districts',economy:'Economy',sites:'Sites',compare:'Compare'};
-const zoomCity = () => mobile.matches ? 6.9 : 5.35;
+const zoomCity = () => mobile.matches ? 8.0 : 6.35;
 const profileScope = city => city.capital?'National capital':city.official?'City of republican significance':
   city.id===1521368?'City with special status':city.seat?'Regional centre':'City or town';
 const populationSource = city => city.popDate==='2026-10-01' ? '1 Oct 2026' : '1 Jan 2025';

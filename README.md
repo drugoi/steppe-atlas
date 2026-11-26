@@ -27,6 +27,14 @@ npm run build
 
 Input files are cached under `.cache/atlas/`. Some providers update their files in place, so a refresh can change the snapshot. Review the diff before committing. The site's **Sources** panel documents the providers, dates, licenses, and WorldPop hex aggregation.
 
+To regenerate the shaded terrain texture after refreshing the terrain sources, run:
+
+```sh
+.venv/bin/python scripts/data/download.py --relief
+.venv/bin/python scripts/data/build-relief.py
+npm run build
+```
+
 ## Deployment
 
 GitHub Actions builds changes on pull requests. On pushes to `main` and manual runs on `main`, Wrangler deploys `dist/` to the existing Cloudflare Pages project `steppe-atlas`. The workflow verifies that the custom domain serves the same HTML it built.

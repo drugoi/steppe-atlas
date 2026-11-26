@@ -1,10 +1,12 @@
 """Fetch the public inputs used to refresh the atlas snapshot."""
 
+from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import shutil
 from urllib.request import Request, urlopen
 
+RELIEF_TILES = [(x, y) for x in range(76, 99) for y in range(36, 53)]
 CACHE = Path(__file__).resolve().parents[2] / '.cache' / 'atlas'
 BNS = 'https://stat.gov.kz'
 NATURAL_EARTH = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson'
@@ -62,5 +64,16 @@ def fetch(item):
 
 
 if __name__ == '__main__':
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        list(pool.map(fetch, FILES.items()))
+    parser = ArgumentParser()
+    parser.add_argument('--relief', action='store_true', help='Download the terrain texture inputs only')
+    args = parser.parse_args()
+    files = FILES.items()
+    if args.relief:
+        files = [
+            (name, FILES[name]) for name in ('country.geojson', 'cover.png')
+        ] + [
+            (f'dem-7/{x}-{y}.png', f'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/7/{x}/{y}.png')
+            for x, y in RELIEF_TILES
+        ]
+    with ThreadPoolExecutor(max_workers=10 if args.relief else 6) as pool:
+        list(pool.map(fetch, files))

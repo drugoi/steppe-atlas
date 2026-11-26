@@ -6,6 +6,7 @@ const regionById = id => data.regions[id];
 const cityById = new Map(data.cities.map(city => [city.id, city]));
 const canvas = $('map');
 const context = canvas.getContext('2d');
+const maxZoom = 9;
 const mobile = matchMedia('(max-width:760px)');
 const fmt = new Intl.NumberFormat('en');
 const compact = new Intl.NumberFormat('en', {notation:'compact', maximumFractionDigits:1});
@@ -73,7 +74,7 @@ function readLocation() {
   const camera = params.get('at')?.split(',').map(Number);
   if (camera?.length===3 && camera.every(Number.isFinite)) {
     [view.x,view.y,view.zoom] = camera;
-    view.zoom = clamp(view.zoom,0.8,7);
+    view.zoom = clamp(view.zoom,0.8,maxZoom);
     constrainCamera();
   }
 }
@@ -106,7 +107,7 @@ function mapPoint(x,y) {
 }
 function zoomAt(factor,x=view.width/2,y=view.height/2) {
   const [mx,my] = mapPoint(x,y);
-  view.zoom = clamp(view.zoom*factor,0.8,7);
+  view.zoom = clamp(view.zoom*factor,0.8,maxZoom);
   view.x = mx - (x-view.width/2)/scale();
   view.y = my - (y-view.height/2)/scale();
   constrainCamera();
@@ -153,15 +154,25 @@ function draw() {
   context.translate(view.width/2,view.height/2);
   context.scale(s,s);
   context.translate(-view.x,-view.y);
+  const hasRelief=drawReliefSurface();
+  const [reliefX,reliefY,reliefWidth,reliefHeight]=reliefAsset.bounds;
   for (const [i,tile] of data.tiles.entries()) {
     const [x,y,terrain,id,inside] = tile;
     if (x<left || x>right || y<top || y>bottom) continue;
     drawHex(x,y);
-    context.fillStyle = state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
-    context.fill();
-    context.lineWidth = view.zoom>2.45 ? .32 : .52;
-    context.strokeStyle = inside ? '#243b2a76' : '#12251965';
+    const textured=hasRelief && x>=reliefX && x<=reliefX+reliefWidth && y>=reliefY && y<=reliefY+reliefHeight;
+    if (!textured) {
+      context.fillStyle = state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
+      context.fill();
+    } else if (local) {
+      context.fillStyle=nearby(tile,local)?'#f6db8615':'#101f241c';
+      context.fill();
+    }
+    context.lineWidth = textured ? (s<1.2 ? .68 : .82)/s : view.zoom>2.45 ? .32 : .52;
+    context.strokeStyle = textured ? (s<1.2 ? '#263d333c' : '#263d334f') : inside ? '#243b2a76' : '#12251965';
     context.stroke();
+    if (textured && s>=1.65) shadeHexEdge(x,y,s);
+    tileArtwork(tile,s);
     if (state.layer!=='density' && view.zoom>=2.5 && nearby(tile,local)) {
       context.lineWidth=.26;
       context.strokeStyle='#f4de976d';
@@ -179,7 +190,6 @@ function draw() {
         }
       }
     }
-    tileArtwork(tile,s);
     if (state.tile===i) {
       drawHex(x,y);
       if (state.layer==='density') {
@@ -225,7 +235,7 @@ function draw() {
   const km = [10,20,25,50,100,200,250,500,1000,2000].filter(x=>x<=approx).at(-1) || 5;
   document.querySelector('.scale span').textContent = km+' km';
   document.querySelector('.scale i').style.width = (km*1000/data.metersPerUnit*s)+'px';
-  $('zoom-in').disabled = view.zoom>=7;
+  $('zoom-in').disabled = view.zoom>=maxZoom;
   $('zoom-out').disabled = view.zoom<=.8;
 }
 function label(text,x,y,style,fill,shadow) {
