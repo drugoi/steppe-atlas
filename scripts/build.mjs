@@ -6,7 +6,7 @@ const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 const [template, css, snapshot, ...scripts] = await Promise.all([
   'src/index.html', 'src/atlas.css', 'data/atlas-data.json',
-  'src/i18n.js', 'src/app.js', 'src/map.js', 'src/terrain-detail.js', 'src/winter-map.js',
+  'src/i18n.js', 'src/app.js', 'src/map.js', 'src/roads.js', 'src/terrain-detail.js', 'src/winter-map.js',
   'src/cities.js', 'src/profile.js', 'src/analytics.js', 'src/startup.js',
 ].map(read));
 
@@ -21,7 +21,7 @@ if (!atlas.tiles?.length || atlas.worldPop?.hexes?.length !== atlas.tiles.length
 }
 const javascript = scripts.join('');
 new Script(javascript, { filename: 'atlas.js' });
-const [relief, texture, winterTexture, font, fontLicense, landmarks, stories, winter] = await Promise.all([
+const [relief, texture, winterTexture, font, fontLicense, landmarks, stories, winter, roads] = await Promise.all([
   read('data/terrain-relief.json'),
   readFile(new URL('src/assets/terrain-relief.webp', root)),
   readFile(new URL('src/assets/winter-relief.webp', root)),
@@ -30,7 +30,13 @@ const [relief, texture, winterTexture, font, fontLicense, landmarks, stories, wi
   read('data/city-landmarks.json').then(JSON.parse),
   read('data/city-stories.json').then(JSON.parse),
   read('data/winter.json').then(JSON.parse),
+  read('data/osm-roads.json').then(JSON.parse),
 ]);
+if (roads.version!==1 || roads.classes?.join('|')!=='motorway|trunk|primary|secondary|tertiary|local' ||
+    !roads.quantization || !roads.blockSize || roads.overview?.length!==6 || !Object.keys(roads.blocks??{}).length ||
+    !Number.isFinite(Date.parse(roads.source?.timestamp))) {
+  throw new Error('The OpenStreetMap road snapshot is missing a road class or source timestamp.');
+}
 const cityIds = new Set(atlas.cities.map(city => city.id));
 const editorialIds = [...landmarks, ...stories].map(item => item.cityId);
 const https = value => typeof value === 'string' && URL.canParse(value) && new URL(value).protocol === 'https:';
@@ -56,6 +62,7 @@ const values = {
   LANDMARKS: embeddedJSON(landmarks),
   STORIES: embeddedJSON(stories),
   WINTER: embeddedJSON(winter),
+  ROADS: embeddedJSON(roads),
   LANGUAGES: embeddedJSON(locales),
   GA4: analyticsId,
   APP: javascript,
@@ -63,8 +70,9 @@ const values = {
 await Promise.all(['en',...Object.keys(locales)].map(async locale=>{
   const directory=new URL(locale==='en'?'dist/':'dist/'+locale+'/',root);
   const localized=localizeDocument(template,locale,locales);
-  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|STORIES|WINTER|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
+  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|STORIES|WINTER|ROADS|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
   await mkdir(directory,{recursive:true});
   await writeFile(new URL('index.html',directory),html);
 }));
 await copyFile(new URL('src/assets/social-card.jpg',root),new URL('dist/social-card.jpg',root));
+await copyFile(new URL('data/osm-roads.json',root),new URL('dist/osm-roads.json',root));

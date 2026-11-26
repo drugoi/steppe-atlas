@@ -12,6 +12,8 @@ BNS = 'https://stat.gov.kz'
 NATURAL_EARTH = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson'
 TOPONYM = 'https://raw.githubusercontent.com/ashimov/toponym-kz/3e39a6f16e52b1db02232805f939d09d8d77eea1/public/data'
 WORLDPOP = 'https://data.worldpop.org/GIS/Population/Global_2015_2030/R2025A/2025/KAZ/v1/1km_ua/constrained/kaz_pop_2025_CN_1km_R2025A_UA_v1.tif'
+OSM_ROADS = 'osm/kazakhstan-261124.osm.pbf'
+OSM_ROADS_URL = 'https://download.geofabrik.de/asia/kazakhstan/kazakhstan-261124.osm.pbf'
 
 FILES = {
     'country.geojson': f'{TOPONYM}/kz-country.geojson',
@@ -65,7 +67,9 @@ def fetch(item):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--relief', action='store_true', help='Download the terrain texture inputs only')
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument('--relief', action='store_true', help='Download the terrain texture inputs only')
+    inputs.add_argument('--roads', action='store_true', help='Download the OpenStreetMap road snapshot and boundary')
     args = parser.parse_args()
     files = FILES.items()
     if args.relief:
@@ -75,5 +79,7 @@ if __name__ == '__main__':
             (f'dem-7/{x}-{y}.png', f'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/7/{x}/{y}.png')
             for x, y in RELIEF_TILES
         ]
+    if args.roads:
+        files = [('country.geojson', FILES['country.geojson']), (OSM_ROADS, OSM_ROADS_URL)]
     with ThreadPoolExecutor(max_workers=10 if args.relief else 6) as pool:
         list(pool.map(fetch, files))

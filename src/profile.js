@@ -300,6 +300,7 @@ function inspectTile(id,point) {
   atlasEvent('map_hex_inspected', {map_layer:state.layer});
 }
 let winterLegendExpanded=false;
+let transportLegendExpanded=false;
 function renderMapLegend() {
   const legend=$('legend');
   const [name,period]=layerInfo[state.layer];
@@ -332,7 +333,28 @@ function renderMapLegend() {
     content+='<p>'+escape(period)+'</p><div class="gradient" style="background:linear-gradient(90deg,'+colors.join(',')+')"></div>'
       +'<div class="range"><span>'+escape(scheme.ends[0])+'</span><span>'+escape(scheme.ends[1])+'</span></div>';
   } else if (state.layer==='transport') {
-    content+=[[hmsg("Railway"),'#d1b886'],[hmsg("Airport / port"),'#9ddadd']].map(([n,c])=>dot(n,c)).join('');
+    const line=(title,color,width,style='solid')=>'<p><i class="route-swatch" aria-hidden="true" style="border-top:'
+      +width+'px '+style+' '+color+'"></i>'+title+'</p>';
+    const date=new Intl.DateTimeFormat(locale,{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'})
+      .format(new Date(osmRoads.source.timestamp));
+    const roads=mapOverlay.roads ? line(hmsg("Motorways"),roadStyles[0].day,3)
+      +line(hmsg("Main routes"),roadStyles[1].day,2.5)
+      +line(hmsg("Regional roads"),roadStyles[3].day,1.75)
+      +line(hmsg("Local roads"),roadStyles[5].day,1)
+      +'<p class="tool-note">'+hmsg("Zoom in for more roads.")+'</p>' : '';
+    const key=roads+line(hmsg("Railway"),'#b9c9ce',2,'dashed')+dot(hmsg("Airport / port"),'#9ddadd')
+      +'<p class="network-source">OpenStreetMap · '+escape(date)+'</p>';
+    if (mobile.matches) {
+      legend.innerHTML='<details class="transport-legend"'+(transportLegendExpanded?' open':'')+'><summary>'
+        +escape(name)+'</summary>'+key+'</details>';
+      const disclosure=legend.firstElementChild;
+      disclosure.addEventListener('toggle',()=>{
+        transportLegendExpanded=disclosure.open;
+        requestDraw();
+      });
+      return;
+    }
+    content+=key;
   } else if (state.layer==='heritage') {
     content+='<p>'+hmsg("{count} selected sites",{count:data.sites.filter(s=>s.kind==='heritage').length})+'</p>'+dot(hmsg("UNESCO"),'#e2acb8');
   } else {

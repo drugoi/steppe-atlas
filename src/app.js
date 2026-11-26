@@ -335,7 +335,6 @@ function draw(timestamp=performance.now()) {
     }
   }
   if (surveyBorder) drawSurveyBorder(surveyBorder,s,winterView);
-  drawNetwork(s,local);
   context.lineWidth = 1.35/s;
   context.strokeStyle = winterView ? '#295978b8' : view.zoom>=2.5 ? '#5cb4c5c2' : '#66a5a183';
   context.stroke(rivers);
@@ -356,11 +355,13 @@ function draw(timestamp=performance.now()) {
   context.lineWidth = 1.65/s;
   context.strokeStyle = winterView ? '#d5e6edda' : '#dfc196c2';
   context.stroke(country);
+  drawRoads(s,left,top,right,bottom);
+  drawRailNetwork(s,local);
   const outlying=visibleOutlyingLandmark(s);
   const markers=cityMapMarkers(cities,s,outlying);
   for (const {city,xy,landmark,pointOnly} of [...markers].reverse()) {
     const [x,y]=xy;
-    if (pointOnly || state.layer==='density' || x<left || x>right || y<top || y>bottom) continue;
+    if (pointOnly || state.layer==='density' || state.layer==='transport' || x<left || x>right || y<top || y>bottom) continue;
     if (landmark) drawLandmark(landmark,xy,s,true);
     else drawSettlement(city,xy,s);
   }
@@ -415,6 +416,7 @@ function drawLabels(cities,local,markers,outlying) {
     }
     drawCityBanners(markers);
     drawAssets(local);
+    drawRouteShields();
   }
 }
 function keyTarget(x,y,allowTile=true) {

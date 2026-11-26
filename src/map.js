@@ -61,7 +61,7 @@ data.tiles.forEach((tile,i)=>{
   if (!tileRows.has(row)) tileRows.set(row,new Map());
   tileRows.get(row).set(column,i);
 });
-const mapOverlay = {sites:true,rail:true};
+const mapOverlay = {sites:true,rail:true,roads:true};
 function nearby(tile,city) {
   return city && Math.hypot(tile[0]-city.xy[0],tile[1]-city.xy[1])<=localRadius;
 }
@@ -340,22 +340,23 @@ function mapSiteVisible(site) {
   if (view.zoom<1.9) return false;
   return view.zoom>=3.3 || site.kind==='heritage'||(site.kind==='energy' && site.mw>=220);
 }
-function drawNetwork(s,local) {
+function drawRailNetwork(s,local) {
   if (state.layer!=='transport' && !(mapOverlay.rail && view.zoom>=1.85)) return;
+  const width=clamp(1.25+s*.21,1.45,3.2);
   context.save();
   context.lineJoin='round';
   context.lineCap='round';
-  const detailed=s>2.3 && state.layer==='terrain';
-  context.lineWidth=detailed ? .89 : Math.max(.42,1.35/s);
-  context.strokeStyle=detailed ? '#202b24ad' : '#292c20ab';
+  context.lineWidth=(width+1.1)/s;
+  context.strokeStyle='#263033ce';
   context.stroke(railPath);
-  context.lineWidth=detailed ? .48 : Math.max(.18,.62/s);
-  context.strokeStyle=local ? '#e2c395af' : '#ddc594a7';
+  context.lineWidth=width/s;
+  context.strokeStyle=local ? '#acb6b7c9' : '#9ca7a9bf';
   context.stroke(railPath);
   if (s>2.3) {
-    if (detailed) context.lineCap='butt';
-    context.setLineDash(detailed ? [.14,.40] : [.18,.62]);
-    context.strokeStyle=detailed ? '#574731ba' : '#523f2c';
+    context.lineCap='butt';
+    context.lineWidth=(width+.7)/s;
+    context.setLineDash([.85/s,3.1/s]);
+    context.strokeStyle='#394246e6';
     context.stroke(railPath);
   }
   context.restore();
@@ -429,11 +430,12 @@ function drawCityBanners(markers) {
   const dockTop=document.querySelector('.layers').offsetTop;
   const s=scale();
   const detailed=cityHexArtVisible(s);
+  const pins=state.layer==='transport' || s<1.42;
   for (const {city,x,y,box,pointOnly} of markers) {
     if (x<-100||x>view.width+100||y<-30||y>view.height+55) continue;
     const active=city.id===state.city, large=active||city.official;
     const size=active?17:large?15:13;
-    const top=box?.[1] ?? y-(s>=1.42 ? (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s : 7);
+    const top=box?.[1] ?? y-(pins ? 7 : (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s);
     const name=(active||city.official)?cityDisplayName(city).toLocaleUpperCase(locale):cityDisplayName(city);
     const nameFont='650 '+size+'px '+(locale==='en'?'"Crimson Pro", Georgia, serif':'Georgia, serif');
     context.font=nameFont;
@@ -466,10 +468,10 @@ function drawCityBanners(markers) {
       context.fillStyle=active?'#263636':'#f8ebc8';
       context.font=nameFont;
       context.fillText(name,left+numberWidth+6+textWidth/2,baseline+.65);
-      hits.push({city:city.id,x,y,r:Math.max(10,s*5.8),box:bounds});
-    } else if (!box && !pointOnly) hits.push({city:city.id,x,y,r:Math.max(6,s*4)});
+      hits.push({city:city.id,x,y,r:pins ? 10 : Math.max(10,s*5.8),box:bounds});
+    } else if (!box && !pointOnly) hits.push({city:city.id,x,y,r:pins ? 6 : Math.max(6,s*4)});
     if (pointOnly && box) marker(x,y,'·',active?'#ffe3a7':'#e8d397',{r:4,active});
-    else if (s<1.42) marker(x,y,city.capital?'✧':'·',active?'#ffe3a7':'#e8d397',{r:large?5.2:3.3,active});
+    else if (pins) marker(x,y,city.capital?'✧':'·',active?'#ffe3a7':'#e8d397',{r:large?5.2:3.3,active});
   }
 }
 const minimap=$('minimap');

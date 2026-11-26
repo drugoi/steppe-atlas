@@ -39,6 +39,12 @@ $('rail-overlay').onclick = ()=>{
   $('rail-overlay').setAttribute('aria-pressed',String(mapOverlay.rail));
   requestDraw();
 };
+$('road-overlay').onclick = ()=>{
+  mapOverlay.roads=!mapOverlay.roads;
+  $('road-overlay').setAttribute('aria-pressed',String(mapOverlay.roads));
+  renderMapLegend();
+  requestDraw();
+};
 $('minimap-reset').onclick = ()=>setFit();
 minimap.addEventListener('click',event=>{
   const b=minimap.getBoundingClientRect(),{x,y,ratio}=miniBounds;

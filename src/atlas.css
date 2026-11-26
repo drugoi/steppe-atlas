@@ -162,6 +162,8 @@ canvas.over { cursor: pointer; }
   border-bottom: 1px solid #c0a06562; color: var(--text); font: 650 18px/1 var(--display);
 }
 .legend p { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
+.route-swatch { display: block; flex: 0 0 15px; }
+.legend .network-source { color: var(--muted); font-size: 11px; margin-top: 7px; }
 .swatch {
   flex: none; width: 12px; height: 13px;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
@@ -221,9 +223,10 @@ canvas.over { cursor: pointer; }
 .minimap canvas { aspect-ratio: 1.65; height: auto; cursor: crosshair; }
 .scale { display: grid; justify-items: end; margin-top: 5px; color: var(--soft); font: 11px/1 var(--mono); }
 .scale i { display: block; height: 4px; margin-top: 1px; border: 1px solid var(--brass); border-top: 0; }
+.osm-credit { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.25; white-space: nowrap; }
 .controls {
   position: absolute; right: var(--map-inset);
-  bottom: calc(var(--minimap-bottom) + (var(--minimap-width) - 12px) / 1.65 + 61px);
+  bottom: calc(var(--minimap-bottom) + (var(--minimap-width) - 12px) / 1.65 + 74px);
   display: grid; gap: 5px;
 }
 .controls button { width: 35px; height: 32px; border: 1px solid var(--brass); border-radius: 3px; background: var(--dark-metal); font-size: 20px; line-height: 1; }
@@ -435,7 +438,7 @@ dialog li + li { margin-top: 9px; }
   }
 }
 @media (max-width: 760px) {
-  :root { --bar-height: 55px; --map-dock: 51px; --map-inset: 9px; --minimap-width: 99px; --minimap-bottom: 61px; }
+  :root { --bar-height: 55px; --map-dock: 51px; --map-inset: 9px; --minimap-width: 108px; --minimap-bottom: 61px; }
   .workspace { display: block; height: auto; min-height: 0; }
   .topbar { padding: 0 9px; gap: 8px; }
   .mark { width: 27px; height: 27px; box-shadow: inset 0 0 0 2px #244450; }
@@ -462,13 +465,14 @@ dialog li + li { margin-top: 9px; }
   .legend { min-width: 0; max-width: min(190px, 56%); padding: 5px 8px 7px; }
   .legend strong { font-size: 16px; margin-bottom: 4px; }
   .legend:has(.winter-legend) { width: min(177px,54%); pointer-events: auto; }
-  .winter-legend summary { cursor: pointer; color: var(--text); font: 650 16px/1.12 var(--display); }
-  .winter-legend[open] summary { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #8fa5aa4d; }
+  .legend:has(.transport-legend) { width: min(185px,57%); pointer-events: auto; }
+  :is(.winter-legend,.transport-legend) summary { cursor: pointer; color: var(--text); font: 650 16px/1.12 var(--display); }
+  :is(.winter-legend,.transport-legend)[open] summary { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #8fa5aa4d; }
   .winter-key { display: grid; grid-template-columns: 1fr 1fr; gap: 0 5px; }
   .winter-key p { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .legend p { gap: 5px; margin: 2px 0; }
   .swatch { width: 9px; height: 10px; }
-  .minimap button { white-space: nowrap; font-size: 14px; }
+  .minimap button { white-space: nowrap; font-size: 12px; }
   .controls button { width: 34px; height: 31px; }
   .layers { padding: 5px 5px 6px; gap: 3px; }
   .layers button { font-size: 11px; padding: 6px; }

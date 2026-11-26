@@ -33,6 +33,16 @@ npm run build
 
 Input files are cached under `.cache/atlas/`. Some providers update their files in place, so a refresh can change the snapshot. Review the diff before committing. The site's **Sources** panel documents the providers, dates, licenses, and WorldPop hex aggregation.
 
+### Refresh the road layer
+
+```sh
+.venv/bin/python scripts/data/download.py --roads
+.venv/bin/python scripts/data/build-roads.py
+npm run build
+```
+
+The road extract and snapshot timestamp are recorded in `data/osm-roads.json`, published separately under ODbL 1.0. It uses the atlas projection and stores x/y pairs as integers scaled by `quantization`. `overview` holds generalized main routes. `blocks` uses column,row keys in `blockSize` atlas units and holds arrays of lines in the order given by `classes`. Through roads cover Kazakhstan and nearby border connections. Local roads are shown within 22 km of atlas settlements. Route symbols use the OpenStreetMap `ref` tag.
+
 To regenerate the shaded terrain and winter textures after refreshing the terrain sources, run:
 
 ```sh
