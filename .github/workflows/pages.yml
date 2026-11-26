@@ -35,6 +35,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          GA4_MEASUREMENT_ID: ${{ vars.GA4_MEASUREMENT_ID }}
       - name: Deploy to Cloudflare Pages
         run: npm run deploy -- --commit-hash "$GITHUB_SHA" --commit-dirty=false
         env:

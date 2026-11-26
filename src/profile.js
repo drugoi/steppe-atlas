@@ -188,6 +188,7 @@ function inspectTile(id) {
     : 'Population unavailable for this hex.';
   updateLocation();
   requestDraw();
+  atlasEvent('map_hex_inspected', {map_layer:state.layer});
 }
 function renderMapLegend() {
   const legend=$('legend');

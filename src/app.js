@@ -353,6 +353,7 @@ function select(type,id,focus=false) {
   hideTooltip();
   $('announcement').textContent = item.name+' selected';
   updateUI();
+  atlasEvent('atlas_place_opened', {place_type:type});
   if (focus && mobile.matches) document.querySelector('.panel').scrollIntoView({block:'start'});
 }
 
@@ -571,12 +572,14 @@ $('zoom-in').onclick = ()=>zoomAt(1.38);
 $('zoom-out').onclick = ()=>zoomAt(1/1.38);
 $('reset').onclick = ()=>setFit();
 buttons('[data-layer]').forEach(button=>button.addEventListener('click',()=>{
+  const changed = state.layer!==button.dataset.layer;
   state.layer = button.dataset.layer;
   buttons('[data-layer]').forEach(btn=>btn.setAttribute('aria-pressed',btn.dataset.layer===state.layer));
   renderMapLegend();
   drawMapTitle();
   updateLocation();
   requestDraw();
+  if (changed) atlasEvent('map_layer_changed', {map_layer:state.layer});
 }));
 buttons('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
   state.mode = button.dataset.mode;
@@ -610,6 +613,7 @@ $('share').onclick = async ()=>{
     $('announcement').textContent = location.protocol==='file:' ? 'View fragment copied. Append it to your copy of the atlas.' : 'View link copied.';
     clearTimeout(shareTimer);
     shareTimer = setTimeout(()=>$('share').textContent='Copy link',1800);
+    atlasEvent('share_link_copied');
   } catch {
     window.prompt('Copy this atlas view',text);
   }

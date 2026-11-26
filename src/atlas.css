@@ -352,6 +352,18 @@ dialog p, dialog li { color: var(--soft); }
 dialog ul { padding-left: 19px; }
 dialog li + li { margin-top: 9px; }
 
+.analytics-choice {
+  position: fixed; right: 16px; bottom: 16px; z-index: 5;
+  width: min(345px, calc(100vw - 32px)); padding: 13px 16px;
+  background: #17333e; border: 1px solid var(--brass); border-radius: 4px;
+  color: var(--text); box-shadow: 0 5px 19px #0a1c2a80;
+}
+.analytics-choice h2 { margin: 0; font: 650 25px/1.1 var(--display); }
+.analytics-choice p { margin: 5px 0 11px; color: var(--soft); font-size: 13px; }
+.analytics-choice div { display: flex; gap: 7px; }
+.analytics-choice button { flex: 1; padding: 7px 9px; font-size: 12px; }
+#analytics-settings { color: var(--gold); }
+
 @media (max-width: 1180px) {
   :root { --map-inset: 13px; }
   .workspace { grid-template-columns: minmax(0, 1fr) 348px; }

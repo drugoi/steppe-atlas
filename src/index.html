@@ -74,7 +74,16 @@ __CSS__</style>
     <li>Rail geometry comes from Natural Earth. The Aktau port marker uses coordinates from Kazakhstan’s published port boundary. Scheduled airport locations come from <a href="https://ourairports.com/data/" target="_blank" rel="noopener">OurAirports</a>. Heritage markers are selected <a href="https://whc.unesco.org/en/statesparties/kz/" target="_blank" rel="noopener">UNESCO-listed sites and components</a>. Power sites use the <a href="https://datasets.wri.org/datasets/global-power-plant-database" target="_blank" rel="noopener">WRI Global Power Plant Database</a> 2021 release (CC BY 4.0). MW describes archived nameplate capacity.</li>
   </ul>
   <p>Inspired by <a href="https://karpathy.ai/usaciv/" target="_blank" rel="noopener">USA Civ</a>.</p>
+  <p><button class="link-button" id="analytics-settings" hidden>Analytics settings</button></p>
 </dialog>
+<section id="analytics-choice" class="analytics-choice" aria-labelledby="analytics-heading" data-measurement="__GA4__" hidden>
+  <h2 id="analytics-heading">Optional analytics</h2>
+  <p>Allow Google Analytics to measure visits and use of the atlas? You can change your choice in Sources.</p>
+  <div>
+    <button class="action" id="analytics-decline">Decline</button>
+    <button class="action" id="analytics-allow">Allow analytics</button>
+  </div>
+</section>
 <div id="announcement" class="sr" role="status"></div>
 <script id="atlas-data" type="application/json">__DATA__</script>
 <script id="terrain-relief" type="application/json">__RELIEF__</script>

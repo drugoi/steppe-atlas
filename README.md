@@ -40,3 +40,5 @@ npm run build
 GitHub Actions builds changes on pull requests. On pushes to `main` and manual runs on `main`, Wrangler deploys `dist/` to the existing Cloudflare Pages project `steppe-atlas`. The workflow verifies that the custom domain serves the same HTML it built.
 
 The repository uses the Actions variable `CLOUDFLARE_ACCOUNT_ID` and encrypted secret `CLOUDFLARE_API_TOKEN`. The token needs account-level Pages Write. For a manual deployment from an authenticated development machine, run `npm run build` followed by `npm run deploy`.
+
+The production build also reads the optional Actions variable `GA4_MEASUREMENT_ID`. The Google tag only loads on `kazakhstan.drugoi.dev` after a visitor opts in. The atlas sends one page view per load and events for changing map layers, opening places, inspecting hexes, and copying links. It omits search text and map coordinates. In the GA4 web stream settings, keep history-based page views disabled.
