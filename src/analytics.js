@@ -5,7 +5,6 @@ const analyticsKey = 'steppe-atlas-analytics-'+measurementId;
 const atlasCookiePrefix = 'steppe_atlas';
 let analyticsChoice = null;
 let analyticsEnabled = false;
-let atlasPageViewSent = false;
 
 function atlasEvent(name, parameters={}) {
   if (analyticsEnabled) window.gtag('event', name, parameters);
@@ -47,7 +46,6 @@ function setAtlasAnalytics(allow) {
     window.gtag('consent','update',{analytics_storage:'granted'});
     window.gtag('js',new Date());
     window.gtag('config',measurementId,{
-      send_page_view:false,
       allow_google_signals:false,
       allow_ad_personalization_signals:false,
       cookie_prefix:atlasCookiePrefix,
@@ -60,10 +58,6 @@ function setAtlasAnalytics(allow) {
     tag.async = true;
     tag.src = 'https://www.googletagmanager.com/gtag/js?id='+measurementId;
     document.head.append(tag);
-  }
-  if (!atlasPageViewSent) {
-    atlasPageViewSent = true;
-    atlasEvent('page_view');
   }
 }
 
