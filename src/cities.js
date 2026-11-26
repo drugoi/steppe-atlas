@@ -11,13 +11,39 @@ function localizedStories(id) {
 }
 const cityLandmarks = localizedStories('city-landmarks');
 const cityStories = localizedStories('city-stories');
+const cityHexes = new Map();
+const citiesByTile = new Map();
+for (const city of data.cities) {
+  const tile=nearestTile(...city.xy);
+  cityHexes.set(city.id,tile);
+  const cities=citiesByTile.get(tile) ?? [];
+  cities.push(city);
+  citiesByTile.set(tile,cities);
+}
+
+const cityHexLandmarks = new Map();
 const landmarksByTile = new Map();
 for (const item of cityLandmarks.values()) {
-  const tile=nearestTile(...item.xy);
+  const city=cityById.get(item.cityId);
+  const cityTile=cityHexes.get(city.id);
+  let tile=nearestTile(...item.xy);
+  if (tile===cityTile || landmarkDistance(city,item)<7) {
+    cityHexLandmarks.set(city.id,item);
+    tile=cityTile;
+  }
   const entries=landmarksByTile.get(tile) ?? [];
   entries.push(item);
   landmarksByTile.set(tile,entries);
 }
+
+function cityHexPoint(city) {
+  const tile=data.tiles[cityHexes.get(city.id)];
+  return tile ? tile.slice(0,2) : city.xy;
+}
+function cityFocusPoint(city) {
+  return ['terrain','winter'].includes(state.layer) ? cityHexPoint(city) : city.xy;
+}
+
 const environments = new Map();
 function cityEnvironment(city) {
   if (!environments.has(city.id)) {
@@ -62,8 +88,8 @@ function landscapeStyle(city) {
 }
 
 const landmarkSprites = new Map();
-function landmarkSprite(style,winterView=false) {
-  const key=winterView ? style+'-winter' : style;
+function landmarkSprite(style,winterView=false,cityScene=false) {
+  const key=style+'|'+winterView+'|'+cityScene;
   if (landmarkSprites.has(key)) return landmarkSprites.get(key);
   const surface = document.createElement('canvas');
   surface.width=surface.height=192;
@@ -108,9 +134,24 @@ function landmarkSprite(style,winterView=false) {
   };
   const teal='#3b8e87', jade='#75b9a4', gold='#e8ba61', cream='#f3d799', dark='#213b42';
   const clay='#b47852', lightClay='#d5a16b';
-  oval(52,77,39,12,'#11252b72');
-  polygon([[12,68],[48,56],[85,67],[85,75],[49,87],[12,76]],winterView?'#52677b':'#5e6656');
-  polygon([[12,68],[48,55],[85,67],[49,80]],winterView?'#c5dce4':'#c3a980',winterView?'#ebf4f2':'#f5dba3');
+  if (cityScene) {
+    oval(49,76,45,12,'#11252b72');
+    polygon([[5,62],[27,47],[69,46],[91,59],[91,72],[69,84],[28,87],[5,74]],
+      winterView?'#54687b':'#5e6656');
+    polygon([[5,62],[27,47],[69,46],[91,59],[69,77],[27,80]],winterView?'#c0d5dd':'#c3a980',
+      winterView?'#e6f2f2':'#f5dba3');
+    line([[8,63],[28,72],[64,72],[85,61]],winterView?'#ecf5f2':'#e8cb8f',1.1);
+    // Small blocks share the city platform and frame its landmark.
+    box(12,53,10,13,'#91a9a3','#536f73',winterView?'#edf3f1':'#c2d0b9',3);
+    box(18,48,8,14,'#cfba96','#856f62',winterView?'#e8edeb':'#d6c18e',3);
+    box(74,53,9,13,'#acb0a0','#5a7573',winterView?'#e8eeed':'#b9bd9c',3);
+    box(80,57,6,9,'#c4a689','#806f65',winterView?'#e8eeed':'#d6b689',3);
+    for (const [x,y] of [[15,58],[20,53],[77,57],[82,61]]) line([[x,y],[x,y+2.6]],dark,1.1);
+  } else {
+    oval(52,77,39,12,'#11252b72');
+    polygon([[12,68],[48,56],[85,67],[85,75],[49,87],[12,76]],winterView?'#52677b':'#5e6656');
+    polygon([[12,68],[48,55],[85,67],[49,80]],winterView?'#c5dce4':'#c3a980',winterView?'#ebf4f2':'#f5dba3');
+  }
   if (style==='cathedral') {
     box(23,52,44,19,'#e5b65c','#a57543','#e5c981');
     for (let x=27;x<66;x+=8) opening(x,55,3.3,10,'#40676a');
@@ -424,40 +465,33 @@ function landmarkSprite(style,winterView=false) {
     opening(46,53,7,18,'#4c5551');
     for (const x of [29,35,60,68]) opening(x,56,3,9,'#51686a');
   }
-  const sprite = {surface,url:surface.toDataURL('image/png')};
+  let url;
+  const sprite={surface,get url() { return url ??= surface.toDataURL('image/png'); }};
   landmarkSprites.set(key,sprite);
   return sprite;
 }
 
-function mappedLandmark(city,s) {
-  if (!city || city.id!==state.city || view.zoom<2.5 || s<1.42 ||
-      !['terrain','winter'].includes(state.layer)) return null;
-  return cityLandmarks.get(city.id);
-}
-function landmarkInCityHex(city,item) {
-  return nearestTile(...city.xy)===nearestTile(...item.xy);
+function cityHexArtVisible(s) {
+  return view.zoom>=2.5 && s>=1.42 && ['terrain','winter'].includes(state.layer);
 }
 function landmarkDistance(city,item) {
   return Math.hypot(city.xy[0]-item.xy[0],city.xy[1]-item.xy[1])*data.metersPerUnit/1000;
 }
-function landmarkBox(s) {
-  const size = clamp(16*s,47,86);
+function landmarkDimensions(s,cityScene) {
+  const size=cityScene ? Math.min(92,data.radius*1.78*s) : clamp(16*s,47,86);
   return {size,anchorX:size*.50,anchorY:size*.77};
 }
-function drawLandmark(item,s) {
-  const {size,anchorX,anchorY} = landmarkBox(s);
-  const [x,y] = item.xy;
-  if (state.landmark===item.cityId) {
-    ellipse(x,y+1,9,5,'#fff1aa64');
-    ellipse(x,y+1,7,3.8,'#bbdac080');
-  }
-  context.drawImage(landmarkSprite(item.style,state.layer==='winter').surface,x-anchorX/s,y-anchorY/s,size/s,size/s);
+function landmarkBounds(xy,s,cityScene) {
+  const [x,y]=viewPoint(xy);
+  const {size,anchorX,anchorY}=landmarkDimensions(s,cityScene);
+  return [x-anchorX*.94,y-anchorY*.96,x+(size-anchorX)*.94,y+(size-anchorY)*.69];
 }
-function addLandmarkHit(city,s) {
-  const item=mappedLandmark(city,s);
-  if (!item) return;
-  const [x,y] = viewPoint(item.xy);
-  const {size,anchorX,anchorY} = landmarkBox(s);
-  const box=[x-anchorX*.82,y-anchorY*.87,x+(size-anchorX)*.86,y+(size-anchorY)*.43];
-  hits.push({landmark:item.cityId,x,y,r:Math.max(12,size*.32),box});
+function drawLandmark(item,xy,s,cityScene=false) {
+  const {size,anchorX,anchorY}=landmarkDimensions(s,cityScene);
+  const [x,y]=xy;
+  if (state.landmark===item.cityId) {
+    ellipse(x,y+1,size*.48/s,size*.23/s,'#fff1aa80');
+  }
+  context.drawImage(landmarkSprite(item.style,state.layer==='winter',cityScene).surface,
+    x-anchorX/s,y-anchorY/s,size/s,size/s);
 }

@@ -172,7 +172,8 @@ function renderInspector() {
     const distance=Math.round(landmarkDistance(cityById.get(item.cityId),item));
     const place=distance>=7 ? msg("{distance} km from {place}",{distance:fmt.format(distance),place:item.city}) : item.city;
     body='<strong>'+escape(item.name)+'</strong><p>'+escape(place)+(item.localName?' · '+escape(item.localName):'')+'</p>'
-      +'<p>'+escape(item.fact)+'</p><small>'+hmsg("Schematic miniature at the published location")+'</small>'
+      +'<p>'+escape(item.fact)+'</p><small>'+(cityHexLandmarks.has(item.cityId)
+        ? hmsg("Illustrated in the city hex") : hmsg("Schematic miniature at the published location"))+'</small>'
       +'<p><a href="'+escape(item.source)+'" target="_blank" rel="noopener">'+hmsg("Landmark record")+'</a> · '
       +'<a href="'+escape(item.coordinateSource)+'" target="_blank" rel="noopener">'+hmsg("Coordinates")+'</a></p>';
   } else if (state.site) {
@@ -199,13 +200,16 @@ function renderInspector() {
       const temperature=winterTemperature(state.tile);
       const winterDetails=state.layer==='winter' ? '<div class="hex-population"><strong>'
         +(temperature===null?hmsg("No winter data"):celsius(temperature))+'</strong><span>'+hmsg("Dec–Feb mean · {period}",{period:winter.source.period})+'</span></div>' : '';
+      const places=citiesByTile.get(state.tile) ?? [];
+      const cityLinks=places.length ? '<p>'+hmsg("Places in this hex")+' · '+places.map(city=>
+        '<button class="link-button" data-inspect-city="'+city.id+'">'+escape(cityDisplayName(city))+'</button>').join(' · ')+'</p>' : '';
       const landmarks=(landmarksByTile.get(state.tile) ?? []).map(item=>'<p><button class="link-button" data-inspect-landmark="'
         +item.cityId+'">'+escape(item.name)+'</button></p>').join('');
       body='<strong>'+escape(coverLabel[tile[7]])+'</strong><p>'+[range,r?hmsg("Hex centre: {region}",{region:regionDisplayName(r)}):'' ,r?'<button class="link-button" data-inspect-region="'+r.id+'">'+hmsg("Division profile")+'</button>':''].filter(Boolean).join(' · ')+'</p>'
         +winterDetails
         +'<div class="hex-population">'+population
         +'<a href="https://hub.worldpop.org/doi/10.5258/SOTON/WP00840" target="_blank" rel="noopener">'+hmsg("WorldPop {year} · modeled estimate",{year:data.worldPop.year})+'</a></div>'
-        +landmarks
+        +cityLinks+landmarks
         +'<small>'+hmsg("Generalized land cover · ESA 2021")+'</small>';
     }
   }
@@ -220,7 +224,7 @@ function inspectLandmark(id,focus) {
   state.landmark=id;
   if (focus) {
     if (!['terrain','winter'].includes(state.layer)) state.layer='terrain';
-    [view.x,view.y]=item.xy;
+    [view.x,view.y]=cityHexLandmarks.has(id) ? cityHexPoint(cityById.get(id)) : item.xy;
     view.zoom=Math.max(view.zoom,zoomCity());
     if (mobile.matches) document.querySelector('.map').scrollIntoView({block:'start'});
   }

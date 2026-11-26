@@ -94,7 +94,7 @@ function readLocation() {
   if (state.landmark) state.site=state.tile=state.district=null;
   setFit(false);
   if (state.city) {
-    [view.x,view.y]=cityById.get(state.city).xy;
+    [view.x,view.y]=cityFocusPoint(cityById.get(state.city));
     view.zoom=zoomCity();
   }
   const camera = params.get('at')?.split(',').map(Number);
@@ -279,15 +279,18 @@ function draw() {
   context.lineWidth = 1.65/s;
   context.strokeStyle = winterView ? '#d5e6edda' : '#dfc196c2';
   context.stroke(country);
-  const featured=mappedLandmark(local,s);
-  for (const city of cities) {
-    const [x,y] = city.xy;
+  const markers=cityMapMarkers(cities,s);
+  const outlying=cityHexArtVisible(s) && state.landmark!==null && !cityHexLandmarks.has(state.landmark)
+    ? cityLandmarks.get(state.landmark) : null;
+  for (const {city,xy,landmark} of [...markers].reverse()) {
+    const [x,y]=xy;
     if (state.layer==='density' || x<left || x>right || y<top || y>bottom) continue;
-    if (city.id!==featured?.cityId || !landmarkInCityHex(city,featured)) drawSettlement(city,s);
+    if (landmark) drawLandmark(landmark,xy,s,true);
+    else drawSettlement(city,xy,s);
   }
-  if (featured) drawLandmark(featured,s);
+  if (outlying) drawLandmark(outlying,outlying.xy,s);
   context.restore();
-  drawLabels(cities,local);
+  drawLabels(cities,local,markers,outlying);
   drawMinimap();
   drawMapTitle();
   const scaleBar = document.querySelector('.scale');
@@ -309,7 +312,7 @@ function label(text,x,y,style,fill,shadow) {
   context.fillStyle = fill;
   context.fillText(text,x,y);
 }
-function drawLabels(cities,local) {
+function drawLabels(cities,local,markers,outlying) {
   hits = [];
   if (view.zoom<2.75 && (!mobile.matches || view.zoom>=1.6)) {
     for (const [name,xy] of data.labels) {
@@ -328,8 +331,13 @@ function drawLabels(cities,local) {
   }
   if (state.layer==='density') drawDensityLabels(cities);
   else {
-    addLandmarkHit(local,scale());
-    drawCityBanners(cities);
+    if (outlying) hits.push({landmark:outlying.cityId,box:landmarkBounds(outlying.xy,scale(),false)});
+    for (const {city,landmark,box} of markers) {
+      if (!box) continue;
+      const hit=landmark && city.id===state.city ? {landmark:landmark.cityId} : {city:city.id};
+      hits.push({...hit,box});
+    }
+    drawCityBanners(markers);
     drawAssets(local);
   }
 }
@@ -402,7 +410,7 @@ function select(type,id,focus=false) {
   state.city = type==='city' ? id : null;
   state.region = type==='region' ? id : null;
   if (focus || type==='city') {
-    [view.x,view.y] = item.xy;
+    [view.x,view.y] = type==='city' ? cityFocusPoint(item) : item.xy;
     view.zoom = type==='city' ? zoomCity() : 1.9;
   }
   state.tab='people';

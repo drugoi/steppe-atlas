@@ -53,12 +53,10 @@ $('inspector').addEventListener('click',event=>{
   if (event.target.closest('[data-inspect-close]')) closeInspector();
   const region=event.target.closest('[data-inspect-region]');
   if (region) select('region',Number(region.dataset.inspectRegion));
+  const city=event.target.closest('[data-inspect-city]');
+  if (city) select('city',Number(city.dataset.inspectCity));
   const landmark=event.target.closest('[data-inspect-landmark]');
-  if (landmark) {
-    const id=Number(landmark.dataset.inspectLandmark);
-    if (state.city!==id) select('city',id);
-    inspectLandmark(id,true);
-  }
+  if (landmark) inspectLandmark(Number(landmark.dataset.inspectLandmark),true);
 });
 window.addEventListener('hashchange',()=>{readLocation();updateUI(false);});
 mobile.addEventListener('change',renderMapLegend);

@@ -322,12 +322,15 @@ const winterSettlementPaint = [
   ['#a9b2b9','#627882','#dfe9ec'],['#aac7ce','#5c7f8f','#ebf1f2'],
   ['#c6b6aa','#7c777c','#eaddd8'],['#a6b6c9','#61758c','#d7e8f0']
 ];
-function drawSettlement(city,s) {
+function settlementScale(city) {
+  return city.official ? (city.id===state.city ? 1.30 : 1.12) : city.seat ? .86 : .61;
+}
+function drawSettlement(city,xy,s) {
   const active = city.id===state.city;
-  const [x,y] = city.xy;
+  const [x,y] = xy;
   if (s<1.42) return;
   const winterView=state.layer==='winter';
-  const size=city.official ? (active ? 1.30 : 1.12) : city.seat ? .86 : .61;
+  const size=settlementScale(city);
   context.save();
   context.translate(x,y);
   context.scale(size,size);
@@ -403,6 +406,26 @@ function shownCityMarkers() {
   const limit = view.zoom>=1.65 ? data.cities.length : mobile.matches? 10 : 21;
   const chunk = data.cities.slice(0,limit);
   return main ? [main,...chunk.filter(c=>c!==main)] : chunk;
+}
+function cityMapMarkers(cities,s) {
+  const detailed=cityHexArtVisible(s);
+  const occupied=new Set();
+  const markers=[];
+  for (const city of cities) {
+    const tile=cityHexes.get(city.id);
+    if (detailed && tile!==undefined && occupied.has(tile)) continue;
+    const xy=detailed ? cityHexPoint(city) : city.xy;
+    const [x,y]=viewPoint(xy);
+    const landmark=detailed ? cityHexLandmarks.get(city.id) : null;
+    let box=null;
+    if (detailed && x>=-100 && x<=view.width+100 && y>=-40 && y<=view.height+80) {
+      const scale=settlementScale(city)*s;
+      box=landmark ? landmarkBounds(xy,s,true) : [x-8*scale,y-7.5*scale,x+9*scale,y+5.6*scale];
+    }
+    markers.push({city,xy,landmark,box,x,y});
+    if (detailed && tile!==undefined) occupied.add(tile);
+  }
+  return markers;
 }
 function mapSiteVisible(site) {
   if (!mapOverlay.sites && !['transport','heritage'].includes(state.layer)) return false;
@@ -491,25 +514,20 @@ function drawDensityLabels(cities) {
     ellipse(x,y,active?2.7:1.8,active?'#ffdf9a':'#f3efe1');
   }
 }
-function drawCityBanners(cities) {
+function drawCityBanners(markers) {
   const mapRect=canvas.getBoundingClientRect();
   const taken=Array.from(document.querySelectorAll('.map :is(.title,.legend,.minimap,.controls,.winter-toggle)'),element=>{
     const rect=element.getBoundingClientRect();
     return [rect.left-mapRect.left,rect.top-mapRect.top,rect.right-mapRect.left,rect.bottom-mapRect.top];
   });
-  const feature=hits.find(hit=>hit.landmark);
-  if (feature) taken.push(feature.box);
+  taken.push(...hits.filter(hit=>hit.box).map(hit=>hit.box));
   const dockTop=document.querySelector('.layers').offsetTop;
   const s=scale();
-  for (const city of cities) {
-    const landmark=mappedLandmark(city,s);
-    const sharesHex=landmark && landmarkInCityHex(city,landmark);
-    const [x,y]=viewPoint(sharesHex ? landmark.xy : city.xy);
+  for (const {city,x,y,box} of markers) {
     if (x<-100||x>view.width+100||y<-30||y>view.height+55) continue;
     const active=city.id===state.city, large=active||city.official;
     const size=active?17:large?15:13;
-    let baseline=y-(sharesHex ? landmarkBox(s).anchorY : s>=1.42 ?
-      (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s : 7)-11;
+    const top=box?.[1] ?? y-(s>=1.42 ? (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s : 7);
     const name=(active||city.official)?cityDisplayName(city).toLocaleUpperCase(locale):cityDisplayName(city);
     const nameFont='650 '+size+'px '+(locale==='en'?'"Crimson Pro", Georgia, serif':'Georgia, serif');
     context.font=nameFont;
@@ -519,17 +537,15 @@ function drawCityBanners(cities) {
     const numberWidth=context.measureText(people).width+12;
     const w=textWidth+numberWidth+17;
     const left=x-w/2;
-    if (active && feature && !sharesHex) {
-      const [a,b,c,d]=feature.box;
-      if (left-4<c && left+w+4>a && baseline-10<d && baseline+10>b) {
-        const below=Math.max(y+15+4*s,d+13);
-        baseline=below+10<dockTop ? below : b-13;
-      }
-    }
-    const bounds=[left-4,baseline-10,left+w+4,baseline+10];
-    const overlaps=taken.some(([a,b,c,d])=>bounds[0]<c&&bounds[2]>a&&bounds[1]<d&&bounds[3]>b);
-    const fits=bounds[0]>=4 && bounds[2]<=view.width-4 && bounds[1]>=4 && bounds[3]<=dockTop-4;
-    if ((!overlaps && fits) || active) {
+    const fitsAt=baseline=>left-4>=4 && left+w+4<=view.width-4 && baseline-10>=4 &&
+      baseline+10<=dockTop-4 && !taken.some(([a,b,c,d])=>
+        left-4<c && left+w+4>a && baseline-10<d && baseline+10>b);
+    const above=top-11;
+    const below=(box?.[3] ?? y+7)+12;
+    const levels=active ? [above,below,above-23,below+22] : [above];
+    const baseline=levels.find(fitsAt) ?? (active ? above : null);
+    if (baseline!==null) {
+      const bounds=[left-4,baseline-10,left+w+4,baseline+10];
       taken.push(bounds);
       const banner=[[left-4,baseline],[left+2,baseline-9],[left+w-2,baseline-9],
         [left+w+4,baseline],[left+w-2,baseline+9],[left+2,baseline+9]];
@@ -545,7 +561,7 @@ function drawCityBanners(cities) {
       context.font=nameFont;
       context.fillText(name,left+numberWidth+6+textWidth/2,baseline+.65);
       hits.push({city:city.id,x,y,r:Math.max(10,s*5.8),box:bounds});
-    } else hits.push({city:city.id,x,y,r:Math.max(6,s*4)});
+    } else if (!box) hits.push({city:city.id,x,y,r:Math.max(6,s*4)});
     if (s<1.42) marker(x,y,city.capital?'✧':'·',active?'#ffe3a7':'#e8d397',{r:large?5.2:3.3,active});
   }
 }
