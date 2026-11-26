@@ -3,7 +3,8 @@ const profileTabs = {people:'People',districts:'Districts',economy:'Economy',sit
 const zoomCity = () => mobile.matches ? 8.0 : 6.35;
 const profileScope = city => city.capital?'National capital':city.official?'City of republican significance':
   city.id===1521368?'City with special status':city.seat?'Regional centre':'City or town';
-const populationSource = city => city.popDate==='2026-10-01' ? '1 Oct 2026' : '1 Jan 2025';
+const populationSource = city => city.popDate==='2026-10-01' ? '1 Oct 2026' :
+  city.popDate==='2025-01-01' ? '1 Jan 2025' : 'GeoNames estimate';
 const categoryRanks = [['pop','People'],['grp','Output'],['capita','Per person'],['realGrowth','Growth']];
 function populationGlyphs(percent) {
   return '<div class="dots" aria-label="'+pct(percent)+' urban">'+Array.from({length:20},(_,i)=>
@@ -88,14 +89,34 @@ function divisionsComparison(region) {
       +escape(r.name)+'</button></th><td>'+compact.format(r.pop)+'</td><td>₸'+compact.format(r.capita)+'</td><td>'+delta(r.realGrowth)+'%</td></tr>').join('')
     +'</tbody></table></section>';
 }
+function winterCityProfile(city) {
+  const months=winter.cities[city.id];
+  return '<section class="city-winter"><h3>Winter in '+escape(city.name)+'</h3>'
+    +'<p>Monthly mean air temperature · '+escape(winter.source.period)+'</p>'
+    +'<dl>'+['Dec','Jan','Feb'].map((month,i)=>'<div><dt>'+month+'</dt><dd>'+celsius(months[i])+'</dd></div>').join('')+'</dl>'
+    +'<a href="'+escape(winter.source.url)+'" target="_blank" rel="noopener">'+escape(winter.source.name)+'</a></section>';
+}
+function cityFieldNote(city) {
+  const landmark=cityLandmarks.get(city.id);
+  const environment=cityEnvironment(city);
+  const position=data.cities.indexOf(city)+1;
+  const title=landmark ? escape(landmark.name) : 'Around '+escape(city.name);
+  const note=landmark ? escape(landmark.fact) : escape(landscapeStory(city));
+  const location=landmark ? '<button class="field-location" data-landmark="'+city.id+'" aria-label="Locate '+title+' on map">'
+    +'<span>Locate on map</span><i aria-hidden="true"></i></button>' : '<span class="field-scope">110 km survey radius</span>';
+  const art='<img src="'+landmarkSprite(landmark?.style ?? landscapeStyle(city)).url+'" alt="" width="74" height="74">';
+  const elevation=environment.centreElevation===null?'': '<div><dt>Centre hex elevation</dt><dd>'+fmt.format(environment.centreElevation)+' m</dd></div>';
+  return '<section class="city-field-note"><div class="field-copy">'+art+'<div><h3>'+title+'</h3><p>'+note+'</p>'+location+'</div></div>'
+    +'<dl class="city-facts"><div><dt>Population rank in atlas</dt><dd>'+position+' of '+data.cities.length+'</dd></div>'+elevation+'</dl></section>';
+}
 function atlasProfile(region,city) {
   const title=city?.name || region.name || 'Kazakhstan';
   const detailScope=city ? profileScope(city) : region.id ? 'Division profile' : 'National profile';
-  const pop=city?.pop || region.pop;
+  const pop=city ? city.pop : region.pop;
   const subtitle=city ? (city.official ? region.kk : 'Statistics for '+region.name) : (region.kk||'Қазақстан Республикасы');
-  const ranks=region.id ? '<div class="rank-row">'+categoryRanks.map(([key,name])=>'<p><strong>#'+rankMetric(region,key)+'</strong>'+name+'</p>').join('')+'</div>' : '';
+  const ranks=region.id ? '<div class="rank-row" aria-label="Division rankings">'+categoryRanks.map(([key,name])=>'<p><strong>#'+rankMetric(region,key)+'</strong>'+name+'</p>').join('')+'</div>' : '';
   const header='<header class="profile"><h2>'+escape(title)+'</h2><p class="sub">'+detailScope+' <span aria-hidden="true">·</span> '+escape(subtitle)+'</p>'
-    +'<div class="profile-metrics">'+primary(city?'City population':'Population',fmt.format(pop),city?populationSource(city):'1 Oct 2026')
+    +'<div class="profile-metrics">'+primary(city?'City population':'Population',pop===null?'—':fmt.format(pop),city?populationSource(city):'1 Oct 2026')
     +primary(region.id?'Regional product':'GDP',money(region.grp),'₸'+compact.format(region.capita)+' per person · 2025')+'</div>'+ranks+'</header>';
   const tabs='<div class="panel-tabs" role="group" aria-label="Profile sections">'+Object.entries(profileTabs).map(([id,title])=>
     '<button data-tab="'+id+'" aria-pressed="'+(state.tab===id)+'">'+title+'</button>').join('')+'</div>';
@@ -105,8 +126,11 @@ function atlasProfile(region,city) {
   else if (state.tab==='sites') body=sitesProfile(region,city);
   else if (state.tab==='compare') body=(city?cityComparison(city):'')+divisionsComparison(region);
   else body=peopleProfile(region);
-  const scope = city && !city.official ? '<p class="dataset-note">Population at the top is for the settlement. The charts and rankings use '+escape(region.name)+' data.</p>' : '';
-  return header+tabs+'<div class="tab-body">'+scope+body+'<p class="data-link"><button class="link-button" data-credits>Data and methods</button></p></div>';
+  const scope = city && !city.official && ['people','districts','economy'].includes(state.tab) ?
+    '<p class="dataset-note">Charts and division rankings use '+escape(region.name)+' data.</p>' : '';
+  const fieldNote=city && state.tab==='people' ? cityFieldNote(city) : '';
+  const climate=city && state.layer==='winter' ? winterCityProfile(city) : '';
+  return header+tabs+'<div class="tab-body">'+climate+fieldNote+scope+body+'<p class="data-link"><button class="link-button" data-credits>Data and methods</button></p></div>';
 }
 function selectProfileTab(tab,restoreFocus=false) {
   if (!Object.hasOwn(profileTabs,tab)) return;
@@ -116,14 +140,20 @@ function selectProfileTab(tab,restoreFocus=false) {
   if (restoreFocus) document.querySelector('[data-tab="'+tab+'"]')?.focus({preventScroll:true});
 }
 function closeInspector(save=true) {
-  state.site=null;state.tile=null;state.district=null;
+  state.site=null;state.tile=null;state.district=null;state.landmark=null;
   $('inspector').hidden=true;
   if (save) updateLocation();
   requestDraw();
 }
 function renderInspector() {
   let body;
-  if (state.site) {
+  if (state.landmark) {
+    const item=cityLandmarks.get(state.landmark);
+    body='<strong>'+escape(item.name)+'</strong><p>'+escape(item.city)+(item.localName?' · '+escape(item.localName):'')+'</p>'
+      +'<p>'+escape(item.fact)+'</p><small>Schematic miniature at the published location</small>'
+      +'<p><a href="'+escape(item.source)+'" target="_blank" rel="noopener">Landmark record</a> · '
+      +'<a href="'+escape(item.coordinateSource)+'" target="_blank" rel="noopener">Coordinates</a></p>';
+  } else if (state.site) {
     const s=sitesById.get(state.site);
     const subtitle=s.kind==='energy'?'Archived nameplate capacity · WRI v1.3.0':
       s.kind==='heritage'?'UNESCO World Heritage · inscribed '+s.year:
@@ -144,14 +174,36 @@ function renderInspector() {
       const population=sample
         ? '<strong>'+escape(estimatedPeople(sample[0]))+' residents</strong><span>'+escape(describeDensity(sample))+'</span>'
         : '<span>Population unavailable for this hex</span>';
+      const temperature=winterTemperature(state.tile);
+      const winterDetails=state.layer==='winter' ? '<div class="hex-population"><strong>'
+        +(temperature===null?'No winter data':celsius(temperature))+'</strong><span>Dec–Feb mean · '+escape(winter.source.period)+'</span></div>' : '';
+      const landmarks=(landmarksByTile.get(state.tile) ?? []).map(item=>'<p><button class="link-button" data-inspect-landmark="'
+        +item.cityId+'">'+escape(item.name)+'</button></p>').join('');
       body='<strong>'+coverLabel[tile[7]]+'</strong><p>'+[range,r?'Hex centre: '+escape(r.name):'',r?'<button class="link-button" data-inspect-region="'+r.id+'">Division profile</button>':''].filter(Boolean).join(' · ')+'</p>'
+        +winterDetails
         +'<div class="hex-population">'+population
         +'<a href="https://hub.worldpop.org/doi/10.5258/SOTON/WP00840" target="_blank" rel="noopener">WorldPop '+data.worldPop.year+' · modeled estimate</a></div>'
+        +landmarks
         +'<small>Generalized land cover · ESA 2021</small>';
     }
   }
   $('inspector').hidden=!body;
   if (body) $('inspector').innerHTML='<button data-inspect-close title="Close map inspection" aria-label="Close map inspection">×</button>'+body;
+}
+function inspectLandmark(id,focus) {
+  const item=cityLandmarks.get(id);
+  if (!item || state.city!==id) return;
+  closeInspector(false);
+  state.landmark=id;
+  if (focus) {
+    if (!['terrain','winter'].includes(state.layer)) state.layer='terrain';
+    [view.x,view.y]=item.xy;
+    view.zoom=Math.max(view.zoom,zoomCity());
+    if (mobile.matches) document.querySelector('.map').scrollIntoView({block:'start'});
+  }
+  $('announcement').textContent=item.name+' in '+item.city;
+  updateUI();
+  if (focus) $('inspector').querySelector('button').focus({preventScroll:true});
 }
 function inspectSite(id,focus) {
   const s=sitesById.get(id);
@@ -198,7 +250,10 @@ function renderMapLegend() {
   const scheme=layerColor[state.layer];
   legend.classList.toggle('worldpop-legend',state.layer==='density');
   $('show-sites').disabled=state.layer==='density';
-  if (state.layer==='density') {
+  if (state.layer==='winter') {
+    content+='<p>Dec–Feb · '+escape(winter.source.period)+'</p>'
+      +winterBands.map(band=>dot(band.label,band.color)).join('')+dot('No land sample',winterMissing);
+  } else if (state.layer==='density') {
     const entries=densityClasses.map(bin=>dot(escape(bin.label),bin.color));
     entries.push(dot('No data',densityNoData));
     content+='<p>People/km² · WorldPop '+data.worldPop.year+'</p><div class="worldpop-key">'+entries.join('')+'</div>';

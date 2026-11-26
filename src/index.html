@@ -36,6 +36,7 @@ __CSS__</style>
   <section class="map" aria-label="Interactive map of Kazakhstan">
     <canvas id="map" tabindex="0" aria-label="Kazakhstan hex map. Use the arrow keys to pan, plus and minus to zoom, Home to reset, and Enter to inspect the centre hex in local view or the Density layer. Use search to select places by keyboard.">Explore places using the search box or the lists in the atlas panel.</canvas>
     <div class="title"><h1 id="map-title">Kazakhstan</h1><p id="subtitle"></p><span class="sr" id="map-kicker">Қазақстан</span></div>
+    <button class="action winter-toggle" data-layer="winter" title="Explore historical winter temperatures">Winter</button>
     <div class="legend" id="legend" aria-label="Map legend"></div>
     <div class="inspector" id="inspector" hidden></div>
     <div class="minimap"><button id="minimap-reset" title="Fit Kazakhstan">Country map</button><canvas id="minimap" aria-label="Click the minimap to jump"></canvas><div class="scale" aria-hidden="true"><span></span><i></i></div></div>
@@ -70,6 +71,7 @@ __CSS__</style>
     <li>Boundaries use simplified <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap data</a> (ODbL) via <a href="https://github.com/ashimov/toponym-kz" target="_blank" rel="noopener">Toponym KZ</a>. Water and rivers use <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> cartography and may show historical shorelines.</li>
     <li>Elevation is sampled from <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a> (USGS GMTED2010 and SRTM among the <a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">source datasets</a>). The relief view combines shaded elevation with land cover. Fields and trees illustrate the land cover sampled in each hex.</li>
     <li>Land cover © ESA WorldCover project 2021. Contains modified Copernicus Sentinel data (2021) processed by the ESA WorldCover consortium. <a href="https://esa-worldcover.org/en/data-access" target="_blank" rel="noopener">ESA WorldCover</a></li>
+    <li>City landmarks use published coordinates and schematic miniatures. Inspection panels link to each location’s records, including coordinates from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>. Winter shading shows the December–February average of historical monthly mean air temperatures, sampled at hex centres from <a href="https://www.chelsa-climate.org/datasets/chelsa_climatologies" target="_blank" rel="noopener">CHELSA v2.1</a> (1981–2010, CC0).</li>
     <li>Economic districts compare each activity’s share of a division’s gross regional product with its national share. Cards show value added, and map positions are schematic. <a href="https://stat.gov.kz/api/iblock/element/39180/file/en/" target="_blank" rel="noopener">Value added by activity</a> · <a href="https://stat.gov.kz/en/industries/labor-and-income/stat-empt-unempl/dynamic-tables/" target="_blank" rel="noopener">Labour force survey</a></li>
     <li>Rail geometry comes from Natural Earth. The Aktau port marker uses coordinates from Kazakhstan’s published port boundary. Scheduled airport locations come from <a href="https://ourairports.com/data/" target="_blank" rel="noopener">OurAirports</a>. Heritage markers are selected <a href="https://whc.unesco.org/en/statesparties/kz/" target="_blank" rel="noopener">UNESCO-listed sites and components</a>. Power sites use the <a href="https://datasets.wri.org/datasets/global-power-plant-database" target="_blank" rel="noopener">WRI Global Power Plant Database</a> 2021 release (CC BY 4.0). MW describes archived nameplate capacity.</li>
   </ul>
@@ -87,6 +89,8 @@ __CSS__</style>
 <div id="announcement" class="sr" role="status"></div>
 <script id="atlas-data" type="application/json">__DATA__</script>
 <script id="terrain-relief" type="application/json">__RELIEF__</script>
+<script id="city-landmarks" type="application/json">__LANDMARKS__</script>
+<script id="winter-data" type="application/json">__WINTER__</script>
 <script>
 __APP__
 </script>

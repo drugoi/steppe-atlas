@@ -53,6 +53,12 @@ $('inspector').addEventListener('click',event=>{
   if (event.target.closest('[data-inspect-close]')) closeInspector();
   const region=event.target.closest('[data-inspect-region]');
   if (region) select('region',Number(region.dataset.inspectRegion));
+  const landmark=event.target.closest('[data-inspect-landmark]');
+  if (landmark) {
+    const id=Number(landmark.dataset.inspectLandmark);
+    if (state.city!==id) select('city',id);
+    inspectLandmark(id,true);
+  }
 });
 window.addEventListener('hashchange',()=>{readLocation();updateUI(false);});
 new ResizeObserver(resize).observe(canvas);

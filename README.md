@@ -35,6 +35,8 @@ To regenerate the shaded terrain texture after refreshing the terrain sources, r
 npm run build
 ```
 
+The landmark records in `data/city-landmarks.json` link to their source and coordinate record. After editing coordinates or refreshing the atlas projection, run `.venv/bin/python scripts/data/project-landmarks.py` to update their map positions. To refresh the aligned winter snapshot, run `.venv/bin/python scripts/data/build-winter.py`. It samples CHELSA's December, January and February temperature normals from 1981–2010 for each mapped settlement and Kazakhstan land hex.
+
 ## Deployment
 
 GitHub Actions builds changes on pull requests. On pushes to `main` and manual runs on `main`, Wrangler deploys `dist/` to the existing Cloudflare Pages project `steppe-atlas`. The workflow verifies that the custom domain serves the same HTML it built.

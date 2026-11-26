@@ -144,7 +144,7 @@ reliefImage.addEventListener('load', requestDraw, {once:true});
 reliefImage.src = reliefAsset.image;
 
 function drawReliefSurface() {
-  if (state.layer !== 'terrain' || !reliefImage.naturalWidth) return false;
+  if (!['terrain','winter'].includes(state.layer) || !reliefImage.naturalWidth) return false;
   context.drawImage(reliefImage,...reliefAsset.bounds);
   context.fillStyle='#112c3340';
   context.fill(outsideCountry,'evenodd');
@@ -313,7 +313,11 @@ function drawSettlement(city,s) {
   context.scale(size,size);
   ellipse(1.1,2.25,7.6,4.15,'#1a302f96');
   shapeFill([[-6.6,-1.7],[0,-4.65],[6.6,-1.7],[6.6,2.6],[0,5.52],[-6.6,2.6]],'#656b4d','#223b3b',.31);
-  shapeFill([[-6.6,-1.7],[0,-4.65],[6.6,-1.7],[6.6,1.95],[0,4.85],[-6.6,1.95]],'#ac9a69',active?'#f0d499':'#ddc590af',.28);
+  const sitePlate = active ? {
+    waterside:'#8ba59a', woodland:'#7c9873', landscape:'#ab9b86',
+    farmland:'#aa9d66', dryland:'#bba079', steppe:'#a39f74',
+  }[landscapeStyle(city)] : '#ac9a69';
+  shapeFill([[-6.6,-1.7],[0,-4.65],[6.6,-1.7],[6.6,1.95],[0,4.85],[-6.6,1.95]],sitePlate,active?'#f0d499':'#ddc590af',.28);
   shapeFill([[-6,1],[4.4,-1.9],[5.8,-1.2],[-4.75,2.13]],'#e7cf9587');
   shapeFill([[-3.4,-2.85],[-2.7,-3.2],[3.7,2.38],[2.8,2.86]],'#e7cf9587');
   const schemes = [['#d4c19b','#8d856e','#a35d42'],['#a4c6be','#527e81','#d4dfc7'],
@@ -462,29 +466,35 @@ function drawDensityLabels(cities) {
     const halfWidth=context.measureText(city.name).width/2+4;
     if (taken.some(([px,py,w])=>Math.abs(py-y)<15 && Math.abs(px-x)<w+halfWidth)) continue;
     taken.push([x,y,halfWidth]);
-    label(city.name,x,y-9,'600 11px system-ui','#f3efe1','#263238');
-    ellipse(x,y,1.8,1.8,'#f3efe1');
+    const active=city.id===state.city;
+    label(city.name,x,y-9,active?'750 14px system-ui':'600 11px system-ui',active?'#ffe0a2':'#f3efe1','#263238');
+    if (active) ellipse(x,y,4.4,4.4,'#1d333d');
+    ellipse(x,y,active?2.7:1.8,active?'#ffdf9a':'#f3efe1');
   }
 }
 function drawCityBanners(cities) {
   const mapRect=canvas.getBoundingClientRect();
-  const taken=Array.from(document.querySelectorAll('.map :is(.title,.legend,.minimap,.controls)'),element=>{
+  const taken=Array.from(document.querySelectorAll('.map :is(.title,.legend,.minimap,.controls,.winter-toggle)'),element=>{
     const rect=element.getBoundingClientRect();
     return [rect.left-mapRect.left,rect.top-mapRect.top,rect.right-mapRect.left,rect.bottom-mapRect.top];
   });
+  const feature=hits.find(hit=>hit.landmark);
+  if (feature) taken.push(feature.box);
   const dockTop=document.querySelector('.layers').offsetTop;
   const s=scale();
   for (const city of cities) {
-    const [x,y]=viewPoint(city.xy);
+    const landmark=mappedLandmark(city,s);
+    const [x,y]=viewPoint(landmark?.xy ?? city.xy);
     if (x<-100||x>view.width+100||y<-30||y>view.height+55) continue;
     const active=city.id===state.city, large=active||city.official;
-    const size=large?15:13;
-    const baseline=y-(s>=1.42 ? (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s : 7)-11;
+    const size=active?17:large?15:13;
+    const baseline=y-(landmark ? landmarkBox(s).anchorY : s>=1.42 ?
+      (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s : 7)-11;
     const name=(active||city.official)?city.name.toUpperCase():city.name;
     const nameFont='650 '+size+'px "Crimson Pro", Georgia, serif';
     context.font=nameFont;
     const textWidth=context.measureText(name).width;
-    const people=compact.format(city.pop);
+    const people=city.pop ? compact.format(city.pop) : '—';
     context.font='700 10px system-ui';
     const numberWidth=context.measureText(people).width+12;
     const w=textWidth+numberWidth+17;
@@ -547,7 +557,9 @@ function drawMapTitle() {
   const city=localCity(),r=regionById(state.region);
   $('map-kicker').textContent=city?'Local survey':r?'Administrative division':'Қазақстан';
   $('map-title').textContent=city?.name || r?.name || 'Kazakhstan';
-  $('subtitle').textContent=state.layer==='density'?'Select a hex · WorldPop '+data.worldPop.year:
+  $('subtitle').textContent=state.layer==='winter'?
+    (city ? 'Jan '+celsius(winter.cities[city.id][1]) : 'Dec–Feb climate')+' · '+winter.source.period:
+    state.layer==='density'?'Select a hex · WorldPop '+data.worldPop.year:
     city?'110 km survey radius · select a hex or site':
     data.cities.length+' places · '+regions.length+' divisions';
 }

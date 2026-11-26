@@ -104,15 +104,19 @@ def normalized(value):
 city_sheet = load_workbook(ROOT / 'pop-2025.xlsx', read_only=True, data_only=True)['3']
 region_names = {totals[i][0].strip():i for i in iso_order if i}
 city_counts = {}
+settlement_counts = {}
 division = None
 for row in city_sheet.values:
     name, people = row[:2]
     if not isinstance(name,str) or not isinstance(people,int):
         continue
     division = region_names.get(name.strip(),division)
-    match = re.match(r'^\s*(?:(?:г|п|с)\.\s*|город\s+)(.+)$',name,re.I)
+    match = re.match(r'^\s*(?:(?P<city>г\.|город\s+)|[пс]\.)\s*(?P<name>.+)$',name,re.I)
     if match and division:
-        city_counts[division,normalized(match[1])] = people
+        counts = city_counts if match['city'] else settlement_counts
+        counts[division,normalized(match['name'])] = people
+# A village or settlement can share a city's name within the same division.
+city_counts = settlement_counts | city_counts
 
 names = {1520316:'Oskemen',1516589:'Zhezkazgan',1519843:'Rudny',609655:'Karaganda',
          1521368:'Baikonur',1522202:'Kosshy',1526482:'Alatau',1516789:'Aiteke Bi'}

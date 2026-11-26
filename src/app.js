@@ -13,6 +13,7 @@ const compact = new Intl.NumberFormat('en', {notation:'compact', maximumFraction
 const terrainColors = [[48,98,103],[111,126,82],[163,139,92],[125,111,85],[172,157,128]];
 const layerInfo = {
   terrain: ['Elevation and terrain', ''],
+  winter: ['Winter temperature', ''],
   population: ['Population by division', '1 Oct 2026'],
   economy: ['GRP per person', '2025 · tenge'],
   industry: ['Industrial value added', '2025 · dominant share'],
@@ -23,7 +24,7 @@ const layerInfo = {
   transport:['Transport connections',''],
   heritage:['World Heritage','']
 };
-const state = {layer:'terrain', mode:'cities', city:null, region:null, tab:'people', site:null, tile:null, district:null};
+const state = {layer:'terrain', mode:'cities', city:null, region:null, tab:'people', site:null, tile:null, district:null, landmark:null};
 const view = {width:0,height:0,fit:1,zoom:1,x:data.width/2,y:data.height/2};
 const paths = new Map();
 let frame, hits = [], hover = null;
@@ -66,8 +67,11 @@ function readLocation() {
   state.site=sitesById.has(site)?site:null;
   const district=params.get('district');
   state.district=state.city && activity.has(district)?district:null;
+  const landmark=Number(params.get('landmark'));
+  state.landmark=landmark===state.city && cityLandmarks.has(landmark)?landmark:null;
+  if (state.landmark) state.site=state.tile=state.district=null;
   setFit(false);
-  if (!params.size && state.city) {
+  if (state.city) {
     [view.x,view.y]=cityById.get(state.city).xy;
     view.zoom=zoomCity();
   }
@@ -86,6 +90,7 @@ function updateLocation() {
   if (state.site) params.set('site',state.site);
   if (state.tile!==null) params.set('tile',state.tile);
   if (state.district) params.set('district',state.district);
+  if (state.landmark) params.set('landmark',state.landmark);
   history.replaceState(null,'','#'+params);
 }
 function setFit(refresh=true) {
@@ -147,7 +152,8 @@ function draw() {
   context.fillStyle = '#213a37';
   context.fillRect(0,0,view.width,view.height);
   const local=localCity();
-  const surveyBorder=local && state.layer==='terrain' ? new Path2D() : null;
+  const winterView=state.layer==='winter';
+  const surveyBorder=local && (state.layer==='terrain' || winterView) ? new Path2D() : null;
   const cities=shownCityMarkers();
   const [left,top] = mapPoint(-20,-20);
   const [right,bottom] = mapPoint(view.width+12,view.height+12);
@@ -163,7 +169,13 @@ function draw() {
     drawHex(x,y);
     const inSurvey=nearby(tile,local);
     const textured=hasRelief && x>=reliefX && x<=reliefX+reliefWidth && y>=reliefY && y<=reliefY+reliefHeight;
-    if (!textured) {
+    if (winterView) {
+      const value=winterTemperature(i);
+      context.globalAlpha=textured ? (value===null ? .80 : .86) : 1;
+      context.fillStyle=winterTileColor(value);
+      context.fill();
+      context.globalAlpha=1;
+    } else if (!textured) {
       context.fillStyle = state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
       context.fill();
     } else if (local) {
@@ -232,10 +244,13 @@ function draw() {
   context.lineWidth = 1.65/s;
   context.strokeStyle = '#dfc196c2';
   context.stroke(country);
+  const featured=mappedLandmark(local,s);
   for (const city of cities) {
     const [x,y] = city.xy;
-    if (state.layer!=='density' && x>=left && x<=right && y>=top && y<=bottom) drawSettlement(city,s);
+    if (state.layer==='density' || x<left || x>right || y<top || y>bottom) continue;
+    if (city.id!==featured?.cityId) drawSettlement(city,s);
   }
+  if (featured) drawLandmark(featured,s);
   context.restore();
   drawLabels(cities,local);
   drawMinimap();
@@ -278,6 +293,7 @@ function drawLabels(cities,local) {
   }
   if (state.layer==='density') drawDensityLabels(cities);
   else {
+    addLandmarkHit(local,scale());
     drawCityBanners(cities);
     drawAssets(local);
   }
@@ -291,11 +307,12 @@ function keyTarget(x,y,allowTile=true) {
   }
   const hit = banner || [...hits].reverse().find(({x:mx,y:my,r})=>Math.hypot(x-mx,y-my)<=r);
   if (hit) {
+    if (hit.landmark) return {landmark:hit.landmark};
     if (hit.city) return {city:hit.city};
     if (hit.site) return {site:hit.site};
     return {district:hit.district};
   }
-  if (allowTile && view.zoom>=2.5 && state.mode!=='regions') {
+  if (allowTile && (state.layer==='winter' || (view.zoom>=2.5 && state.mode!=='regions'))) {
     const tileId=nearestTile(mx,my);
     if (tileId!==undefined) return {tile:tileId};
   }
@@ -317,6 +334,7 @@ function updateTooltip(x,y) {
   if (!hover) {hideTooltip(); return;}
   const t = $('tooltip');
   if (hover.city) t.textContent=cityById.get(hover.city).name;
+  else if (hover.landmark) t.textContent=cityLandmarks.get(hover.landmark).name;
   else if (hover.site) {
     const site=sitesById.get(hover.site);
     t.textContent=site.name+' · '+siteLabel(site);
@@ -325,6 +343,10 @@ function updateTooltip(x,y) {
     const tile=data.tiles[hover.tile];
     const sample=data.worldPop.hexes[hover.tile];
     if (state.layer==='density') t.textContent=sample?describeDensity(sample):'No WorldPop data';
+    else if (state.layer==='winter') {
+      const value=winterTemperature(hover.tile);
+      t.textContent=value===null?'No winter temperature data':celsius(value)+' · Dec–Feb mean';
+    }
     else t.textContent=coverLabel[tile[7]]+(tile[2]===0?'':' · '+fmt.format(tile[6])+' m');
   } else {
     const r=regionById(hover.region);
@@ -354,7 +376,10 @@ function select(type,id,focus=false) {
   $('announcement').textContent = item.name+' selected';
   updateUI();
   atlasEvent('atlas_place_opened', {place_type:type});
-  if (focus && mobile.matches) document.querySelector('.panel').scrollIntoView({block:'start'});
+  if (focus && mobile.matches) {
+    if (type==='city') window.scrollTo(0,0);
+    else document.querySelector('.panel').scrollIntoView({block:'start'});
+  }
 }
 
 function metric(label,value) {
@@ -531,7 +556,8 @@ function finishPointer(event) {
   if (!dragged && event.type==='pointerup') {
     const point = eventPosition(event);
     const item = keyTarget(point.x,point.y);
-    if (item?.city) select('city',item.city);
+    if (item?.landmark) inspectLandmark(item.landmark,false);
+    else if (item?.city) select('city',item.city);
     else if (item?.site) inspectSite(item.site,false);
     else if (item?.district) inspectDistrict(item.district);
     else if (item?.tile!==undefined) inspectTile(item.tile);
@@ -561,7 +587,7 @@ canvas.addEventListener('keydown',event=>{
   } else if (['+','='].includes(event.key)) zoomAt(1.35);
   else if (['-','_'].includes(event.key)) zoomAt(1/1.35);
   else if (event.key==='Home') setFit();
-  else if (event.key==='Enter' && (view.zoom>=2.5 || state.layer==='density')) {
+  else if (event.key==='Enter' && (view.zoom>=2.5 || ['density','winter'].includes(state.layer))) {
     const id=nearestTile(view.x,view.y);
     if (id!==undefined) inspectTile(id);
   } else if (event.key==='Escape') closeInspector();
@@ -571,15 +597,24 @@ canvas.addEventListener('keydown',event=>{
 $('zoom-in').onclick = ()=>zoomAt(1.38);
 $('zoom-out').onclick = ()=>zoomAt(1/1.38);
 $('reset').onclick = ()=>setFit();
-buttons('[data-layer]').forEach(button=>button.addEventListener('click',()=>{
-  const changed = state.layer!==button.dataset.layer;
-  state.layer = button.dataset.layer;
+function selectLayer(layer) {
+  const previous=state.layer;
+  state.layer=layer;
+  if (state.landmark && !['terrain','winter'].includes(layer)) closeInspector(false);
   buttons('[data-layer]').forEach(btn=>btn.setAttribute('aria-pressed',btn.dataset.layer===state.layer));
   renderMapLegend();
+  if (previous==='winter' || layer==='winter') {
+    renderDetails();
+    renderInspector();
+  }
   drawMapTitle();
   updateLocation();
   requestDraw();
-  if (changed) atlasEvent('map_layer_changed', {map_layer:state.layer});
+  if (previous!==layer) atlasEvent('map_layer_changed', {map_layer:layer});
+}
+buttons('[data-layer]').forEach(button=>button.addEventListener('click',()=>{
+  const layer=button.dataset.layer;
+  selectLayer(layer==='winter' && state.layer==='winter'?'terrain':layer);
 }));
 buttons('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
   state.mode = button.dataset.mode;
@@ -598,6 +633,8 @@ $('detail').addEventListener('click',event=>{
   if (site) inspectSite(Number(site.dataset.site),true);
   const district=event.target.closest('[data-district]');
   if (district) inspectDistrict(district.dataset.district);
+  const landmark=event.target.closest('[data-landmark]');
+  if (landmark) inspectLandmark(Number(landmark.dataset.landmark),true);
   if (event.target.closest('[data-credits]')) $('credits').showModal();
 });
 $('sources').onclick = ()=>$('credits').showModal();

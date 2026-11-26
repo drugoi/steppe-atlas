@@ -1,0 +1,274 @@
+[
+  {
+    "city": "Almaty",
+    "name": "Ascension Cathedral",
+    "localName": "Вознесенск соборы",
+    "lat": 43.2587859,
+    "lon": 76.9531145,
+    "style": "cathedral",
+    "fact": "Built of wood between 1904 and 1907, the cathedral survived the 1911 earthquake that devastated much of the city.",
+    "source": "https://kazakhstan.travel/en/attractions/403",
+    "coordinateSource": "https://www.openstreetmap.org/way/50648292",
+    "cityId": 1526384,
+    "xy": [
+      872.25,
+      494.0
+    ]
+  },
+  {
+    "city": "Astana",
+    "name": "Bayterek Monument",
+    "localName": "Бәйтерек",
+    "lat": 51.1282882,
+    "lon": 71.4304546,
+    "style": "bayterek",
+    "fact": "The tower’s golden sphere represents the egg of Samruk, a mythical bird that nests in the Tree of Life.",
+    "source": "https://kazakhstan.travel/en/attractions/423",
+    "coordinateSource": "https://www.openstreetmap.org/way/230401645",
+    "cityId": 1526273,
+    "xy": [
+      683.97,
+      179.52
+    ]
+  },
+  {
+    "city": "Shymkent",
+    "name": "Shymqala Citadel",
+    "localName": "Шымқала",
+    "lat": 42.3055791,
+    "lon": 69.5956537,
+    "style": "citadel",
+    "fact": "The open-air museum brings Shymkent’s fortified past to life. Excavations at the old town uncovered an eighth-century coin and early medieval pottery.",
+    "source": "https://kazakhstan.travel/en/attractions/471",
+    "coordinateSource": "https://www.openstreetmap.org/way/1112035193",
+    "cityId": 1518980,
+    "xy": [
+      647.92,
+      552.59
+    ]
+  },
+  {
+    "city": "Aktobe",
+    "name": "Nur Gasyr Mosque",
+    "localName": "Нұр Ғасыр мешіті",
+    "lat": 50.2817907,
+    "lon": 57.1891013,
+    "style": "nur-gasyr",
+    "fact": "Four 63-metre minarets frame the central dome of the mosque, which opened in 2008.",
+    "source": "https://www.visitaktobe.kz/ru/guide/page/central-mosque-aktobe-region-nur-gasyr",
+    "coordinateSource": "https://www.openstreetmap.org/way/1450644503",
+    "cityId": 610611,
+    "xy": [
+      302.95,
+      201.69
+    ]
+  },
+  {
+    "city": "Karaganda",
+    "name": "Miners’ Glory Monument",
+    "localName": "Кеншілер даңқы монументі",
+    "lat": 49.8090293,
+    "lon": 73.0826613,
+    "style": "monument",
+    "fact": "Two bronze miners lift a piece of coal above their heads in tribute to the workers of the Karaganda coal basin.",
+    "source": "https://www.visitkaraganda.kz/en/services/792",
+    "coordinateSource": "https://www.openstreetmap.org/node/739825968",
+    "cityId": 609655,
+    "xy": [
+      732.01,
+      231.86
+    ]
+  },
+  {
+    "city": "Taraz",
+    "name": "Karakhan Mausoleum",
+    "localName": "Қарахан кесенесі",
+    "lat": 42.898737,
+    "lon": 71.38503265,
+    "style": "karakhan",
+    "fact": "Local legend links Karakhan’s tomb to nearby Aisha Bibi, whom he is said to have loved.",
+    "source": "https://oq.gov.kz/en/abai/qarakhan-kesenesi",
+    "coordinateSource": "https://www.openstreetmap.org/way/230562372",
+    "cityId": 1516905,
+    "xy": [
+      702.46,
+      525.08
+    ]
+  },
+  {
+    "city": "Oskemen",
+    "name": "Left Bank Ethnic Village",
+    "localName": "Этноауыл",
+    "lat": 49.9345694,
+    "lon": 82.6099375,
+    "style": "yurt",
+    "fact": "Kazakh yurts stand alongside recreated homes of communities who lived in eastern Kazakhstan, furnished with objects from the ethnographic museum.",
+    "source": "https://visiteast.kz/en/vazhno-znat/otdyix-i-razvlecheniya/sol-zha%D2%93alau-keshen%D1%96/etnoderevnya.html",
+    "coordinateSource": "https://www.openstreetmap.org/way/297010918",
+    "cityId": 1520316,
+    "xy": [
+      987.46,
+      190.32
+    ]
+  },
+  {
+    "city": "Pavlodar",
+    "name": "Mashkhur Zhusup Mosque",
+    "localName": "Мәшһүр Жүсіп мешіті",
+    "lat": 52.286469,
+    "lon": 76.9624712,
+    "style": "pavlodar",
+    "fact": "The mosque’s turquoise dome recalls the shanyrak, the circular crown of a traditional Kazakh yurt.",
+    "source": "https://kazakhstan.travel/en/attractions/330",
+    "coordinateSource": "https://www.openstreetmap.org/way/230503203",
+    "cityId": 1520240,
+    "xy": [
+      823.54,
+      117.46
+    ]
+  },
+  {
+    "city": "Atyrau",
+    "name": "Isatay–Makhambet Memorial",
+    "localName": "Исатай-Махамбет мемориалдық кешені",
+    "lat": 47.1075311,
+    "lon": 51.9032744,
+    "style": "riders",
+    "fact": "The two bronze riders are Isatay Taimanov and the poet Makhambet Utemisuly, leaders of the 1836–1838 uprising.",
+    "source": "https://atyrau-heritage.kz/kk/qr/89-04",
+    "coordinateSource": "https://www.openstreetmap.org/way/130774416",
+    "cityId": 610529,
+    "xy": [
+      136.38,
+      309.6
+    ]
+  },
+  {
+    "city": "Semey",
+    "name": "Semey Suspension Bridge",
+    "localName": "Семейдегі аспалы көпір",
+    "lat": 50.409875,
+    "lon": 80.224573,
+    "style": "bridge",
+    "fact": "The bridge’s main span stretches 750 metres across the Irtysh between its two towers.",
+    "source": "https://kazakhstan.travel/en/attractions/656",
+    "coordinateSource": "https://www.openstreetmap.org/way/44080309",
+    "cityId": 1519422,
+    "xy": [
+      920.44,
+      182.67
+    ]
+  },
+  {
+    "city": "Aktau",
+    "name": "Melovoy Lighthouse",
+    "localName": "«Маяк» шамшырағы",
+    "lat": 43.6291896,
+    "lon": 51.1646582,
+    "style": "lighthouse",
+    "fact": "Aktau put this octagonal Caspian lighthouse on the roof of an apartment block in 1974.",
+    "source": "https://www.gov.kz/org/akimat-goroda-aktau/press/news/details/762966",
+    "coordinateSource": "https://www.openstreetmap.org/node/4173295682",
+    "cityId": 610612,
+    "xy": [
+      85.75,
+      448.55
+    ]
+  },
+  {
+    "city": "Kyzylorda",
+    "name": "Aitbay Mosque",
+    "localName": "Айтбай мешіті",
+    "lat": 44.8392611,
+    "lon": 65.4932778,
+    "style": "aitbay",
+    "fact": "Built in 1878, the mosque served as a cinema in the 1950s and later reopened as a place of worship.",
+    "source": "https://www.gov.kz/org/kyzylorda/press/article/details/58269?lang=en",
+    "coordinateSource": "https://www.wikidata.org/wiki/Q4292316",
+    "cityId": 1519922,
+    "xy": [
+      521.58,
+      446.82
+    ]
+  },
+  {
+    "city": "Oral",
+    "name": "Cathedral of the Archangel Michael",
+    "localName": "Михаил Архангель соборы",
+    "lat": 51.1833531,
+    "lon": 51.3787641,
+    "style": "oral",
+    "fact": "Alexander Pushkin visited the 18th-century cathedral in 1833 while gathering accounts of the Pugachev uprising.",
+    "source": "https://kazakhstan.travel/en/attractions/690",
+    "coordinateSource": "https://www.openstreetmap.org/way/229667319",
+    "cityId": 608668,
+    "xy": [
+      156.15,
+      138.79
+    ]
+  },
+  {
+    "city": "Turkistan",
+    "name": "Mausoleum of Khoja Ahmed Yasawi",
+    "localName": "Қожа Ахмет Ясауи кесенесі",
+    "lat": 43.2976944,
+    "lon": 68.2710556,
+    "style": "dome",
+    "fact": "Timur commissioned the shrine for the Sufi teacher Khoja Ahmed Yasawi. Construction stopped when Timur died in 1405.",
+    "source": "https://whc.unesco.org/en/list/1103/",
+    "coordinateSource": "https://whc.unesco.org/en/list/1103/",
+    "cityId": 1517945,
+    "xy": [
+      605.77,
+      511.82
+    ]
+  },
+  {
+    "city": "Petropavl",
+    "name": "Abylai Khan Residence",
+    "localName": "Абылай хан резиденциясы",
+    "lat": 54.8737617,
+    "lon": 69.1173684,
+    "style": "museum",
+    "fact": "The museum interprets the life of Abylai Khan, whose residence was a meeting place for political negotiations in the 18th century.",
+    "source": "https://oq.gov.kz/en/abai/abylay-khan-rezidentsiyasy",
+    "coordinateSource": "https://www.openstreetmap.org/way/164859623",
+    "cityId": 1520172,
+    "xy": [
+      618.4,
+      24.05
+    ]
+  },
+  {
+    "city": "Aral",
+    "name": "Fishermen’s Museum",
+    "localName": "«Балықшылар» музейі",
+    "lat": 46.7946079,
+    "lon": 61.66283475,
+    "style": "fishing",
+    "fact": "Fishing gear and ship equipment tell the story of the years when Aral was a working fishing port.",
+    "source": "https://kzo-musei.kz/filialdar/",
+    "coordinateSource": "https://www.openstreetmap.org/way/1388726628",
+    "cityId": 1526265,
+    "xy": [
+      412.78,
+      359.73
+    ]
+  },
+  {
+    "city": "Baikonur",
+    "name": "Soyuz Rocket Monument",
+    "localName": "Союз зымыраны",
+    "lat": 45.62832,
+    "lon": 63.321011,
+    "style": "soyuz",
+    "fact": "The Soyuz launcher on a plinth recalls Baikonur’s role in human spaceflight.",
+    "source": "https://web.astronomicalheritage.net/index.php/show-entity?identity=82&idsubentity=1&tmpl=system",
+    "coordinateSource": "https://commons.wikimedia.org/wiki/Category:Soyuz_rocket_memorial,_Baikonur",
+    "cityId": 1521368,
+    "xy": [
+      458.2,
+      411.49
+    ]
+  }
+]
