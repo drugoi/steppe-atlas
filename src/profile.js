@@ -1,8 +1,9 @@
 const defaultCity = 1526384;
 const profileTabs = {people:'People',districts:'Districts',economy:'Economy',sites:'Sites',compare:'Compare'};
 const zoomCity = () => mobile.matches ? 8.0 : 6.35;
+const placeTypeLabel = city => city.placeType==='village'?'Village':city.placeType==='settlement'?'Settlement':'City';
 const profileScope = city => city.capital?'National capital':city.official?'City of republican significance':
-  city.id===1521368?'City with special status':city.seat?'Regional centre':'City or town';
+  city.id===1521368?'City with special status':city.seat?'Regional centre':placeTypeLabel(city);
 const populationSource = city => city.popDate==='2026-10-01' ? '1 Oct 2026' :
   city.popDate==='2025-01-01' ? '1 Jan 2025' : 'GeoNames estimate';
 const categoryRanks = [['pop','People'],['grp','Output'],['capita','Per person'],['realGrowth','Growth']];
@@ -98,13 +99,18 @@ function winterCityProfile(city) {
 }
 function cityFieldNote(city) {
   const landmark=cityLandmarks.get(city.id);
+  const story=cityStories.get(city.id);
   const environment=cityEnvironment(city);
   const position=data.cities.indexOf(city)+1;
-  const title=landmark ? escape(landmark.name) : 'Around '+escape(city.name);
-  const note=landmark ? escape(landmark.fact) : escape(landscapeStory(city));
-  const location=landmark ? '<button class="field-location" data-landmark="'+city.id+'" aria-label="Locate '+title+' on map">'
-    +'<span>Locate on map</span><i aria-hidden="true"></i></button>' : '<span class="field-scope">110 km survey radius</span>';
-  const art='<img src="'+landmarkSprite(landmark?.style ?? landscapeStyle(city)).url+'" alt="" width="74" height="74">';
+  const title=escape(landmark?.name ?? story?.title ?? 'Around '+city.name);
+  const note=escape(landmark?.fact ?? story?.fact ?? landscapeStory(city));
+  const distance=landmark ? Math.round(landmarkDistance(city,landmark)) : 0;
+  const location=landmark ? (distance>=7 ? '<span class="field-scope field-distance">'+distance+' km from the atlas centre</span>' : '')
+    +'<button class="field-location" data-landmark="'+city.id+'" aria-label="Locate '+title+' on map">'
+    +'<span>Locate on map</span><i aria-hidden="true"></i></button>' :
+    story ? '<a class="field-location" href="'+escape(story.source)+'" target="_blank" rel="noopener">Source</a>' :
+      '<span class="field-scope">110 km survey radius</span>';
+  const art='<img src="'+landmarkSprite(landmark?.style ?? story?.style ?? landscapeStyle(city)).url+'" alt="" width="74" height="74">';
   const elevation=environment.centreElevation===null?'': '<div><dt>Centre hex elevation</dt><dd>'+fmt.format(environment.centreElevation)+' m</dd></div>';
   return '<section class="city-field-note"><div class="field-copy">'+art+'<div><h3>'+title+'</h3><p>'+note+'</p>'+location+'</div></div>'
     +'<dl class="city-facts"><div><dt>Population rank in atlas</dt><dd>'+position+' of '+data.cities.length+'</dd></div>'+elevation+'</dl></section>';
@@ -113,10 +119,13 @@ function atlasProfile(region,city) {
   const title=city?.name || region.name || 'Kazakhstan';
   const detailScope=city ? profileScope(city) : region.id ? 'Division profile' : 'National profile';
   const pop=city ? city.pop : region.pop;
-  const subtitle=city ? (city.official ? region.kk : 'Statistics for '+region.name) : (region.kk||'Қазақстан Республикасы');
+  const nativeNames=city ? '<p class="sub city-names"><span lang="kk">'+escape(city.kk)+'</span>'
+    +(city.ru!==city.kk?' <span aria-hidden="true">·</span> <span lang="ru">'+escape(city.ru)+'</span>':'')+'</p>' : '';
+  const subtitle=city ? (city.official?'':'Statistics for '+region.name) : (region.kk||'Қазақстан Республикасы');
   const ranks=region.id ? '<div class="rank-row" aria-label="Division rankings">'+categoryRanks.map(([key,name])=>'<p><strong>#'+rankMetric(region,key)+'</strong>'+name+'</p>').join('')+'</div>' : '';
-  const header='<header class="profile"><h2>'+escape(title)+'</h2><p class="sub">'+detailScope+' <span aria-hidden="true">·</span> '+escape(subtitle)+'</p>'
-    +'<div class="profile-metrics">'+primary(city?'City population':'Population',pop===null?'—':fmt.format(pop),city?populationSource(city):'1 Oct 2026')
+  const header='<header class="profile"><h2>'+escape(title)+'</h2>'+nativeNames+'<p class="sub">'+detailScope
+    +(subtitle?' <span aria-hidden="true">·</span> '+escape(subtitle):'')+'</p>'
+    +'<div class="profile-metrics">'+primary(city?placeTypeLabel(city)+' population':'Population',pop===null?'—':fmt.format(pop),city?populationSource(city):'1 Oct 2026')
     +primary(region.id?'Regional product':'GDP',money(region.grp),'₸'+compact.format(region.capita)+' per person · 2025')+'</div>'+ranks+'</header>';
   const tabs='<div class="panel-tabs" role="group" aria-label="Profile sections">'+Object.entries(profileTabs).map(([id,title])=>
     '<button data-tab="'+id+'" aria-pressed="'+(state.tab===id)+'">'+title+'</button>').join('')+'</div>';
@@ -149,7 +158,9 @@ function renderInspector() {
   let body;
   if (state.landmark) {
     const item=cityLandmarks.get(state.landmark);
-    body='<strong>'+escape(item.name)+'</strong><p>'+escape(item.city)+(item.localName?' · '+escape(item.localName):'')+'</p>'
+    const distance=Math.round(landmarkDistance(cityById.get(item.cityId),item));
+    const place=distance>=7 ? distance+' km from '+item.city : item.city;
+    body='<strong>'+escape(item.name)+'</strong><p>'+escape(place)+(item.localName?' · '+escape(item.localName):'')+'</p>'
       +'<p>'+escape(item.fact)+'</p><small>Schematic miniature at the published location</small>'
       +'<p><a href="'+escape(item.source)+'" target="_blank" rel="noopener">Landmark record</a> · '
       +'<a href="'+escape(item.coordinateSource)+'" target="_blank" rel="noopener">Coordinates</a></p>';
@@ -192,7 +203,8 @@ function renderInspector() {
 }
 function inspectLandmark(id,focus) {
   const item=cityLandmarks.get(id);
-  if (!item || state.city!==id) return;
+  if (!item) return;
+  if (state.city!==id) select('city',id);
   closeInspector(false);
   state.landmark=id;
   if (focus) {
@@ -201,7 +213,7 @@ function inspectLandmark(id,focus) {
     view.zoom=Math.max(view.zoom,zoomCity());
     if (mobile.matches) document.querySelector('.map').scrollIntoView({block:'start'});
   }
-  $('announcement').textContent=item.name+' in '+item.city;
+  $('announcement').textContent=item.name+' · '+item.city;
   updateUI();
   if (focus) $('inspector').querySelector('button').focus({preventScroll:true});
 }

@@ -484,11 +484,12 @@ function drawCityBanners(cities) {
   const s=scale();
   for (const city of cities) {
     const landmark=mappedLandmark(city,s);
-    const [x,y]=viewPoint(landmark?.xy ?? city.xy);
+    const sharesHex=landmark && landmarkInCityHex(city,landmark);
+    const [x,y]=viewPoint(sharesHex ? landmark.xy : city.xy);
     if (x<-100||x>view.width+100||y<-30||y>view.height+55) continue;
     const active=city.id===state.city, large=active||city.official;
     const size=active?17:large?15:13;
-    const baseline=y-(landmark ? landmarkBox(s).anchorY : s>=1.42 ?
+    let baseline=y-(sharesHex ? landmarkBox(s).anchorY : s>=1.42 ?
       (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s : 7)-11;
     const name=(active||city.official)?city.name.toUpperCase():city.name;
     const nameFont='650 '+size+'px "Crimson Pro", Georgia, serif';
@@ -499,6 +500,13 @@ function drawCityBanners(cities) {
     const numberWidth=context.measureText(people).width+12;
     const w=textWidth+numberWidth+17;
     const left=x-w/2;
+    if (active && feature && !sharesHex) {
+      const [a,b,c,d]=feature.box;
+      if (left-4<c && left+w+4>a && baseline-10<d && baseline+10>b) {
+        const below=Math.max(y+15+4*s,d+13);
+        baseline=below+10<dockTop ? below : b-13;
+      }
+    }
     const bounds=[left-4,baseline-10,left+w+4,baseline+10];
     const overlaps=taken.some(([a,b,c,d])=>bounds[0]<c&&bounds[2]>a&&bounds[1]<d&&bounds[3]>b);
     const fits=bounds[0]>=4 && bounds[2]<=view.width-4 && bounds[1]>=4 && bounds[3]<=dockTop-4;

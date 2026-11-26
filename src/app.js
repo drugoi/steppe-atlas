@@ -4,6 +4,10 @@ const data = JSON.parse($('atlas-data').textContent);
 const regions = Object.values(data.regions);
 const regionById = id => data.regions[id];
 const cityById = new Map(data.cities.map(city => [city.id, city]));
+const cityNameCounts = new Map();
+for (const city of data.cities) cityNameCounts.set(city.name,(cityNameCounts.get(city.name) ?? 0)+1);
+const repeatedCityName = city => cityNameCounts.get(city.name)>1;
+const qualifiedPlaceType = city => placeTypeLabel(city)+' · '+regionById(city.region).name;
 const canvas = $('map');
 const context = canvas.getContext('2d');
 const maxZoom = 9;
@@ -248,7 +252,7 @@ function draw() {
   for (const city of cities) {
     const [x,y] = city.xy;
     if (state.layer==='density' || x<left || x>right || y<top || y>bottom) continue;
-    if (city.id!==featured?.cityId) drawSettlement(city,s);
+    if (city.id!==featured?.cityId || !landmarkInCityHex(city,featured)) drawSettlement(city,s);
   }
   if (featured) drawLandmark(featured,s);
   context.restore();
@@ -410,7 +414,11 @@ function regionalEconomy(region,title='Economy') {
     +metric('Real growth',delta(region.realGrowth)+'%')+'</div></section>'+industryChart(region);
 }
 function list(places,type) {
-  return '<ul class="place-list">'+places.map(p=>'<li><button data-place="'+type+'" data-id="'+p.id+'"><span>'+escape(p.name)+'</span><small>'+ (p.pop ? compact.format(p.pop) : '—') +'</small></button></li>').join('')+'</ul>';
+  return '<ul class="place-list">'+places.map(p=>{
+    const qualifier=type==='city' && repeatedCityName(p) ? '<small class="place-qualifier">'+escape(qualifiedPlaceType(p))+'</small>' : '';
+    return '<li><button data-place="'+type+'" data-id="'+p.id+'"><span>'+escape(p.name)+qualifier+'</span><small>'
+      +(p.pop ? compact.format(p.pop) : '—')+'</small></button></li>';
+  }).join('')+'</ul>';
 }
 function renderDetails() {
   const detail=$('detail');
@@ -436,7 +444,11 @@ const search = $('search');
 const results = $('results');
 const normalized = value => value.normalize('NFKD').toLowerCase().replace(/[\u0300-\u036f]/g,'').trim();
 const places = [
-  ...data.cities.map(item=>({item,type:'city',terms:[item.name,...item.aliases]})),
+  ...data.cities.map(item=>{
+    const names=[item.name,...item.aliases];
+    const {name,kk,ru}=regionById(item.region);
+    return {item,type:'city',terms:[...names,...names.flatMap(alias=>[name,kk,ru].map(region=>alias+' '+region))]};
+  }),
   ...regions.map(item=>({item,type:'region',terms:[item.name,item.kk,item.ru]})),
   ...data.sites.map(item=>({item,type:'site',terms:[item.name,item.tag]}))
 ].map(entry=>({...entry,terms:entry.terms.map(normalized)}));
@@ -462,8 +474,12 @@ function renderSearch() {
     const score = Math.min(...entry.terms.map(name=>name===term?0:name.startsWith(term)?1:name.includes(term)?2:3));
     return {...entry,score};
   }).filter(entry=>entry.score<3).sort((a,b)=>a.score-b.score || (b.item.pop||0)-(a.item.pop||0)).slice(0,10);
-  results.innerHTML = matches.length ? matches.map(({item,type},i)=>
-    '<button type="button" tabindex="-1" role="option" id="result-'+i+'" data-match="'+i+'" aria-selected="false"><span>'+escape(item.name)+'</span><small>'+ (type==='city'?'City':type==='site'?'Site':item.kind==='city'?'City division':'Region')+'</small></button>').join('') :
+  results.innerHTML = matches.length ? matches.map(({item,type},i)=>{
+    const kind=type==='city' ? (repeatedCityName(item) ? qualifiedPlaceType(item) : placeTypeLabel(item)) :
+      type==='site' ? 'Site' : item.kind==='city' ? 'City division' : 'Region';
+    return '<button type="button" tabindex="-1" role="option" id="result-'+i+'" data-match="'+i+'" aria-selected="false"><span>'
+      +escape(item.name)+'</span><small>'+escape(kind)+'</small></button>';
+  }).join('') :
     '<p role="status">No places match your search.</p>';
   results.hidden = false;
   search.setAttribute('aria-expanded','true');
@@ -553,21 +569,24 @@ function finishPointer(event) {
   if (!pointers.delete(event.pointerId)) return;
   if (pointers.size) return;
   canvas.classList.remove('dragging');
-  if (!dragged && event.type==='pointerup') {
-    const point = eventPosition(event);
-    const item = keyTarget(point.x,point.y);
-    if (item?.landmark) inspectLandmark(item.landmark,false);
-    else if (item?.city) select('city',item.city);
-    else if (item?.site) inspectSite(item.site,false);
-    else if (item?.district) inspectDistrict(item.district);
-    else if (item?.tile!==undefined) inspectTile(item.tile);
-    else if (item?.region) select('region',item.region);
-  }
-  updateLocation();
+  if (dragged) updateLocation();
 }
 canvas.addEventListener('pointerup',finishPointer);
 canvas.addEventListener('pointercancel',finishPointer);
 canvas.addEventListener('lostpointercapture',finishPointer);
+canvas.addEventListener('click',event=>{
+  if (dragged) return;
+  // Wait for the click before showing controls below a touch point.
+  const {x,y}=eventPosition(event);
+  const item=keyTarget(x,y);
+  if (item?.landmark) inspectLandmark(item.landmark,false);
+  else if (item?.city) select('city',item.city);
+  else if (item?.site) inspectSite(item.site,false);
+  else if (item?.district) inspectDistrict(item.district);
+  else if (item?.tile!==undefined) inspectTile(item.tile);
+  else if (item?.region) select('region',item.region);
+  updateLocation();
+});
 canvas.addEventListener('pointerleave',hideTooltip);
 canvas.addEventListener('wheel',event=>{
   event.preventDefault();

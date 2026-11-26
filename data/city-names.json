@@ -1,0 +1,606 @@
+{
+  "source": "https://stat.gov.kz/ru/classifiers/statistical/21/#classifiers-199",
+  "updated": "2026-11-17",
+  "places": {
+    "1526384": {
+      "kato": "750000000",
+      "kk": "Алматы",
+      "ru": "Алматы",
+      "type": "city",
+      "name": "Almaty",
+      "aliases": [
+        "Alma-Ata"
+      ]
+    },
+    "1526273": {
+      "kato": "710000000",
+      "kk": "Астана",
+      "ru": "Астана",
+      "type": "city",
+      "name": "Astana",
+      "aliases": [
+        "Nur-Sultan",
+        "Nursultan",
+        "Akmola",
+        "Tselinograd"
+      ]
+    },
+    "1518980": {
+      "kato": "790000000",
+      "kk": "Шымкент",
+      "ru": "Шымкент",
+      "type": "city",
+      "name": "Shymkent",
+      "aliases": [
+        "Chimkent"
+      ]
+    },
+    "610611": {
+      "kato": "151010000",
+      "kk": "Ақтөбе",
+      "ru": "Актобе",
+      "type": "city",
+      "name": "Aktobe"
+    },
+    "609655": {
+      "kato": "351010000",
+      "kk": "Қарағанды",
+      "ru": "Караганда",
+      "type": "city",
+      "name": "Karaganda"
+    },
+    "1516905": {
+      "kato": "311010000",
+      "kk": "Тараз",
+      "ru": "Тараз",
+      "type": "city",
+      "name": "Taraz"
+    },
+    "1520316": {
+      "kato": "631010000",
+      "kk": "Өскемен",
+      "ru": "Усть-Каменогорск",
+      "type": "city",
+      "name": "Oskemen",
+      "aliases": [
+        "Öskemen",
+        "Ust-Kamenogorsk"
+      ]
+    },
+    "1520240": {
+      "kato": "551010000",
+      "kk": "Павлодар",
+      "ru": "Павлодар",
+      "type": "city",
+      "name": "Pavlodar"
+    },
+    "610529": {
+      "kato": "231010000",
+      "kk": "Атырау",
+      "ru": "Атырау",
+      "type": "city",
+      "name": "Atyrau"
+    },
+    "1519422": {
+      "kato": "101010000",
+      "kk": "Семей",
+      "ru": "Семей",
+      "type": "city",
+      "name": "Semey",
+      "aliases": [
+        "Semipalatinsk"
+      ]
+    },
+    "610612": {
+      "kato": "471010000",
+      "kk": "Ақтау",
+      "ru": "Актау",
+      "type": "city",
+      "name": "Aktau"
+    },
+    "1519922": {
+      "kato": "431010000",
+      "kk": "Қызылорда",
+      "ru": "Кызылорда",
+      "type": "city",
+      "name": "Kyzylorda"
+    },
+    "1519928": {
+      "kato": "391010000",
+      "kk": "Қостанай",
+      "ru": "Костанай",
+      "type": "city",
+      "name": "Kostanay"
+    },
+    "608668": {
+      "kato": "271010000",
+      "kk": "Орал",
+      "ru": "Уральск",
+      "type": "city",
+      "name": "Oral",
+      "aliases": [
+        "Uralsk"
+      ]
+    },
+    "1517945": {
+      "kato": "611010000",
+      "kk": "Түркістан",
+      "ru": "Туркестан",
+      "type": "city",
+      "name": "Turkistan",
+      "aliases": [
+        "Turkestan"
+      ]
+    },
+    "1520172": {
+      "kato": "591010000",
+      "kk": "Петропавл",
+      "ru": "Петропавловск",
+      "type": "city",
+      "name": "Petropavl",
+      "aliases": [
+        "Petropavlovsk"
+      ]
+    },
+    "1522203": {
+      "kato": "111010000",
+      "kk": "Көкшетау",
+      "ru": "Кокшетау",
+      "type": "city",
+      "name": "Kokshetau",
+      "aliases": [
+        "Kokchetav"
+      ]
+    },
+    "1518262": {
+      "kato": "352410000",
+      "kk": "Теміртау",
+      "ru": "Темиртау",
+      "type": "city",
+      "name": "Temirtau"
+    },
+    "1518542": {
+      "kato": "331010000",
+      "kk": "Талдықорған",
+      "ru": "Талдыкорган",
+      "type": "city",
+      "name": "Taldykorgan"
+    },
+    "1524325": {
+      "kato": "552210000",
+      "kk": "Екібастұз",
+      "ru": "Экибастуз",
+      "type": "city",
+      "name": "Ekibastuz"
+    },
+    "1519843": {
+      "kato": "392410000",
+      "kk": "Рудный",
+      "ru": "Рудный",
+      "type": "city",
+      "name": "Rudny"
+    },
+    "1516589": {
+      "kato": "621010000",
+      "kk": "Жезқазған",
+      "ru": "Жезказган",
+      "type": "city",
+      "name": "Zhezkazgan"
+    },
+    "1519931": {
+      "kato": "195220100",
+      "kk": "Қаскелең",
+      "ru": "Каскелен",
+      "type": "city",
+      "name": "Kaskelen"
+    },
+    "607610": {
+      "kato": "471810000",
+      "kk": "Жаңаөзен",
+      "ru": "Жанаозен",
+      "type": "city",
+      "name": "Zhanaozen"
+    },
+    "1522751": {
+      "kato": "612010000",
+      "kk": "Кентау",
+      "ru": "Кентау",
+      "type": "city",
+      "name": "Kentau"
+    },
+    "1525798": {
+      "kato": "351610000",
+      "kk": "Балқаш",
+      "ru": "Балхаш",
+      "type": "city",
+      "name": "Balkhash",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "1520692": {
+      "kato": "622010000",
+      "kk": "Сәтбаев",
+      "ru": "Сатпаев",
+      "type": "city",
+      "name": "Satpayev"
+    },
+    "1518518": {
+      "kato": "196220100",
+      "kk": "Талғар",
+      "ru": "Талгар",
+      "type": "city",
+      "name": "Talgar",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "607695": {
+      "kato": "271035100",
+      "kk": "Зачаганск",
+      "ru": "Зачаганск",
+      "type": "settlement",
+      "name": "Zachagansk",
+      "aliases": [
+        "Zashagan",
+        "Зашаған"
+      ]
+    },
+    "609123": {
+      "kato": "233620100",
+      "kk": "Құлсары",
+      "ru": "Кульсары",
+      "type": "city",
+      "name": "Kulsary",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "1519673": {
+      "kato": "615420100",
+      "kk": "Сарыағаш",
+      "ru": "Сарыагаш",
+      "type": "city",
+      "name": "Saryagash",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "1522202": {
+      "kato": "111610000",
+      "kk": "Қосшы",
+      "ru": "Косшы",
+      "type": "city",
+      "name": "Kosshy"
+    },
+    "610298": {
+      "kato": "473630100",
+      "kk": "Бейнеу",
+      "ru": "Бейнеу",
+      "type": "village",
+      "name": "Beyneu"
+    },
+    "1519948": {
+      "kato": "191010000",
+      "kk": "Қонаев",
+      "ru": "Қонаев",
+      "type": "city",
+      "name": "Konaev",
+      "englishSource": "https://stat.gov.kz/en/region/almatyobl/contacts/",
+      "aliases": [
+        "Qonaev",
+        "Kapchagay",
+        "Kapshagay"
+      ]
+    },
+    "1526168": {
+      "kato": "611610000",
+      "kk": "Арыс",
+      "ru": "Арысь",
+      "type": "city",
+      "name": "Arys"
+    },
+    "1520253": {
+      "kato": "334620100",
+      "kk": "Жаркент",
+      "ru": "Жаркент",
+      "type": "city",
+      "name": "Zharkent"
+    },
+    "1526482": {
+      "kato": "191810000",
+      "kk": "Алатау",
+      "ru": "Алатау",
+      "type": "city",
+      "name": "Alatau",
+      "aliases": [
+        "Zhetygen",
+        "Zhetigen",
+        "Жетіген",
+        "Жетыген"
+      ],
+      "location": {
+        "lat": 43.68001958,
+        "lon": 77.11041937,
+        "source": "https://www.gov.kz/org/almobl-alatau/contacts?lang=en"
+      },
+      "excludeAliases": [
+        "Alatay"
+      ]
+    },
+    "1524298": {
+      "kato": "551610000",
+      "kk": "Ақсу",
+      "ru": "Аксу",
+      "type": "city",
+      "name": "Aksu",
+      "aliases": [
+        "Yermak",
+        "Ermak"
+      ]
+    },
+    "1537939": {
+      "kato": "111810000",
+      "kk": "Степногор",
+      "ru": "Степногорск",
+      "type": "city",
+      "name": "Stepnogorsk"
+    },
+    "1519244": {
+      "kato": "117020100",
+      "kk": "Щучинск",
+      "ru": "Щучинск",
+      "type": "city",
+      "name": "Shchuchinsk"
+    },
+    "1516789": {
+      "kato": "434430100",
+      "kk": "Әйтеке би",
+      "ru": "Айтеке би",
+      "type": "settlement",
+      "name": "Aiteke Bi"
+    },
+    "1519030": {
+      "kato": "316621100",
+      "kk": "Шу",
+      "ru": "Шу",
+      "type": "city",
+      "name": "Shu"
+    },
+    "1521370": {
+      "kato": "632410000",
+      "kk": "Риддер",
+      "ru": "Риддер",
+      "type": "city",
+      "name": "Ridder"
+    },
+    "1524385": {
+      "kato": "613820100",
+      "kk": "Жетісай",
+      "ru": "Жетысай",
+      "type": "city",
+      "name": "Zhetisay",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "1525988": {
+      "kato": "103620100",
+      "kk": "Аягөз",
+      "ru": "Аягоз",
+      "type": "city",
+      "name": "Ayagoz"
+    },
+    "1523741": {
+      "kato": "194020100",
+      "kk": "Есік",
+      "ru": "Есик",
+      "type": "city",
+      "name": "Esik",
+      "aliases": [
+        "Issyk"
+      ]
+    },
+    "1524243": {
+      "kato": "314830100",
+      "kk": "Қордай",
+      "ru": "Кордай",
+      "type": "village",
+      "name": "Korday"
+    },
+    "1519327": {
+      "kato": "352810000",
+      "kk": "Шахтинск",
+      "ru": "Шахтинск",
+      "type": "city",
+      "name": "Shakhtinsk"
+    },
+    "1526265": {
+      "kato": "433220100",
+      "kk": "Арал",
+      "ru": "Аральск",
+      "type": "city",
+      "name": "Aral",
+      "aliases": [
+        "Aralsk"
+      ]
+    },
+    "1524801": {
+      "kato": "435230100",
+      "kk": "Шиелі",
+      "ru": "Шиели",
+      "type": "settlement",
+      "name": "Shieli",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "608880": {
+      "kato": "475030100",
+      "kk": "Маңғыстау",
+      "ru": "Мангистау",
+      "type": "village",
+      "name": "Mangistau"
+    },
+    "610613": {
+      "kato": "273620100",
+      "kk": "Ақсай",
+      "ru": "Аксай",
+      "type": "city",
+      "name": "Aksay",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "608679": {
+      "kato": "154820100",
+      "kk": "Қандыағаш",
+      "ru": "Кандыагаш",
+      "type": "city",
+      "name": "Kandyagash"
+    },
+    "1516438": {
+      "kato": "634820100",
+      "kk": "Алтай",
+      "ru": "Алтай",
+      "type": "city",
+      "name": "Altay",
+      "aliases": [
+        "Zyryanovsk"
+      ]
+    },
+    "1516601": {
+      "kato": "394420100",
+      "kk": "Жітіқара",
+      "ru": "Житикара",
+      "type": "city",
+      "name": "Zhitikara"
+    },
+    "1521379": {
+      "kato": "615820100",
+      "kk": "Леңгір",
+      "ru": "Ленгер",
+      "type": "city",
+      "name": "Lenger"
+    },
+    "1517323": {
+      "kato": "434030100",
+      "kk": "Жаңақорған",
+      "ru": "Жанакорган",
+      "type": "settlement",
+      "name": "Zhanakorgan",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "1519725": {
+      "kato": "352210000",
+      "kk": "Саран",
+      "ru": "Сарань",
+      "type": "city",
+      "name": "Saran"
+    },
+    "1525462": {
+      "kato": "615230100",
+      "kk": "Ақсу",
+      "ru": "Аксу",
+      "type": "village",
+      "name": "Aksu",
+      "aliases": [
+        "Aksukent",
+        "Ақсукент",
+        "Аксукент"
+      ]
+    },
+    "1520947": {
+      "kato": "313630100",
+      "kk": "Сарыкемер",
+      "ru": "Сарыкемер",
+      "type": "village",
+      "name": "Sarykemer"
+    },
+    "1524308": {
+      "kato": "196830100",
+      "kk": "Өтеген батыр",
+      "ru": "Отеген батыра",
+      "type": "village",
+      "name": "Otegen Batyr",
+      "englishSource": "https://www.gov.kz/article/671?lang=en"
+    },
+    "1521368": {
+      "kato": "431910000",
+      "kk": "Байқоңыр",
+      "ru": "Байконыр",
+      "type": "city",
+      "name": "Baikonur"
+    },
+    "1524889": {
+      "kato": "616420100",
+      "kk": "Шардара",
+      "ru": "Шардара",
+      "type": "city",
+      "name": "Shardara"
+    },
+    "1521315": {
+      "kato": "392010000",
+      "kk": "Лисаков",
+      "ru": "Лисаковск",
+      "type": "city",
+      "name": "Lisakovsk"
+    },
+    "610043": {
+      "kato": "271033100",
+      "kk": "Дерқұл",
+      "ru": "Деркул",
+      "type": "settlement",
+      "name": "Derkul"
+    },
+    "609404": {
+      "kato": "156020100",
+      "kk": "Хромтау",
+      "ru": "Хромтау",
+      "type": "city",
+      "name": "Khromtau"
+    },
+    "1518431": {
+      "kato": "431047100",
+      "kk": "Тасбөгет",
+      "ru": "Тасбугет",
+      "type": "settlement",
+      "name": "Tasbuget"
+    },
+    "1526038": {
+      "kato": "113820100",
+      "kk": "Атбасар",
+      "ru": "Атбасар",
+      "type": "city",
+      "name": "Atbasar"
+    },
+    "1519938": {
+      "kato": "316220100",
+      "kk": "Қаратау",
+      "ru": "Каратау",
+      "type": "city",
+      "name": "Karatau"
+    },
+    "1526970": {
+      "kato": "353220100",
+      "kk": "Абай",
+      "ru": "Абай",
+      "type": "city",
+      "name": "Abay"
+    },
+    "1526193": {
+      "kato": "391610000",
+      "kk": "Арқалық",
+      "ru": "Аркалык",
+      "type": "city",
+      "name": "Arkalyk"
+    },
+    "1516788": {
+      "kato": "316020100",
+      "kk": "Жаңатас",
+      "ru": "Жанатас",
+      "type": "city",
+      "name": "Zhanatas",
+      "englishSource": "https://stat.gov.kz/upload/medialibrary/75f/z2gxd3z3s8gsf7em4x4q5ahd87mgoc5m/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%201%20%D1%82%D0%BE%D0%BC.pdf"
+    },
+    "1519691": {
+      "kato": "334820100",
+      "kk": "Сарқан",
+      "ru": "Саркан",
+      "type": "city",
+      "name": "Sarkan",
+      "englishSource": "https://www.gov.kz/org/kostanai-saulet/press/events/details/14762?lang=en",
+      "aliases": [
+        "Sarkant",
+        "Sarkand",
+        "Сарқант"
+      ]
+    }
+  }
+}

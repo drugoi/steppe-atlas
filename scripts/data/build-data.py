@@ -121,6 +121,7 @@ city_counts = settlement_counts | city_counts
 names = {1520316:'Oskemen',1516589:'Zhezkazgan',1519843:'Rudny',609655:'Karaganda',
          1521368:'Baikonur',1522202:'Kosshy',1526482:'Alatau',1516789:'Aiteke Bi'}
 extra_aliases = {1521368:['Байконыр'],1522202:['Косшы'],1516789:['Айтеке би']}
+name_records = json.loads((Path(__file__).resolve().parents[2] / 'data' / 'city-names.json').read_text())['places']
 with ZipFile(ROOT / 'places.zip') as source:
     places = [line.decode('utf-8').rstrip('\r\n').split('\t') for line in source.open('KZ.txt')]
 places.sort(key=lambda place: -int(place[14] or 0))
@@ -164,6 +165,17 @@ for place in places:
     cities.append(dict(id=ident,name=names.get(ident,place[1]),aliases=aliases[:18]+[place[1]],region=region,
                        pop=people or None,popDate=source_date,official=admin,capital=place[7]=='PPLC',seat=seat,
                        xy=atlas(px,py), lat=y, lon=x))
+for city in cities:
+    official = name_records.get(str(city['id']))
+    if not official:
+        continue
+    aliases = [official['kk'], official['ru'], city['name'], *official.get('aliases', []), *city['aliases']]
+    excluded = set(official.get('excludeAliases', []))
+    city.update(name=official['name'], kk=official['kk'], ru=official['ru'], kato=official['kato'],
+                placeType=official['type'], aliases=list(dict.fromkeys(alias for alias in aliases if alias not in excluded)))
+    if location := official.get('location'):
+        city.update(lat=location['lat'], lon=location['lon'],
+                    xy=atlas(*projection.transform(location['lon'], location['lat'])))
 cities.sort(key=lambda city: -(city['pop'] or 0))
 assert {c['region'] for c in cities if c['official']} == {71,75,79}
 assert len({c['id'] for c in cities}) == len(cities)

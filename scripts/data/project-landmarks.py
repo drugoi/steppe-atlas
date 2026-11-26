@@ -15,11 +15,11 @@ projection = Transformer.from_crs(4326, crs, always_xy=True)
 boundary = shape(country['features'][0]['geometry'])
 left, _, right, top = make_valid(transform(boundary, projection.transform, interleaved=False)).bounds
 scale = atlas['width'] / (right - left)
-cities = {city['name']: city['id'] for city in atlas['cities']}
+cities = {city['id']: city['name'] for city in atlas['cities']}
 
 landmarks = json.loads(landmarks_file.read_text())
 for landmark in landmarks:
-    landmark['cityId'] = cities[landmark['city']]
+    landmark['city'] = cities[landmark['cityId']]
     x, y = projection.transform(landmark['lon'], landmark['lat'])
     landmark['xy'] = [round((x-left)*scale, 2), round((top-y)*scale, 2)]
 landmarks_file.write_text(json.dumps(landmarks, ensure_ascii=False, indent=2)+'\n')

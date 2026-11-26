@@ -107,6 +107,7 @@ button:disabled { opacity: .45; cursor: default; }
 }
 .results [aria-selected=true], .results button:hover { background: #2f5158; }
 .results small, .results p { color: var(--muted); }
+.results small { text-align: right; }
 .results p { padding: 11px; margin: 0; }
 .action {
   padding: 8px 13px; border: 1px solid var(--brass); border-radius: 4px;
@@ -277,6 +278,7 @@ canvas.over { cursor: pointer; }
   background: linear-gradient(125deg, #fbf1d7, #eddfb9);
 }
 .sub { color: var(--soft); margin: 0; font-size: 12px; }
+.city-names { color: #614c2a; font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
 .profile-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 15px; }
 .primary { padding: 8px 0; border-top: 1px solid var(--line); margin: 12px 0; }
 .profile-metrics .primary { margin: 0; padding: 8px 0 1px; }
@@ -316,7 +318,7 @@ canvas.over { cursor: pointer; }
   gap: 8px; align-items: start; padding: 12px 11px 9px 7px;
 }
 .field-copy img { display: block; width: 65px; height: 65px; align-self: center; }
-.field-copy h3, .city-winter h3 { margin: 0 0 4px; font: 650 26px/.97 var(--display); }
+.field-copy h3, .city-winter h3 { margin: 0 0 4px; font: 650 26px/.97 var(--display); overflow-wrap: anywhere; }
 .field-copy p { margin: 0 0 5px; color: var(--soft); font-size: 12px; }
 .field-location {
   display: inline-flex; min-height: 26px; align-items: center; gap: 8px; padding: 0 0 2px;
@@ -325,6 +327,7 @@ canvas.over { cursor: pointer; }
 }
 .field-location i { width: 6px; height: 6px; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor; transform: rotate(45deg); }
 .field-scope { color: #5d4c31; font-size: 12px; }
+.field-distance { display: block; }
 .city-facts, .city-winter dl { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 0; padding: 7px 11px; }
 .city-facts { border-top: 1px solid #ae976977; background: #dcc6935c; }
 .city-facts dt { color: #5d4c31; font-size: 12px; }
@@ -377,6 +380,7 @@ canvas.over { cursor: pointer; }
 .place-list button { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; width: 100%; padding: 8px 0; border: 0; background: none; text-align: left; }
 .place-list button:hover span { color: var(--chart); }
 .place-list small { color: var(--muted); }
+.place-list .place-qualifier { display: block; margin-top: 2px; }
 .site-list .site-glyph { display: inline-block; width: 22px; color: var(--gold); text-align: center; }
 .site-list small { white-space: nowrap; }
 .data-link, .dataset-note { color: var(--muted); font-size: 12px; }
@@ -436,6 +440,7 @@ dialog li + li { margin-top: 9px; }
   .search input { padding: 7px 6px 7px 25px; font-size: 13px; }
   .search-symbol { left: 8px; }
   .search kbd { display: none; }
+  .results { left: auto; min-width: min(230px,65vw); }
   .topbar .action { padding: 7px 7px; font-size: 11px; }
   .map { height: clamp(420px, 62dvh, 590px); }
   .title { top: 10px; padding: 6px 10px 9px; max-width: calc(100% - 92px); }

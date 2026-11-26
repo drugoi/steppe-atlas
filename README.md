@@ -35,7 +35,9 @@ To regenerate the shaded terrain texture after refreshing the terrain sources, r
 npm run build
 ```
 
-The landmark records in `data/city-landmarks.json` link to their source and coordinate record. After editing coordinates or refreshing the atlas projection, run `.venv/bin/python scripts/data/project-landmarks.py` to update their map positions. To refresh the aligned winter snapshot, run `.venv/bin/python scripts/data/build-winter.py`. It samples CHELSA's December, January and February temperature normals from 1981–2010 for each mapped settlement and Kazakhstan land hex.
+The naming crosswalk in `data/city-names.json` ties each atlas ID to the November 2026 KATO registry. It supplies the Kazakh and Russian names, administrative type, English spelling and search aliases. It also holds a source for any corrected settlement coordinates. Keep atlas IDs stable when updating the crosswalk so existing map links keep working.
+
+Each landmark in `data/city-landmarks.json` has a short account, a source and a coordinate record. `data/city-stories.json` holds sourced profiles of places without a selected landmark. After changing landmark coordinates or rebuilding the atlas, run `.venv/bin/python scripts/data/project-landmarks.py` to update their map positions. If the hex grid or settlement coordinates change, run `.venv/bin/python scripts/data/build-winter.py` to align the winter data with the new locations. It samples CHELSA's December, January and February temperature normals from 1981–2010.
 
 ## Deployment
 

@@ -1,4 +1,5 @@
 const cityLandmarks = new Map(JSON.parse($('city-landmarks').textContent).map(item=>[item.cityId,item]));
+const cityStories = new Map(JSON.parse($('city-stories').textContent).map(item=>[item.cityId,item]));
 const landmarksByTile = new Map();
 for (const item of cityLandmarks.values()) {
   const tile=nearestTile(...item.xy);
@@ -35,6 +36,7 @@ function cityEnvironment(city) {
     const centre = data.tiles[nearestTile(...city.xy)];
     environments.set(city.id,{
       dominant,
+      coverShare: dominant ? coverCounts.get(dominant) / land.length : 0,
       waterShare: tiles.length ? (tiles.length-land.length)/tiles.length : 0,
       span: elevations.length ? [Math.min(...elevations),Math.max(...elevations)] : null,
       centreElevation: centre?.[2] && centre[7]!==80 ? centre[6] : null,
@@ -44,14 +46,14 @@ function cityEnvironment(city) {
 }
 
 function landscapeStory(city) {
-  const {dominant,span,waterShare} = cityEnvironment(city);
+  const {dominant,coverShare,span,waterShare} = cityEnvironment(city);
   const cover = coverLabel[dominant]?.toLowerCase();
   if (span && span[1]-span[0]>=800) {
     return 'Nearby land hexes span '+fmt.format(span[0])+' to '+fmt.format(span[1])+' m in sampled elevation.';
   }
   if (waterShare>=.20) return fmt.format(Math.round(waterShare*100))+'% of the surrounding hex centres fall on water.';
-  return cover ? 'The most common mapped land cover around '+city.name+' is '+cover+'.' :
-    'Explore the terrain in the hexes surrounding '+city.name+'.';
+  if (cover) return 'About '+Math.round(coverShare*100)+'% of nearby land hexes are classified as '+cover+'.';
+  return 'The January temperature normal at '+city.name+' is '+celsius(winter.cities[city.id][1])+'.';
 }
 
 function landscapeStyle(city) {
@@ -266,6 +268,129 @@ function landmarkSprite(style) {
     line([[38,61],[44,61]],'#a35845',2.5);
     line([[56,60],[62,60]],'#a35845',2.5);
     line([[49,14],[49,9]],'#eee2ba',1.4);
+  } else if (style==='pagoda') {
+    const eave=(x,y,w,h)=> {
+      polygon([[x-w/2,y],[x-w*.31,y-3],[x-w*.18,y-h],[x+w*.14,y-h-1],[x+w*.32,y-4],[x+w/2,y-3],
+        [x+w*.43,y+2],[x,y+6],[x-w*.43,y+3]],'#3d7764');
+      line([[x-w/2,y],[x,y+4],[x+w/2,y-3]],'#bb9861',1.8);
+    };
+    box(24,57,52,13,'#a75c44','#63493e','#c8895c',7);
+    for (const x of [29,38,50,64,72]) line([[x,59],[x,69]],cream,1.4);
+    eave(51,57,66,13);
+    box(40,40,23,16,'#b8734e','#805043',lightClay,4);
+    eave(52,42,42,11);
+    box(46,28,12,12,lightClay,clay,cream,3);
+    eave(52,29,27,8);
+    line([[52,21],[52,15]],gold,1.8);
+  } else if (style==='rail') {
+    for (let i=0;i<8;i++) {
+      const x=18+i*7,y=66-i*1.8;
+      line([[x,y],[x+11,y+6]],'#795947',3.2);
+    }
+    line([[16,68],[76,51]],'#ddd2a8',1.8);
+    line([[26,74],[82,57]],'#a1a999',1.8);
+    for (const [x,y,r] of [[33,66,3.6],[44,63,4.8],[55,60,4.4],[69,56,3.9]]) oval(x,y,r,r*.88,'#233d41');
+    box(29,47,40,12,'#627e70','#2e5354',jade,6);
+    box(54,36,16,18,'#3a6663','#1f4549','#83a18c',5);
+    polygon([[54,42],[60,41],[60,47],[55,48]],cream,null);
+    box(36,40,6,11,'#395f63','#25474e','#85988c',3);
+    oval(30,54,6,6,'#305456');
+    oval(28,54,2,2,gold);
+    line([[29,60],[46,57],[71,51]],'#b66b4e',2.1);
+  } else if (style==='tower') {
+    box(42,47,14,24,'#aa7657','#775349','#cab48a',5);
+    opening(46,62,5,8,dark);
+    box(37,33,25,19,'#b4815b','#8f5848','#e1bd87',6);
+    for (const x of [40,48,56]) opening(x,37,3.5,9,'#4c5d53');
+    polygon([[33,34],[39,25],[48,19],[57,21],[67,30],[57,35],[42,36]],'#536d67');
+    line([[36,33],[47,35],[62,31]],cream,1.2);
+  } else if (style==='theatre' || style==='estate' || style==='literature') {
+    const theatre=style==='theatre';
+    box(20,50,54,20,theatre?'#e1bf90':'#b47b51','#90634f','#e6c498',7);
+    polygon([[16,50],[35,38],[62,37],[80,46],[70,50]],theatre?'#607a73':'#39685f');
+    if (theatre) {
+      polygon([[29,55],[48,41],[68,53],[63,56],[33,56]],'#f3d6a0');
+      for (const x of [32,41,53,62]) line([[x,56],[x,69]],'#f6e0b7',3);
+      opening(45,59,7,11,'#536964');
+    } else {
+      for (const x of [26,37,54,65]) {
+        polygon([[x-1,54],[x+6,54],[x+6,63],[x-1,63]],'#e3ca95');
+        line([[x+2.5,55],[x+2.5,62]],'#646d5b',.9);
+      }
+      opening(44,54,6,16,dark);
+    }
+    if (style==='literature') {
+      polygon([[58,69],[68,65],[79,65],[79,72],[69,74],[59,75]],'#f0ddb1',clay);
+      line([[68,66],[69,73]],'#a98761',1);
+    }
+  } else if (style==='industry' || style==='mine') {
+    if (style==='mine') {
+      polygon([[16,69],[27,46],[42,37],[53,45],[65,65],[47,76]],'#8c9277');
+      opening(36,52,14,22,'#354849');
+      line([[42,68],[42,75],[57,78]],'#9a805d',2);
+      box(55,59,16,9,'#796d55','#4f6058','#b29867',4);
+      oval(57,70,2.6,2.6,dark); oval(68,68,2.6,2.6,dark);
+    } else {
+      box(22,53,51,17,'#8ba49a','#485f5c','#cad0b3',8);
+      for (const [x,y] of [[23,50],[34,50],[47,48]]) {
+        polygon([[x,y],[x+9,y-7],[x+12,y-2],[x+12,y+3]],'#b9bf9c');
+      }
+      for (const [x,y] of [[58,30],[67,23]]) {
+        polygon([[x-2,y],[x+4,y-1],[x+6,61],[x-4,63]],'#9e6750');
+        line([[x-2,y+6],[x+4,y+5]],cream,2);
+      }
+      line([[27,60],[50,59]],'#57716c',3);
+    }
+  } else if (style==='dam') {
+    polygon([[13,67],[49,54],[84,66],[50,78]],'#478c91');
+    for (const [x,y] of [[19,64],[35,68],[57,69]]) line([[x,y],[x+8,y-2],[x+14,y-1]],jade,1.3);
+    polygon([[24,57],[67,45],[75,49],[75,58],[32,72],[24,65]],'#aaa88f');
+    polygon([[24,57],[67,45],[75,49],[32,62]],'#e8cb98');
+    for (const x of [37,46,55,64]) line([[x,61-(x-37)*.29],[x,69-(x-37)*.29]],'#536b65',2.4);
+  } else if (style==='wind') {
+    polygon([[13,67],[48,53],[84,65],[49,79]],'#a6a775');
+    for (const [x,y,h] of [[29,64,23],[69,63,30],[49,71,40]]) {
+      oval(x+4,y,10,2.3,'#737c5f');
+      line([[x,y],[x,y-h]],'#ede8cc',2.5);
+      for (const [dx,dy] of [[0,-h*.45],[-h*.37,h*.23],[h*.35,h*.22]]) {
+        line([[x,y-h],[x+dx,y-h+dy]],'#ece2be',2);
+      }
+      oval(x,y-h,2.2,2.2,'#68857c');
+    }
+  } else if (style==='garden' || style==='lakeside' || style==='spring') {
+    polygon([[14,67],[48,53],[84,65],[48,79]],'#82915f');
+    if (style==='garden') {
+      line([[43,73],[51,68],[43,62],[55,57],[57,51]],'#e3c58f',3.2);
+      for (const [x,y,h] of [[28,63,20],[57,59,24],[67,68,27],[46,73,15]]) {
+        oval(x,y,9,3,'#546e51');
+        line([[x,y],[x,y-5]],'#81604b',2);
+        polygon([[x-7,y-3],[x,y-h],[x+7,y-3]],'#3f735b');
+        line([[x-4,y-5],[x,y-h+3]],jade,1);
+      }
+    } else {
+      oval(49,66,27,8,'#456b67');
+      oval(49,65,23,6.2,'#539c9b');
+      line([[31,65],[42,63],[53,64],[66,63]],'#aed6c0',1.25);
+      if (style==='spring') {
+        for (const x of [40,49,58]) line([[x,59],[x+3,55],[x,51],[x+1,47]],'#ede3c8',1.15);
+      } else {
+        polygon([[25,59],[35,53],[39,55],[30,62]],'#d9c397',null);
+        polygon([[66,62],[72,53],[78,62]],'#547b5d');
+      }
+    }
+  } else if (style==='rock-cut' || style==='burial-mounds') {
+    if (style==='rock-cut') {
+      polygon([[16,66],[23,50],[37,43],[41,35],[58,35],[76,51],[82,66],[59,73]],'#a58d61');
+      line([[22,56],[36,53],[44,46],[63,45],[72,50]],'#dbc094',2);
+      line([[19,62],[38,60],[53,52],[76,53]],'#d9b986',2);
+      opening(42,53,14,17,'#424b43');
+    } else {
+      art.fillStyle='#99a16c';
+      art.beginPath(); art.moveTo(17,66); art.quadraticCurveTo(29,47,41,61);
+      art.quadraticCurveTo(56,36,76,66); art.lineTo(51,78); art.closePath(); art.fill(); art.stroke();
+      line([[44,59],[54,52],[63,55],[69,62]],'#bfb587',1.6);
+      oval(50,69,6,2,'#e1bd73');
+    }
   } else if (style==='landscape') {
     polygon([[19,68],[38,38],[47,52],[58,32],[78,66],[55,75]],'#8f9679');
     polygon([[19,68],[38,38],[41,56],[35,68]],'#b5ac84',null);
@@ -311,6 +436,12 @@ function mappedLandmark(city,s) {
   if (!city || city.id!==state.city || view.zoom<2.5 || s<1.42 ||
       !['terrain','winter'].includes(state.layer)) return null;
   return cityLandmarks.get(city.id);
+}
+function landmarkInCityHex(city,item) {
+  return nearestTile(...city.xy)===nearestTile(...item.xy);
+}
+function landmarkDistance(city,item) {
+  return Math.hypot(city.xy[0]-item.xy[0],city.xy[1]-item.xy[1])*data.metersPerUnit/1000;
 }
 function landmarkBox(s) {
   const size = clamp(16*s,47,86);

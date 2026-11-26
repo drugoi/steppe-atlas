@@ -192,6 +192,22 @@
     ]
   },
   {
+    "cityId": 1519928,
+    "city": "Kostanay",
+    "name": "Akhmet Baitursynuly Monument",
+    "localName": "Ахмет Байтұрсынұлы ескерткіші",
+    "lat": 53.2134225,
+    "lon": 63.6297876,
+    "style": "monument",
+    "fact": "The seated figure holds a pen, a tribute to the linguist who reformed the Kazakh writing system and wrote early Kazakh-language textbooks.",
+    "source": "https://www.kraeved-kst.kz/en/pamyatniki-mestnogo-znacheniya/o-regione/pamiatniki-istorii-i-kultury-goroda-kostanaia-mestnogo-znacheniia/pamiatnik-a-baitursynovu-1873-1937-gg.html",
+    "coordinateSource": "https://www.openstreetmap.org/node/2123565538",
+    "xy": [
+      481.26,
+      93.12
+    ]
+  },
+  {
     "city": "Oral",
     "name": "Cathedral of the Archangel Michael",
     "localName": "Михаил Архангель соборы",
@@ -240,6 +256,514 @@
     ]
   },
   {
+    "cityId": 1522203,
+    "city": "Kokshetau",
+    "name": "Kokshetau City History Museum",
+    "localName": "Көкшетау қаласының тарихы музейі",
+    "lat": 53.2820862,
+    "lon": 69.3605753,
+    "style": "estate",
+    "fact": "The museum occupies a turn-of-the-century wooden estate near Lake Kopa. In the courtyard, horse-drawn winter sleds sit alongside a 1930s Cadillac.",
+    "source": "https://museum-kokshetau.kz/ru/?page_id=76",
+    "coordinateSource": "https://www.openstreetmap.org/node/4790455826",
+    "xy": [
+      626.41,
+      91.17
+    ]
+  },
+  {
+    "cityId": 1518262,
+    "city": "Temirtau",
+    "name": "Historical and Cultural Centre of the First President",
+    "localName": "Тұңғыш Президенттің тарихи-мәдени орталығы",
+    "lat": 50.0662424,
+    "lon": 72.97068225,
+    "style": "museum",
+    "fact": "The centre pairs exhibits on Kazakhstan’s independence with photographs and objects from Temirtau’s steelmaking history.",
+    "source": "https://kazakhstan.travel/ru/attractions/247",
+    "coordinateSource": "https://www.openstreetmap.org/way/362582059",
+    "xy": [
+      728.14,
+      221.32
+    ]
+  },
+  {
+    "cityId": 1518542,
+    "city": "Taldykorgan",
+    "name": "Muhamedzhan Tynyshpayev Museum",
+    "localName": "Мұхамеджан Тынышпаев атындағы тарихи-өлкетану музейі",
+    "lat": 45.01627155,
+    "lon": 78.38441355,
+    "style": "museum",
+    "fact": "One gallery tells the story of Muhamedzhan Tynyshpayev, a historian and railway engineer who helped build the Turkestan–Siberian Railway.",
+    "source": "https://kazakhstan.travel/ru/attractions/217",
+    "coordinateSource": "https://www.openstreetmap.org/way/503750243",
+    "xy": [
+      904.99,
+      414.76
+    ]
+  },
+  {
+    "cityId": 1524325,
+    "city": "Ekibastuz",
+    "name": "Ekibastuz Museum of Local History",
+    "localName": "Екібастұз тарихи-өлкетану музейі",
+    "lat": 51.7340691,
+    "lon": 75.3176769,
+    "style": "museum",
+    "fact": "The museum tells how the discovery of coal shaped Ekibastuz and exhibits finds from Stone Age settlements in the surrounding region.",
+    "source": "https://pavlkraimuz.kz/ru/filialy/ekibastuzskij-istoriko-kraevedcheskij-muzej.html",
+    "coordinateSource": "https://www.openstreetmap.org/node/3363088066",
+    "xy": [
+      783.83,
+      145.64
+    ]
+  },
+  {
+    "cityId": 1519843,
+    "city": "Rudny",
+    "name": "Rudny Museum of Local History",
+    "localName": "Рудный тарихи-өлкетану музейі",
+    "lat": 52.9614774,
+    "lon": 63.1035735,
+    "style": "museum",
+    "fact": "The museum puts Rudny’s mining-town history alongside archaeology from the Alekseyevka cultural complex.",
+    "source": "https://www.gov.kz/org/kostanai-madeniet/press/article/details/2021?lang=ru",
+    "coordinateSource": "https://www.openstreetmap.org/node/473105279",
+    "xy": [
+      467.4,
+      103.11
+    ]
+  },
+  {
+    "cityId": 1516589,
+    "city": "Zhezkazgan",
+    "name": "Monument to the Conquerors of Space",
+    "localName": "«Ғарышты бағындырушылар» монументі",
+    "lat": 47.7993333,
+    "lon": 67.718781,
+    "style": "soyuz",
+    "fact": "The monument recalls Zhezkazgan’s connection to spaceflight. A Soyuz capsule carrying a three-person crew home from the International Space Station landed southeast of the city in 2018.",
+    "source": "https://www.nasa.gov/news-release/nasa-astronauts-return-to-earth-land-safely-in-kazakhstan/",
+    "coordinateSource": "https://www.openstreetmap.org/way/321137798",
+    "xy": [
+      587.01,
+      322.76
+    ]
+  },
+  {
+    "cityId": 1519931,
+    "city": "Kaskelen",
+    "name": "Nauryzbay Batyr Monument",
+    "localName": "Наурызбай батыр ескерткіші",
+    "lat": 43.2132769,
+    "lon": 76.6749331,
+    "style": "riders",
+    "fact": "At Kaskelen’s entrance, a statue by sculptor Nurlan Dalbay depicts the eighteenth-century commander Nauryzbay Batyr on horseback.",
+    "source": "https://kazakhstan.travel/en/attractions/933",
+    "coordinateSource": "https://www.openstreetmap.org/node/2864763612",
+    "xy": [
+      863.99,
+      496.99
+    ]
+  },
+  {
+    "cityId": 607610,
+    "city": "Zhanaozen",
+    "name": "Zhanaozen City Museum",
+    "localName": "Жаңаөзен қалалық музейі",
+    "lat": 43.344032,
+    "lon": 52.863656,
+    "style": "museum",
+    "fact": "The museum pairs a history of the city’s founding and the oil industry with yurt furnishings, jewelry and objects from everyday life in Mangystau.",
+    "source": "https://e-museum.kz/museum/68da37a74970831f1-kk/",
+    "coordinateSource": "https://yandex.kz/maps/org/zhangaozen_qalalyq_tarikhi_olketanu_muzeyi/69313974039/",
+    "xy": [
+      134.54,
+      470.41
+    ]
+  },
+  {
+    "cityId": 1522751,
+    "city": "Kentau",
+    "name": "Kentau City Museum",
+    "localName": "Кентау қалалық музейі",
+    "lat": 43.5226335,
+    "lon": 68.5026579,
+    "style": "museum",
+    "fact": "Residents helped build the museum’s collection after it opened in 1977. Its mineral specimens trace the story of mining in the Karatau range.",
+    "source": "https://www.gov.kz/memleket/entities/turkestan-madeniet/press/news/details/902222",
+    "coordinateSource": "https://www.openstreetmap.org/way/1082160188",
+    "xy": [
+      612.71,
+      502.22
+    ]
+  },
+  {
+    "cityId": 1525798,
+    "city": "Balkhash",
+    "name": "Balkhash City Museum of Local History",
+    "localName": "Балқаш қалалық тарихи-өлкетану музейі",
+    "lat": 46.8472479,
+    "lon": 74.9766498,
+    "style": "museum",
+    "fact": "The museum displays a copper ingot from 1938 alongside exhibitions on the archaeology and wildlife of Lake Balkhash.",
+    "source": "https://visitkaraganda.kz/ru/services/557",
+    "coordinateSource": "https://www.openstreetmap.org/node/1184622974",
+    "xy": [
+      796.2,
+      350.96
+    ]
+  },
+  {
+    "cityId": 1520692,
+    "city": "Satpayev",
+    "name": "Shynbolat Dildebayev Miners’ Palace",
+    "localName": "Шынболат Ділдебаев атындағы кеншілер сарайы",
+    "lat": 47.90812815,
+    "lon": 67.5284315,
+    "style": "theatre",
+    "fact": "The building opened as the Baikonur cinema in 1974. It now houses a museum devoted to its namesake, a miner, poet and dombra player.",
+    "source": "https://dildebaev.kz/ru/about",
+    "coordinateSource": "https://www.openstreetmap.org/way/249496833",
+    "xy": [
+      581.59,
+      318.23
+    ]
+  },
+  {
+    "cityId": 1518518,
+    "city": "Talgar",
+    "name": "Talhiz Archaeological Site",
+    "localName": "Талхиз қалашығы",
+    "lat": 43.2777778,
+    "lon": 77.2222222,
+    "style": "citadel",
+    "fact": "Excavations at this Silk Roads town uncovered clay masonry inside its defensive wall, along with fragments of pottery and animal bones.",
+    "source": "https://whc.unesco.org/document/180694",
+    "coordinateSource": "https://whc.unesco.org/en/list/1442/maps/",
+    "xy": [
+      880.35,
+      492.13
+    ]
+  },
+  {
+    "cityId": 607695,
+    "city": "Zachagansk",
+    "name": "Zashagan Mosque",
+    "localName": "Зашаған мешіті",
+    "lat": 51.18070985,
+    "lon": 51.3054209,
+    "style": "dome",
+    "fact": "Local fundraising and donations paid for the mosque, which opened in February 2026.",
+    "source": "https://kazakhstan.travel/kz/attractions/616",
+    "coordinateSource": "https://www.openstreetmap.org/way/1290149102",
+    "xy": [
+      154.23,
+      138.51
+    ]
+  },
+  {
+    "cityId": 609123,
+    "city": "Kulsary",
+    "name": "Duyseke Ata Mosque",
+    "localName": "Дүйсеке ата мешіті",
+    "lat": 47.04369444,
+    "lon": 54.03611111,
+    "style": "dome",
+    "fact": "This historic mosque north of Kulsary has several domes over mudbrick walls. It served as a mosque and a school.",
+    "source": "https://map.visitatyrau.kz/index-info.php?id_marker=10",
+    "coordinateSource": "https://map.visitatyrau.kz/index-info.php?id_marker=10",
+    "xy": [
+      196.1,
+      323.34
+    ]
+  },
+  {
+    "cityId": 1519673,
+    "city": "Saryagash",
+    "name": "Saryagash Mineral-Water Resort",
+    "localName": "«Сарыағаш» шипажайы",
+    "lat": 41.38060295,
+    "lon": 69.0593691,
+    "style": "spring",
+    "fact": "The resort in nearby Kokterek grew around warm mineral springs. A clinic opened here to put their waters to therapeutic use.",
+    "source": "https://e-history.kz/ru/kazakhstanika/show/11844",
+    "coordinateSource": "https://www.openstreetmap.org/way/295771016",
+    "xy": [
+      632.18,
+      592.13
+    ]
+  },
+  {
+    "cityId": 1522202,
+    "city": "Kosshy",
+    "name": "Kosshy Community Centre",
+    "localName": "Қосшы қоғамдық мәдени-спорт кешені",
+    "lat": 50.995368,
+    "lon": 71.373818,
+    "style": "theatre",
+    "fact": "The community centre brings a cinema, library, sports hall and workshops for activities from robotics to traditional crafts into one public building.",
+    "source": "https://utemuratovfund.org/ru/news/bulat-utemuratov-foundation-opens-kazakhstans-first-multi-functional-community-center-in-kosshy",
+    "coordinateSource": "https://yandex.kz/maps/ru/org/qoghamdyq_madeni_sport_kesheni/40578057691/",
+    "xy": [
+      682.79,
+      185.19
+    ]
+  },
+  {
+    "cityId": 610298,
+    "city": "Beyneu",
+    "name": "Old Beyneu Underground Mosque",
+    "localName": "Көне Бейнеудегі Бекет ата жерасты мешіті",
+    "lat": 45.1852917,
+    "lon": 55.1078306,
+    "style": "rock-cut",
+    "fact": "Carved into a rocky headland, Beket Ata’s mosque has a round prayer room and shallow niches for lamps.",
+    "source": "https://mangystau.inmap.kz/ru/places/?title=mechet_beket_ata_v_starom_beyneu_153",
+    "coordinateSource": "https://mangystau.inmap.kz/ru/places/?title=mechet_beket_ata_v_starom_beyneu_153",
+    "xy": [
+      214.46,
+      405.46
+    ]
+  },
+  {
+    "cityId": 1519948,
+    "city": "Konaev",
+    "name": "Konaev Municipal Beach No. 5",
+    "localName": "Қонаев қаласының №5 коммуналдық жағажайы",
+    "lat": 43.86553,
+    "lon": 77.08397,
+    "style": "lakeside",
+    "fact": "The city grew up around the Kapshagay hydroelectric project in 1970. Its public beach faces the reservoir that gave the city its former name, Kapchagay.",
+    "source": "https://www.gov.kz/org/almobl-maslihat/press/news/details/596665?lang=ru",
+    "coordinateSource": "https://www.kazakhstan.travel/ru/attractions/62",
+    "xy": [
+      872.9,
+      468.15
+    ]
+  },
+  {
+    "cityId": 1526168,
+    "city": "Arys",
+    "name": "Arys 1 Railway Station",
+    "style": "rail",
+    "lat": 42.4192847,
+    "lon": 68.7935267,
+    "fact": "Arys became a major junction when the Turkestan–Siberia Railway entered service in 1930, linking up with the Orenburg–Tashkent line.",
+    "source": "https://ktzh-gp.kz/new-ru/about-company/filialy/filialy_menu/istoriya.php?ID=9320",
+    "coordinateSource": "https://www.openstreetmap.org/node/4021927562",
+    "xy": [
+      622.7,
+      548.51
+    ]
+  },
+  {
+    "cityId": 1520253,
+    "city": "Zharkent",
+    "name": "Zharkent Mosque",
+    "localName": "Жаркент мешіті",
+    "lat": 44.16295,
+    "lon": 80.00034,
+    "style": "pagoda",
+    "fact": "Completed in 1895, the mosque pairs a Chinese pagoda roof with Central Asian ornament. Uyghur and Dungan communities funded its construction.",
+    "source": "https://kazakhstan.travel/ru/attractions/202",
+    "coordinateSource": "https://kazakhstan.travel/ru/attractions/202",
+    "xy": [
+      958.62,
+      442.54
+    ]
+  },
+  {
+    "cityId": 1526482,
+    "city": "Alatau",
+    "name": "Zhetygen Railway Station",
+    "localName": "Жетіген станциясы",
+    "style": "rail",
+    "lat": 43.6886261,
+    "lon": 77.1264899,
+    "fact": "Zhetygen is one end of the railway section to Altynkol, a link in the Trans-Caspian International Transport Route.",
+    "source": "https://railways.kz/kk/news2026/altynkl-zhetigen-temirzhol-uchaskesin-zhayrtu-ayataldy/",
+    "coordinateSource": "https://www.openstreetmap.org/way/829957094",
+    "xy": [
+      875.17,
+      475.36
+    ]
+  },
+  {
+    "cityId": 1524298,
+    "city": "Aksu",
+    "name": "Aksu Ferroalloys Plant",
+    "localName": "Ақсу ферроқорытпа зауыты",
+    "style": "industry",
+    "lat": 52.0702816,
+    "lon": 76.8871841,
+    "fact": "The plant’s smelting shops make chromium, silicon and manganese alloys used to produce different grades of steel.",
+    "source": "https://www.kazchrome.com/en/business-overview/divisions/aksu/",
+    "coordinateSource": "https://www.openstreetmap.org/way/60208140",
+    "xy": [
+      822.78,
+      126.75
+    ]
+  },
+  {
+    "cityId": 1537939,
+    "city": "Stepnogorsk",
+    "name": "Stepnogorsk Regional History Museum",
+    "style": "museum",
+    "lat": 52.34703,
+    "lon": 71.88115,
+    "fact": "Inside the Gornyak Palace of Culture, the museum traces the city’s industrial beginnings and displays finds from burial sites at Shondyngkarasy.",
+    "source": "https://kazakhstan.travel/ru/attractions/856",
+    "coordinateSource": "https://kazakhstan.travel/ru/attractions/856",
+    "xy": [
+      692.63,
+      127.55
+    ]
+  },
+  {
+    "cityId": 1519244,
+    "city": "Shchuchinsk",
+    "name": "Lake Shchuchye",
+    "localName": "Шортанды көлі",
+    "style": "lakeside",
+    "lat": 52.98065,
+    "lon": 70.21016,
+    "fact": "This Burabay resort lake takes its name from the pike that live in its waters. It lies in the Ishim River basin.",
+    "source": "https://kazakhstan.travel/ru/attractions/9",
+    "coordinateSource": "https://kazakhstan.travel/ru/attractions/9",
+    "xy": [
+      648.43,
+      103.11
+    ]
+  },
+  {
+    "cityId": 1516789,
+    "city": "Aiteke Bi",
+    "name": "Railway Water Tower",
+    "style": "tower",
+    "lat": 45.85225,
+    "lon": 62.1552222,
+    "fact": "The heritage-listed water tower stands beside Aiteke Bi’s railway station, a reminder of the town’s railway origins.",
+    "source": "https://law.gov.kz/api/documents/142694/rus/download/pdf",
+    "coordinateSource": "https://law.gov.kz/api/documents/142694/rus/download/pdf",
+    "xy": [
+      424.47,
+      400.2
+    ]
+  },
+  {
+    "cityId": 1519030,
+    "city": "Shu",
+    "name": "Shu Railway Station",
+    "localName": "Шу станциясы",
+    "style": "rail",
+    "lat": 43.6014356,
+    "lon": 73.7603998,
+    "fact": "The five-storey passenger station was built in 1989. Its routes connect Shu to cities around Kazakhstan and in Kyrgyzstan, Uzbekistan and Russia.",
+    "source": "https://www.gov.kz/org/kjvt/press/news/details/1302409?lang=ru",
+    "coordinateSource": "https://www.openstreetmap.org/way/179745240",
+    "xy": [
+      773.27,
+      490.27
+    ]
+  },
+  {
+    "cityId": 1521370,
+    "city": "Ridder",
+    "name": "Altai Botanical Garden",
+    "localName": "Алтай ботаникалық бағы",
+    "style": "garden",
+    "lat": 50.32939,
+    "lon": 83.54657,
+    "fact": "Set on Sokoliny Hill and the Bystrukha River floodplain, the garden studies native Altai plants and introduces them into cultivation.",
+    "source": "https://kazakhstan.travel/en/attractions/1061",
+    "coordinateSource": "https://kazakhstan.travel/en/attractions/1061",
+    "xy": [
+      1008.79,
+      168.82
+    ]
+  },
+  {
+    "cityId": 1524385,
+    "city": "Zhetisay",
+    "name": "Zhandarbekov Drama Theatre",
+    "localName": "Қ. Жандарбеков атындағы Жетісай драма театры",
+    "style": "theatre",
+    "lat": 40.7743854,
+    "lon": 68.3256583,
+    "fact": "The theatre opened in 1969 with Beimbet Mailin’s musical drama Jalbyr. It was later named for the actor and director Kurmanbek Zhandarbekov.",
+    "source": "https://qaztheatre.kz/ujymdar.html",
+    "coordinateSource": "https://www.openstreetmap.org/way/1436199402",
+    "xy": [
+      609.28,
+      618.26
+    ]
+  },
+  {
+    "cityId": 1525988,
+    "city": "Ayagoz",
+    "name": "Ayagoz Railway Station",
+    "localName": "Аягөз вокзалы",
+    "style": "rail",
+    "lat": 47.9630975,
+    "lon": 80.443656,
+    "fact": "Work began on the station in 1930 as the Turkestan–Siberia Railway reached present-day Ayagoz. A steam-locomotive depot followed.",
+    "source": "https://bulletin-histsocpolit.kaznpu.kz/index.php/ped/article/view/693",
+    "coordinateSource": "https://www.openstreetmap.org/node/4020137346",
+    "xy": [
+      944.1,
+      282.94
+    ]
+  },
+  {
+    "cityId": 1523741,
+    "city": "Esik",
+    "name": "Issyk Museum-Reserve",
+    "localName": "«Есік» мемлекеттік тарихи-мәдени музей-қорығы",
+    "style": "burial-mounds",
+    "lat": 43.3910647,
+    "lon": 77.3959858,
+    "fact": "The reserve protects the Saka burial grounds where archaeologists uncovered the gold-clad figure known as the Golden Man, now a national symbol.",
+    "source": "https://e-museum.kz/en/museum/68da37ae35f15979e-en/",
+    "coordinateSource": "https://www.openstreetmap.org/way/370448742",
+    "xy": [
+      885.01,
+      486.68
+    ]
+  },
+  {
+    "cityId": 1524243,
+    "city": "Korday",
+    "name": "Korday Batyr Monument",
+    "localName": "Қордай батыр ескерткіші",
+    "style": "monument",
+    "lat": 43.047689,
+    "lon": 74.706664,
+    "fact": "The village honors Korday Batyr with this statue. A mausoleum dedicated to him stands on Korday Pass.",
+    "source": "https://www.gov.kz/org/zhambyl-korday/press/article/details/44496",
+    "coordinateSource": "https://www.openstreetmap.org/node/2571977520",
+    "xy": [
+      804.43,
+      510.76
+    ]
+  },
+  {
+    "cityId": 1519327,
+    "city": "Shakhtinsk",
+    "name": "Karlag Memorial Museum",
+    "style": "museum",
+    "lat": 49.6777389,
+    "lon": 72.6819826,
+    "fact": "In nearby Dolinka, a museum in the former headquarters of the Karlag forced-labor camp preserves the stories and belongings of prisoners.",
+    "source": "https://kazakhstan.travel/ru/attractions/246",
+    "coordinateSource": "https://www.openstreetmap.org/way/369448291",
+    "xy": [
+      721.55,
+      238.2
+    ]
+  },
+  {
     "city": "Aral",
     "name": "Fishermen’s Museum",
     "localName": "«Балықшылар» музейі",
@@ -256,6 +780,181 @@
     ]
   },
   {
+    "cityId": 1524801,
+    "city": "Shieli",
+    "name": "Okshy Ata Mausoleum",
+    "localName": "Оқшы ата кесенесі",
+    "style": "dome",
+    "lat": 44.28814,
+    "lon": 66.5377152,
+    "fact": "This domed tomb northwest of Shieli is one of seven mausoleums in the Seven Saints memorial complex.",
+    "source": "https://archaeology.kz/en/heritages/168-oqshy-ata-kesenesi",
+    "coordinateSource": "https://www.openstreetmap.org/node/11968562969",
+    "xy": [
+      552.69,
+      470.4
+    ]
+  },
+  {
+    "cityId": 608880,
+    "city": "Mangistau",
+    "name": "Mangistau Railway Station",
+    "localName": "Маңғыстау станциясы",
+    "style": "rail",
+    "lat": 43.6969397,
+    "lon": 51.3087826,
+    "fact": "The first freight train arrived in December 1966, marking the opening of permanent service on the line from Makat to what was then Mangyshlak station.",
+    "source": "https://ktzh-gp.kz/ru-old/about/filialy/filialy_menu/mangistay/history.php?ID=9325",
+    "coordinateSource": "https://www.openstreetmap.org/way/315799623",
+    "xy": [
+      90.64,
+      446.66
+    ]
+  },
+  {
+    "cityId": 610613,
+    "city": "Aksay",
+    "name": "Burlin District History Museum",
+    "style": "museum",
+    "lat": 51.1718,
+    "lon": 53.00333,
+    "fact": "The museum displays jewelry found in local nomad burials and traces Aksay’s industrial growth around the Karachaganak field.",
+    "source": "https://kazakhstan.travel/en/attractions/578",
+    "coordinateSource": "https://kazakhstan.travel/en/attractions/578",
+    "xy": [
+      198.26,
+      147.48
+    ]
+  },
+  {
+    "cityId": 608679,
+    "city": "Kandyagash",
+    "name": "Kandyagash Railway Station",
+    "localName": "Қандыағаш станциясы",
+    "style": "rail",
+    "lat": 49.47244,
+    "lon": 57.42538,
+    "fact": "The station building dates to 1984 and serves domestic and international passenger trains.",
+    "source": "https://www.gov.kz/memleket/entities/aktobe/press/news/details/640125?lang=ru",
+    "coordinateSource": "https://www.openstreetmap.org/way/197162521",
+    "xy": [
+      305.05,
+      236.26
+    ]
+  },
+  {
+    "cityId": 1516601,
+    "city": "Zhitikara",
+    "name": "Builders and Miners Monument",
+    "localName": "Алғашқы құрылысшылар мен кеншілерге арналған ескерткіш",
+    "lat": 52.1852935,
+    "lon": 61.1997412,
+    "style": "monument",
+    "fact": "Erected in 1969, this monument honors the first Komsomol builders and miners who worked in Zhitikara.",
+    "source": "https://www.murakst.kz/index.php?Itemid=162&id=46&lang=ru&option=com_content&view=article",
+    "coordinateSource": "https://www.openstreetmap.org/node/11202415037",
+    "xy": [
+      416.51,
+      132.71
+    ]
+  },
+  {
+    "cityId": 1521379,
+    "city": "Lenger",
+    "name": "Tole Bi Monument",
+    "localName": "Төле би ескерткіші",
+    "lat": 42.1818638,
+    "lon": 69.8492984,
+    "style": "monument",
+    "fact": "A statue of the Kazakh judge and statesman Tole Bi stands in Lenger’s landscaped ravine, where a cultural park also displays yurts and traditional swings.",
+    "source": "https://www.gov.kz/memleket/entities/ontustik/press/news/details/503016",
+    "coordinateSource": "https://www.openstreetmap.org/node/14291562859",
+    "xy": [
+      656.05,
+      557.52
+    ]
+  },
+  {
+    "cityId": 1517323,
+    "city": "Zhanakorgan",
+    "name": "Lake Teresken",
+    "localName": "Терескен көлі",
+    "lat": 43.8809724,
+    "lon": 67.2623951,
+    "style": "lakeside",
+    "fact": "The sanatorium on the shores of Lake Teresken uses the lake’s silt and mineral-rich brine in its baths and treatments.",
+    "source": "https://www.szhanakorgan.kz/page/treatment/12",
+    "coordinateSource": "https://www.openstreetmap.org/way/138320183",
+    "xy": [
+      574.66,
+      487.57
+    ]
+  },
+  {
+    "cityId": 1519725,
+    "city": "Saran",
+    "name": "Igilik Bi Mausoleum",
+    "localName": "Игілік би мазары",
+    "lat": 49.8164482,
+    "lon": 72.8517209,
+    "style": "dome",
+    "fact": "This octagonal adobe mausoleum was built around 1875–1880. It honors Igilik Bi, a local figure who helped develop education and coal mining in the nineteenth century.",
+    "source": "https://www.gov.kz/org/karaganda/press/news/details/1032553?lang=ru",
+    "coordinateSource": "https://www.openstreetmap.org/node/9167393122",
+    "xy": [
+      725.72,
+      232.04
+    ]
+  },
+  {
+    "cityId": 1525462,
+    "city": "Aksu",
+    "name": "Ardaqti Ana Museum",
+    "localName": "Ардақты ана музейі",
+    "lat": 42.418321,
+    "lon": 69.8314495,
+    "style": "museum",
+    "fact": "This museum opened in 2021 to honor mothers of the Turkistan region. Its designers built the exhibition around women whose work shaped local life.",
+    "source": "https://www.gov.kz/memleket/entities/ontustik/press/news/details/306704?lang=kk",
+    "coordinateSource": "https://www.openstreetmap.org/way/1077047666",
+    "xy": [
+      655.12,
+      547.58
+    ]
+  },
+  {
+    "cityId": 1520947,
+    "city": "Sarykemer",
+    "name": "Baizak Batyr Mausoleum",
+    "localName": "Байзақ батыр кесенесі",
+    "lat": 43.0474387,
+    "lon": 71.5485009,
+    "style": "dome",
+    "fact": "Baizak Batyr’s domed mausoleum overlooks the Talas River. Its tomb incorporates adobe bricks from the earlier burial monument.",
+    "source": "https://archaeology.kz/ru/heritages/88-baizaq-batyr-kesenesi",
+    "coordinateSource": "https://law.gov.kz/api/documents/144342/rus/download/pdf",
+    "xy": [
+      707.15,
+      518.53
+    ]
+  },
+  {
+    "cityId": 1524308,
+    "city": "Otegen Batyr",
+    "name": "Almaty Combined Heat and Power Plant No. 3",
+    "localName": "Алматы ЖЭО-3",
+    "lat": 43.4243126,
+    "lon": 77.0069388,
+    "style": "industry",
+    "fact": "Construction of the heating and power plant began in 1958. The settlement that grew around it was originally called Energetichesky, a name that reflected its ties to the plant.",
+    "source": "https://www.ales.kz/1-2-76/",
+    "coordinateSource": "https://www.openstreetmap.org/way/527422216",
+    "xy": [
+      872.99,
+      486.87
+    ]
+  },
+  {
     "city": "Baikonur",
     "name": "Soyuz Rocket Monument",
     "localName": "Союз зымыраны",
@@ -269,6 +968,182 @@
     "xy": [
       458.2,
       411.49
+    ]
+  },
+  {
+    "cityId": 1524889,
+    "city": "Shardara",
+    "name": "Shardara Hydroelectric Station",
+    "localName": "Шардара су электр станциясы",
+    "lat": 41.24869,
+    "lon": 67.96728,
+    "style": "dam",
+    "fact": "Commissioned in 1967, Shardara is the last hydroelectric station in the Naryn–Syr Darya cascade.",
+    "source": "https://sharges.kz/about-us/",
+    "coordinateSource": "https://www.openstreetmap.org/way/165597951",
+    "xy": [
+      597.51,
+      598.38
+    ]
+  },
+  {
+    "cityId": 1521315,
+    "city": "Lisakovsk",
+    "name": "Upper Tobol History and Culture Museum",
+    "localName": "Лисаков Жоғарғы Тобыл тарихы мен мәдениеті мұражайы",
+    "lat": 52.5440203,
+    "lon": 62.4898049,
+    "style": "museum",
+    "fact": "The museum displays Bronze Age objects excavated from the settlement and burial grounds at Lisakovsk, including material from the Andronovo cultures.",
+    "source": "https://e-museum.kz/ru/museum/68da379bcd193765a-ru/",
+    "coordinateSource": "https://www.openstreetmap.org/node/2363198993",
+    "xy": [
+      450.75,
+      119.84
+    ]
+  },
+  {
+    "cityId": 610043,
+    "city": "Derkul",
+    "name": "Sarsenuly Temirbolat Ata Mosque",
+    "localName": "Сәрсенұлы Темірболат ата мешіті",
+    "lat": 51.2423463,
+    "lon": 51.2879699,
+    "style": "dome",
+    "fact": "The mosque opened in June 2024 in Derkul, a settlement administered by Oral. Four carpets are a feature of its prayer hall.",
+    "source": "https://kazakhstan.travel/ru/attractions/615",
+    "coordinateSource": "https://www.openstreetmap.org/way/1290846883",
+    "xy": [
+      154.31,
+      135.87
+    ]
+  },
+  {
+    "cityId": 609404,
+    "city": "Khromtau",
+    "name": "Metallurgists’ Monument",
+    "localName": "Металлург жұмысшыларға арналған ескерткіш",
+    "lat": 50.2583138,
+    "lon": 58.4326989,
+    "style": "monument",
+    "fact": "This obelisk honors the workers of Khromtau’s metallurgical industry. It is listed among the heritage landmarks of the Aktobe area.",
+    "source": "https://adilet.zan.kz/rus/docs/P1800000109",
+    "coordinateSource": "https://www.openstreetmap.org/node/1371915223",
+    "xy": [
+      336.12,
+      206.66
+    ]
+  },
+  {
+    "cityId": 1518431,
+    "city": "Tasbuget",
+    "name": "Kyzylorda Hydraulic Works",
+    "localName": "Қызылорда су торабы",
+    "lat": 44.7634614,
+    "lon": 65.5365398,
+    "style": "dam",
+    "fact": "Tasbuget grew around the construction of this dam on the Syr Darya, which helped expand agriculture in the surrounding region.",
+    "source": "https://www.gov.kz/org/kyzylorda-tasboget-district?lang=ru",
+    "coordinateSource": "https://www.openstreetmap.org/node/4303595716",
+    "xy": [
+      522.82,
+      450.03
+    ]
+  },
+  {
+    "cityId": 1526038,
+    "city": "Atbasar",
+    "name": "Ilyas Yesenberlin Literary Museum",
+    "localName": "Ілияс Есенберлин әдеби музейі",
+    "lat": 51.8143,
+    "lon": 68.3591,
+    "style": "literature",
+    "fact": "In the writer’s hometown, the museum preserves Yesenberlin’s manuscripts and a recording of his voice alongside a reconstruction of his study.",
+    "source": "https://kazakhstan.travel/en/attractions/812",
+    "coordinateSource": "https://kazakhstan.travel/en/attractions/812",
+    "xy": [
+      602.16,
+      153.69
+    ]
+  },
+  {
+    "cityId": 1519938,
+    "city": "Karatau",
+    "name": "Talas District Museum",
+    "localName": "Талас аудандық тарихи-өлкетану музейі",
+    "lat": 43.1769639,
+    "lon": 70.4648478,
+    "style": "museum",
+    "fact": "The Talas district museum moved from Akkol to Karatau after Karatau became the district center in 1997.",
+    "source": "https://e-museum.kz/ru/museum/68da37ac93b057d33-ru/",
+    "coordinateSource": "https://www.openstreetmap.org/node/6261077622",
+    "xy": [
+      673.46,
+      514.82
+    ]
+  },
+  {
+    "cityId": 1526970,
+    "city": "Abay",
+    "name": "Abay Qunanbaiuly Literary and Memorial Museum",
+    "localName": "Абай Құнанбаев әдеби-мемориалдық музейі",
+    "lat": 49.6330609,
+    "lon": 72.8570661,
+    "style": "literature",
+    "fact": "The museum displays a 1933 collection of Abay’s works published in Kyzylorda in Arabic script, along with translations of his Book of Words.",
+    "source": "https://museum-karaganda.kz/index.php/ru/muzei/muzey-abaya-kunanbaeva",
+    "coordinateSource": "https://www.openstreetmap.org/way/114921897",
+    "xy": [
+      726.45,
+      239.71
+    ]
+  },
+  {
+    "cityId": 1526193,
+    "city": "Arkalyk",
+    "name": "Regional Museum of Steppe History",
+    "localName": "Дала өлкесі тарихы облыстық мұражайы",
+    "lat": 50.2507826,
+    "lon": 66.9064816,
+    "style": "museum",
+    "fact": "Arkalyk’s steppe history museum welcomed its first visitors in 1973, marking the centenary of the birth of Amangeldi Imanov.",
+    "source": "https://www.gov.kz/memleket/entities/kostanai-madeniet/press/article/details/2025",
+    "coordinateSource": "https://www.openstreetmap.org/node/1695960589",
+    "xy": [
+      564.14,
+      219.82
+    ]
+  },
+  {
+    "cityId": 1516788,
+    "city": "Zhanatas",
+    "name": "Zhanatas Wind Farm",
+    "localName": "Жаңатас жел электр станциясы",
+    "lat": 43.4798303,
+    "lon": 69.7133918,
+    "style": "wind",
+    "fact": "Forty turbines make up the 100-megawatt wind farm south of Zhanatas, near the boundary of the Zhambyl and Turkistan regions.",
+    "source": "https://www.aiib.org/en/projects/approved/2019/_download/kazakhstan/Zhanatas-WPP-Non-Technical-Summary-English.PDF",
+    "coordinateSource": "https://www.openstreetmap.org/relation/14072440",
+    "xy": [
+      649.86,
+      503.0
+    ]
+  },
+  {
+    "cityId": 1519691,
+    "city": "Sarkan",
+    "name": "Mukhamedzhan Tynyshpaev Monument",
+    "localName": "Мұхамеджан Тынышбаев ескерткіші",
+    "lat": 45.4090494,
+    "lon": 79.9160276,
+    "style": "monument",
+    "fact": "In 2007, Sarkan dedicated this monument to Mukhamedzhan Tynyshpaev, a railway engineer who helped build the Turkestan–Siberian Railway.",
+    "source": "https://kaz.inform.kz/amp/kazakparat-anons-karashanyn-16-sy-men-karashanyn-21-i-aralygyndagy-okigalardyn-kuntizbesi_a2322733/",
+    "coordinateSource": "https://www.openstreetmap.org/way/777634555",
+    "xy": [
+      947.35,
+      391.3
     ]
   }
 ]
