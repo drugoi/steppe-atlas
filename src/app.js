@@ -248,6 +248,7 @@ function draw(timestamp=performance.now()) {
   }
   if (relief) context.drawImage(relief,...reliefAsset.bounds);
   if (winterView) drawWinterTint(visible,Boolean(relief));
+  beginTerrainDetails(s);
   for (const [i,tile] of visible) {
     const [x,y,terrain,,inside]=tile;
     const inSurvey=nearby(tile,local);
@@ -334,6 +335,7 @@ function draw(timestamp=performance.now()) {
       context.stroke();
     }
   }
+  finishTerrainDetails();
   if (surveyBorder) drawSurveyBorder(surveyBorder,s,winterView);
   context.lineWidth = 1.35/s;
   context.strokeStyle = winterView ? '#295978b8' : view.zoom>=2.5 ? '#5cb4c5c2' : '#66a5a183';

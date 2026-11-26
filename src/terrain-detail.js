@@ -1,9 +1,32 @@
 const sceneryLayers = new Set(['terrain','land','transport','heritage','winter']);
 const scenerySprites = new Map();
+const sceneryCacheFloor = 192;
+const sceneryBatchSize = 20;
+const sceneryFrameBudgetMs = 3;
 const scenerySize = 192;
 const sceneryExtent = data.radius*2;
 const sceneryClip = new Path2D();
 traceHex(sceneryClip,0,0);
+let sceneryPass = null;
+
+function beginTerrainDetails(s) {
+  sceneryPass = s>1.2 && sceneryLayers.has(state.layer)
+    ? {visible:new Set(), remaining:sceneryBatchSize, generationMs:0, pending:false}
+    : null;
+}
+
+function finishTerrainDetails() {
+  if (!sceneryPass) return;
+  const {visible,pending}=sceneryPass;
+  sceneryPass=null;
+  // Keep the whole visible working set, even when a wide view needs more sprites than the usual cache.
+  const limit=Math.max(sceneryCacheFloor,visible.size);
+  for (const key of scenerySprites.keys()) {
+    if (scenerySprites.size<=limit) break;
+    if (!visible.has(key)) scenerySprites.delete(key);
+  }
+  if (pending) requestDraw();
+}
 
 function sceneryRandom(seed) {
   return () => {
@@ -236,7 +259,14 @@ function woodsDetails(art,random,coverage,pine,winterView) {
 
 function scenerySprite(kind,woods,fields,variant,winterView) {
   const key=[kind,woods,fields,variant,winterView].join('/');
-  if (scenerySprites.has(key)) return scenerySprites.get(key);
+  sceneryPass.visible.add(key);
+  const cached=scenerySprites.get(key);
+  if (cached) return cached;
+  if (!sceneryPass.remaining || sceneryPass.generationMs>=sceneryFrameBudgetMs) {
+    sceneryPass.pending=true;
+    return null;
+  }
+  const start=performance.now();
   const surface=document.createElement('canvas');
   surface.width=surface.height=scenerySize;
   const art=surface.getContext('2d');
@@ -254,8 +284,9 @@ function scenerySprite(kind,woods,fields,variant,winterView) {
     if (fields) fieldDetails(art,random,fields,winterView);
     if (woods) woodsDetails(art,random,woods,kind==='alpine' || kind==='rock',winterView);
   }
-  if (scenerySprites.size>=192) scenerySprites.delete(scenerySprites.keys().next().value);
   scenerySprites.set(key,surface);
+  sceneryPass.remaining--;
+  sceneryPass.generationMs+=performance.now()-start;
   return surface;
 }
 
@@ -270,7 +301,7 @@ function sceneryKind(tile) {
 }
 
 function drawTerrainDetail(tile,index,s,local,inSurvey) {
-  if (s<1.2 || !sceneryLayers.has(state.layer)) return;
+  if (!sceneryPass) return;
   const [x,y,,,,,z,cover,trees,crops]=tile;
   const kind=sceneryKind(tile);
   const winterView=state.layer==='winter';
@@ -278,6 +309,7 @@ function drawTerrainDetail(tile,index,s,local,inSurvey) {
   const fields=z<1750 ? (crops>=17 ? 3 : crops>=9 ? 2 : crops>=4 ? 1 : 0) : 0;
   const variant=Math.floor(rasterNoise(x,y,12)*12);
   const sprite=scenerySprite(kind,woods,fields,variant,winterView);
+  if (!sprite) return;
   const fade=clamp((s-1.2)/1.35,0,1);
   const baseOpacity=winterView || state.layer==='terrain' ? 1 : .57;
   const sceneOpacity=citiesByTile.has(index) ? .43 : local && !inSurvey ? .69 : 1;
