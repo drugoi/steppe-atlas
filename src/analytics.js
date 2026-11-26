@@ -3,7 +3,6 @@ const measurementId = analyticsPanel.dataset.measurement;
 const analyticsAvailable = measurementId && location.origin==='https://kazakhstan.drugoi.dev';
 const analyticsKey = 'steppe-atlas-analytics-'+measurementId;
 const atlasCookiePrefix = 'steppe_atlas';
-let analyticsChoice = null;
 let analyticsEnabled = false;
 
 function atlasEvent(name, parameters={}) {
@@ -62,8 +61,9 @@ function setAtlasAnalytics(allow) {
 }
 
 if (analyticsAvailable) {
+  let allowByDefault = true;
   try {
-    analyticsChoice = localStorage.getItem(analyticsKey);
+    allowByDefault = localStorage.getItem(analyticsKey)!=='declined';
   } catch {
     // The in-page choice is still respected when storage is unavailable.
   }
@@ -72,20 +72,19 @@ if (analyticsAvailable) {
   settings.onclick = () => {
     $('credits').close();
     analyticsPanel.hidden = false;
-    $(analyticsChoice==='allowed' ? 'analytics-decline' : 'analytics-allow').focus();
+    $(analyticsEnabled ? 'analytics-decline' : 'analytics-allow').focus();
   };
-  analyticsPanel.hidden = analyticsChoice==='allowed' || analyticsChoice==='declined';
-  setAtlasAnalytics(analyticsChoice==='allowed');
+  setAtlasAnalytics(allowByDefault);
   function saveAnalyticsChoice(allow) {
-    analyticsChoice = allow ? 'allowed' : 'declined';
     try {
-      localStorage.setItem(analyticsKey,analyticsChoice);
+      localStorage.setItem(analyticsKey,allow ? 'allowed' : 'declined');
     } catch {
       // Retain the choice for this page.
     }
     setAtlasAnalytics(allow);
     analyticsPanel.hidden = true;
-    $('announcement').textContent = allow ? msg("Analytics allowed.") : msg("Analytics declined.");
+    $('announcement').textContent = allow ? msg("Analytics enabled.") : msg("Analytics disabled.");
+    $('sources').focus();
   }
   $('analytics-allow').onclick = () => saveAnalyticsChoice(true);
   $('analytics-decline').onclick = () => saveAnalyticsChoice(false);
