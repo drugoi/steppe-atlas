@@ -342,7 +342,8 @@ function renderMapLegend() {
       +line(hmsg("Regional roads"),roadStyles[3].day,1.75)
       +line(hmsg("Local roads"),roadStyles[5].day,1)
       +'<p class="tool-note">'+hmsg("Zoom in for more roads.")+'</p>' : '';
-    const key=roads+line(hmsg("Railway"),'#b9c9ce',2,'dashed')+dot(hmsg("Airport / port"),'#9ddadd')
+    const rail=mapOverlay.rail ? line(hmsg("Railway"),'#b9c9ce',2,'dashed') : '';
+    const key=roads+rail+dot(hmsg("Airport / port"),'#9ddadd')
       +'<p class="network-source">OpenStreetMap · '+escape(date)+'</p>';
     if (mobile.matches) {
       legend.innerHTML='<details class="transport-legend"'+(transportLegendExpanded?' open':'')+'><summary>'

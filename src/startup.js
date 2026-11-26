@@ -37,6 +37,7 @@ $('show-sites').onclick = ()=>{
 $('rail-overlay').onclick = ()=>{
   mapOverlay.rail=!mapOverlay.rail;
   $('rail-overlay').setAttribute('aria-pressed',String(mapOverlay.rail));
+  renderMapLegend();
   requestDraw();
 };
 $('road-overlay').onclick = ()=>{

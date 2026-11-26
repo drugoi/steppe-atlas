@@ -341,7 +341,7 @@ function mapSiteVisible(site) {
   return view.zoom>=3.3 || site.kind==='heritage'||(site.kind==='energy' && site.mw>=220);
 }
 function drawRailNetwork(s,local) {
-  if (state.layer!=='transport' && !(mapOverlay.rail && view.zoom>=1.85)) return;
+  if (!mapOverlay.rail || (state.layer!=='transport' && view.zoom<1.85)) return;
   const width=clamp(1.25+s*.21,1.45,3.2);
   context.save();
   context.lineJoin='round';
