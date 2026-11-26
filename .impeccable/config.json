@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "src/index.html"
+        ],
+        "createdAt": "2026-11-26T05:39:30.981Z",
+        "reason": "Agent verified in rendered Chrome: this build template inserts CSS separately. Desktop map heading and text are 19/11 px, mobile 17/10 px, and profile heading and text 34/12 px at both sizes."
+      }
+    ]
+  }
+}
