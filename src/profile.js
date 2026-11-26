@@ -164,7 +164,11 @@ function selectProfileTab(tab,restoreFocus=false) {
   updateLocation();
   if (restoreFocus) document.querySelector('[data-tab="'+tab+'"]')?.focus({preventScroll:true});
 }
+let inspectorEntrance = null;
 function closeInspector(save=true) {
+  inspectorEntrance?.cancel();
+  inspectorEntrance=null;
+  tilePulse=null;
   state.site=null;state.tile=null;state.district=null;state.landmark=null;
   $('inspector').hidden=true;
   if (save) updateLocation();
@@ -221,7 +225,7 @@ function renderInspector() {
   $('inspector').hidden=!body;
   if (body) $('inspector').innerHTML='<button data-inspect-close title="'+hmsg("Close map inspection")+'" aria-label="'+hmsg("Close map inspection")+'">×</button>'+body;
 }
-function inspectLandmark(id,focus) {
+function inspectLandmark(id,focus,byPointer=false) {
   const item=cityLandmarks.get(id);
   if (!item) return;
   if (state.city!==id) select('city',id);
@@ -231,13 +235,13 @@ function inspectLandmark(id,focus) {
     if (!['terrain','winter'].includes(state.layer)) state.layer='terrain';
     [view.x,view.y]=cityHexLandmarks.has(id) ? cityHexPoint(cityById.get(id)) : item.xy;
     view.zoom=Math.max(view.zoom,zoomCity());
-    if (mobile.matches) document.querySelector('.map').scrollIntoView({block:'start'});
+    if (mobile.matches) document.querySelector('.map').scrollIntoView({block:'start',behavior:navigationScrollBehavior(byPointer)});
   }
   $('announcement').textContent=item.name+' · '+item.city;
   updateUI();
   if (focus) $('inspector').querySelector('button').focus({preventScroll:true});
 }
-function inspectSite(id,focus) {
+function inspectSite(id,focus,byPointer=false) {
   const s=sitesById.get(id);
   if (!s) return;
   closeInspector(false);
@@ -247,7 +251,7 @@ function inspectSite(id,focus) {
     if (state.layer==='density' || (['transport','heritage'].includes(state.layer) && !mapSiteVisible(s))) state.layer='terrain';
     [view.x,view.y]=s.xy;
     view.zoom=Math.max(view.zoom,zoomCity());
-    if (mobile.matches) document.querySelector('.map').scrollIntoView({block:'start'});
+    if (mobile.matches) document.querySelector('.map').scrollIntoView({block:'start',behavior:navigationScrollBehavior(byPointer)});
   }
   updateUI();
 }
@@ -262,10 +266,31 @@ function inspectDistrict(id) {
   selectProfileTab('districts');
   updateUI();
 }
-function inspectTile(id) {
+function inspectTile(id,point) {
+  const inspector=$('inspector');
+  const opening=inspector.hidden;
+  const newTile=state.tile!==id;
   closeInspector(false);
   state.tile=id;
   renderInspector();
+  if (point) {
+    if (newTile && !reducedMotion.matches) tilePulse={tile:id,started:performance.now()};
+    if (opening && typeof inspector.animate==='function') {
+      const start={opacity:.64}, end={opacity:1};
+      if (!reducedMotion.matches) {
+        const x=clamp(point.x-inspector.offsetLeft,0,inspector.offsetWidth);
+        const y=clamp(point.y-inspector.offsetTop,0,inspector.offsetHeight);
+        inspector.style.transformOrigin=x+'px '+y+'px';
+        start.transform='scale(.97)';
+        end.transform='scale(1)';
+      }
+      const animation=inspector.animate([start,end],{duration:tileFeedbackDuration,easing:mapEaseOut,fill:'none'});
+      inspectorEntrance=animation;
+      animation.onfinish=()=>{
+        if (inspectorEntrance===animation) inspectorEntrance=null;
+      };
+    }
+  }
   const sample=data.worldPop.hexes[id];
   $('announcement').textContent=sample
     ? msg("{count} residents. {density}. WorldPop {year}.",{count:estimatedPeople(sample[0]),density:describeDensity(sample),year:data.worldPop.year})

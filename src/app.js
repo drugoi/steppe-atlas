@@ -19,6 +19,10 @@ const canvas = $('map');
 const context = canvas.getContext('2d');
 const maxZoom = 16;
 const mobile = matchMedia('(max-width:760px)');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const mapEaseOut = 'cubic-bezier(0.23, 1, 0.32, 1)';
+const wheelZoomDuration = 160;
+const tileFeedbackDuration = 160;
 // Match Kazakhstan's statistical releases where the browser's Kazakh formatter uses English punctuation.
 const numberLocale = locale==='kk' ? 'ru-KZ' : locale;
 const fmt = new Intl.NumberFormat(numberLocale);
@@ -48,6 +52,8 @@ const state = {layer:'terrain', mode:'cities', city:null, region:null, tab:'peop
 const view = {width:0,height:0,fit:1,zoom:1,x:data.width/2,y:data.height/2};
 const paths = new Map();
 let frame, hits = [], hover = null;
+let wheelZoom = null;
+let tilePulse = null;
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
 const sign = value => (value>=0 ? '+' : '−') + fmt.format(Math.abs(value));
@@ -73,6 +79,7 @@ const rivers = path(data.rivers,false);
 for (const region of regions) paths.set(region.id,path(region.shape,true));
 
 function readLocation() {
+  closeInspector(false);
   const params = new URLSearchParams(location.hash.slice(1));
   const city = Number(params.get('city'));
   const region = Number(params.get('region'));
@@ -105,6 +112,7 @@ function readLocation() {
   }
 }
 function updateLocation() {
+  wheelZoom = null;
   const params = new URLSearchParams({view:state.mode,layer:state.layer,tab:state.tab,
     at:[view.x,view.y,view.zoom].map(n=>Number(n.toFixed(2))).join(',')});
   if (state.city) params.set('city',state.city);
@@ -116,6 +124,8 @@ function updateLocation() {
   history.replaceState(null,'','#'+params);
 }
 function setFit(refresh=true) {
+  wheelZoom = null;
+  if (hover?.tile!==undefined) hideTooltip();
   view.x = data.width/2;
   view.y = data.height/2 + (mobile.matches ? 92 : -28);
   view.zoom = 1;
@@ -132,17 +142,44 @@ function viewPoint([x,y]) {
 function mapPoint(x,y) {
   return [(x-view.width/2)/scale()+view.x,(y-view.height/2)/scale()+view.y];
 }
-function zoomAt(factor,x=view.width/2,y=view.height/2) {
-  const [mx,my] = mapPoint(x,y);
-  view.zoom = clamp(view.zoom*factor,0.8,maxZoom);
+function applyZoom(zoom,x,y,[mx,my]) {
+  view.zoom = zoom;
   view.x = mx - (x-view.width/2)/scale();
   view.y = my - (y-view.height/2)/scale();
   constrainCamera();
+}
+function zoomAt(factor,x=view.width/2,y=view.height/2) {
+  if (hover?.tile!==undefined) hideTooltip();
+  applyZoom(clamp(view.zoom*factor,0.8,maxZoom),x,y,mapPoint(x,y));
   updateLocation();
   requestDraw();
 }
+function easeOutProgress(progress) {
+  if (progress===0 || progress===1) return progress;
+  const coordinate = (t,a,b) => 3*(1-t)**2*t*a + 3*(1-t)*t**2*b + t**3;
+  let low=0, high=1;
+  for (let i=0;i<12;i++) {
+    const mid=(low+high)/2;
+    if (coordinate(mid,.23,.32)<progress) low=mid;
+    else high=mid;
+  }
+  return coordinate((low+high)/2,1,1);
+}
+function advanceWheelZoom(timestamp) {
+  if (!wheelZoom) return;
+  const {start,target,x,y,anchor,started} = wheelZoom;
+  const progress = reducedMotion.matches ? 1 : clamp((timestamp-started)/wheelZoomDuration,0,1);
+  const zoom = progress===1 ? target : start*(target/start)**easeOutProgress(progress);
+  applyZoom(zoom,x,y,anchor);
+  if (progress===1) updateLocation();
+  else requestDraw();
+}
 function resize() {
   const {width,height} = canvas.getBoundingClientRect();
+  if (width!==view.width || height!==view.height) {
+    if (wheelZoom) updateLocation();
+    if (hover?.tile!==undefined) hideTooltip();
+  }
   const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(width*dpr);
   canvas.height = Math.round(height*dpr);
@@ -168,13 +205,18 @@ function drawHex(x,y) {
   context.beginPath();
   traceHex(context,x,y);
 }
-function draw() {
+function draw(timestamp=performance.now()) {
   frame = null;
   if (view.fit<=0) return;
+  advanceWheelZoom(timestamp);
   const dpr = window.devicePixelRatio || 1;
   const s = scale();
   context.setTransform(dpr,0,0,dpr,0,0);
   const winterView=state.layer==='winter';
+  const hoverTile=hover?.tile;
+  const tilePaint=winterView ? '#d5edff' : '#f8dc94';
+  if (tilePulse && (tilePulse.tile!==state.tile || reducedMotion.matches ||
+    timestamp-tilePulse.started>=tileFeedbackDuration)) tilePulse=null;
   context.fillStyle = winterView ? '#263c4e' : '#213a37';
   context.fillRect(0,0,view.width,view.height);
   const local=localCity();
@@ -253,8 +295,27 @@ function draw() {
         }
       }
     }
+    if (hoverTile===i && state.tile!==i) {
+      drawHex(x,y);
+      context.fillStyle=tilePaint;
+      context.globalAlpha=.12;
+      context.fill();
+      context.strokeStyle=tilePaint;
+      context.lineWidth=1.25/s;
+      context.globalAlpha=.55;
+      context.stroke();
+      context.globalAlpha=1;
+    }
     if (state.tile===i) {
       drawHex(x,y);
+      if (tilePulse) {
+        const progress=clamp((timestamp-tilePulse.started)/tileFeedbackDuration,0,1);
+        context.fillStyle=tilePaint;
+        context.globalAlpha=.32*(1-easeOutProgress(progress));
+        context.fill();
+        context.globalAlpha=1;
+        requestDraw();
+      }
       if (state.layer==='density' || winterView) {
         context.lineWidth=4.5/s;
         context.strokeStyle='#182b31';
@@ -418,7 +479,10 @@ function updateTooltip(x,y) {
   canvas.classList.add('over');
   requestDraw();
 }
-function select(type,id,focus=false) {
+function navigationScrollBehavior(byPointer) {
+  return byPointer && !reducedMotion.matches ? 'smooth' : 'instant';
+}
+function select(type,id,focus=false,byPointer=false) {
   const item = type === 'city' ? cityById.get(id) : regionById(id);
   if (!item) return;
   state.mode = type==='city' ? 'cities' : 'regions';
@@ -435,8 +499,9 @@ function select(type,id,focus=false) {
   updateUI();
   atlasEvent('atlas_place_opened', {place_type:type});
   if (focus && mobile.matches) {
-    if (type==='city') window.scrollTo(0,0);
-    else document.querySelector('.panel').scrollIntoView({block:'start'});
+    const behavior=navigationScrollBehavior(byPointer);
+    if (type==='city') window.scrollTo({top:0,left:0,behavior});
+    else document.querySelector('.panel').scrollIntoView({block:'start',behavior});
   }
 }
 
@@ -540,11 +605,11 @@ function renderSearch() {
   search.setAttribute('aria-expanded','true');
   setActive(-1);
 }
-function chooseResult(index) {
+function chooseResult(index,byPointer=false) {
   const match = matches[index];
   if (!match) return;
-  if (match.type==='site') inspectSite(match.item.id,true);
-  else select(match.type,match.item.id,true);
+  if (match.type==='site') inspectSite(match.item.id,true,byPointer);
+  else select(match.type,match.item.id,true,byPointer);
   search.value = '';
   closeSearch();
   search.blur();
@@ -565,7 +630,7 @@ search.addEventListener('keydown',event=>{
 results.addEventListener('pointerdown',event=>event.preventDefault());
 results.addEventListener('click',event=>{
   const button = event.target.closest('[data-match]');
-  if (button) chooseResult(Number(button.dataset.match));
+  if (button) chooseResult(Number(button.dataset.match),event.detail>0);
 });
 document.addEventListener('pointerdown',event=>{
   if (!event.target.closest('.search')) closeSearch();
@@ -589,6 +654,7 @@ function pinchFrame(points) {
 }
 canvas.addEventListener('pointerdown',event=>{
   if (event.button!==0) return;
+  if (wheelZoom) updateLocation();
   const point = eventPosition(event);
   canvas.setPointerCapture(event.pointerId);
   pointers.set(event.pointerId,point);
@@ -599,7 +665,7 @@ canvas.addEventListener('pointerdown',event=>{
 canvas.addEventListener('pointermove',event=>{
   const point = eventPosition(event);
   if (!pointers.has(event.pointerId)) {
-    if (event.pointerType==='mouse') updateTooltip(point.x,point.y);
+    if (event.pointerType==='mouse' && !wheelZoom) updateTooltip(point.x,point.y);
     return;
   }
   const before = pointers.get(event.pointerId);
@@ -638,7 +704,7 @@ canvas.addEventListener('click',event=>{
   else if (item?.city) select('city',item.city);
   else if (item?.site) inspectSite(item.site,false);
   else if (item?.district) inspectDistrict(item.district);
-  else if (item?.tile!==undefined) inspectTile(item.tile);
+  else if (item?.tile!==undefined) inspectTile(item.tile,event.detail>0 ? {x,y} : undefined);
   else if (item?.region) select('region',item.region);
   updateLocation();
 });
@@ -646,12 +712,24 @@ canvas.addEventListener('pointerleave',hideTooltip);
 canvas.addEventListener('wheel',event=>{
   event.preventDefault();
   const {x,y} = eventPosition(event);
-  const factor = event.deltaMode===1 ? 16 : event.deltaMode===2 ? view.height : 1;
-  zoomAt(Math.exp(-clamp(event.deltaY*factor,-135,135)*.003),x,y);
+  const unit = event.deltaMode===1 ? 16 : event.deltaMode===2 ? view.height : 1;
+  const factor = Math.exp(-clamp(event.deltaY*unit,-135,135)*.003);
+  if (reducedMotion.matches) {
+    hideTooltip();
+    zoomAt(factor,x,y);
+    return;
+  }
+  const base = wheelZoom?.target ?? view.zoom;
+  const target = clamp(base*factor,0.8,maxZoom);
+  if (target===base) return;
+  if (!wheelZoom) hideTooltip();
+  wheelZoom = {start:view.zoom,target,x,y,anchor:mapPoint(x,y),started:performance.now()};
+  requestDraw();
 },{passive:false});
 canvas.addEventListener('keydown',event=>{
   const moves = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
   if (Object.hasOwn(moves,event.key)) {
+    if (hover?.tile!==undefined) hideTooltip();
     const [x,y]=moves[event.key];
     view.x += x*60/scale();
     view.y += y*60/scale();
@@ -673,6 +751,7 @@ $('zoom-out').onclick = ()=>zoomAt(1/1.38);
 $('reset').onclick = ()=>setFit();
 function selectLayer(layer) {
   const previous=state.layer;
+  if (previous!==layer && hover?.tile!==undefined) hideTooltip();
   state.layer=layer;
   if (state.landmark && !['terrain','winter'].includes(layer)) closeInspector(false);
   buttons('[data-layer]').forEach(btn=>btn.setAttribute('aria-pressed',btn.dataset.layer===state.layer));
@@ -699,16 +778,17 @@ buttons('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
   updateUI();
 }));
 $('detail').addEventListener('click',event=>{
+  const byPointer=event.detail>0;
   const place = event.target.closest('[data-place]');
-  if (place) select(place.dataset.place,Number(place.dataset.id),true);
+  if (place) select(place.dataset.place,Number(place.dataset.id),true,byPointer);
   const tab=event.target.closest('[data-tab]');
   if (tab) selectProfileTab(tab.dataset.tab,true);
   const site=event.target.closest('[data-site]');
-  if (site) inspectSite(Number(site.dataset.site),true);
+  if (site) inspectSite(Number(site.dataset.site),true,byPointer);
   const district=event.target.closest('[data-district]');
   if (district) inspectDistrict(district.dataset.district);
   const landmark=event.target.closest('[data-landmark]');
-  if (landmark) inspectLandmark(Number(landmark.dataset.landmark),true);
+  if (landmark) inspectLandmark(Number(landmark.dataset.landmark),true,byPointer);
   if (event.target.closest('[data-credits]')) $('credits').showModal();
 });
 $('sources').onclick = ()=>$('credits').showModal();

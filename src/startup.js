@@ -56,7 +56,7 @@ $('inspector').addEventListener('click',event=>{
   const city=event.target.closest('[data-inspect-city]');
   if (city) select('city',Number(city.dataset.inspectCity));
   const landmark=event.target.closest('[data-inspect-landmark]');
-  if (landmark) inspectLandmark(Number(landmark.dataset.inspectLandmark),true);
+  if (landmark) inspectLandmark(Number(landmark.dataset.inspectLandmark),true,event.detail>0);
 });
 window.addEventListener('hashchange',()=>{readLocation();updateUI(false);});
 mobile.addEventListener('change',renderMapLegend);
