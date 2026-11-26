@@ -10,7 +10,6 @@
   "2025 · dominant share": "2025 г. · преобладающая отрасль",
   "2025 · tenge": "2025 г. · тенге",
   "2026 population · 2025 regional product": "Население за 2026 г. · ВРП за 2025 г.",
-  "< −20 °C": "< −20 °C",
   "A district represents at least 2% of the division’s output and at least 1.15 times the activity’s national share. Map positions are schematic.": "Район обозначает отрасль, которая даёт не менее 2% экономики региона. При этом её доля в регионе как минимум в 1,15 раза выше, чем по стране. Расположение на карте условное.",
   "About {percent}% of nearby land hexes are classified as {cover}.": "Около {percent}% соседних ячеек суши относятся к типу «{cover}».",
   "Activity": "Вид деятельности",
@@ -155,7 +154,7 @@
   "Net migration": "Сальдо миграции",
   "No WorldPop data": "Нет данных WorldPop",
   "No data": "Нет данных",
-  "No land sample": "Нет значения для суши",
+  "No land sample": "Нет данных по суше",
   "No places match your search.": "По запросу ничего не найдено.",
   "No winter data": "Нет данных о зимней температуре",
   "No winter temperature data": "Нет данных о зимней температуре",
@@ -215,6 +214,7 @@
   "Sites": "Объекты",
   "Six places ordered by population": "Шесть пунктов по численности населения",
   "Snow and ice": "Снег и лёд",
+  "Snow is schematic": "Снег показан условно",
   "Source": "Источник",
   "Source record": "Источник данных",
   "Sources": "Источники",
@@ -570,10 +570,5 @@
   "{type} · {region}": "{type} · {region}",
   "© OpenStreetMap contributors": "участников OpenStreetMap (©)",
   "×{ratio} the national share": "В {ratio} раза выше доли по стране",
-  "₸24M": "₸24 млн",
-  "−10 to <−5 °C": "от −10 до <−5 °C",
-  "−15 to <−10 °C": "от −15 до <−10 °C",
-  "−20 to <−15 °C": "от −20 до <−15 °C",
-  "−5 to <0 °C": "от −5 до <0 °C",
-  "≥ 0 °C": "≥ 0 °C"
+  "₸24M": "₸24 млн"
 }

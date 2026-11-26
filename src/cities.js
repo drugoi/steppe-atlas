@@ -18,21 +18,6 @@ for (const item of cityLandmarks.values()) {
   entries.push(item);
   landmarksByTile.set(tile,entries);
 }
-const winter = JSON.parse($('winter-data').textContent);
-const winterBands = [
-  {label:msg("≥ 0 °C"), color:'#edcf9d', min:0},
-  {label:msg("−5 to <0 °C"), color:'#9fd6ca', min:-5},
-  {label:msg("−10 to <−5 °C"), color:'#6ab4c4', min:-10},
-  {label:msg("−15 to <−10 °C"), color:'#5188bc', min:-15},
-  {label:msg("−20 to <−15 °C"), color:'#42568f', min:-20},
-  {label:msg("< −20 °C"), color:'#514779', min:-Infinity},
-];
-const winterMissing = '#283c47';
-const temperature = new Intl.NumberFormat(numberLocale,{maximumFractionDigits:1,minimumFractionDigits:1,signDisplay:'exceptZero'});
-const celsius = value => temperature.format(value).replace('-', '−')+' °C';
-const winterTemperature = tile => winter.hexes[tile] ?? null;
-const winterTileColor = value => value===null ? winterMissing : winterBands.find(band=>value>=band.min).color;
-
 const environments = new Map();
 function cityEnvironment(city) {
   if (!environments.has(city.id)) {
@@ -77,8 +62,9 @@ function landscapeStyle(city) {
 }
 
 const landmarkSprites = new Map();
-function landmarkSprite(style) {
-  if (landmarkSprites.has(style)) return landmarkSprites.get(style);
+function landmarkSprite(style,winterView=false) {
+  const key=winterView ? style+'-winter' : style;
+  if (landmarkSprites.has(key)) return landmarkSprites.get(key);
   const surface = document.createElement('canvas');
   surface.width=surface.height=192;
   const art = surface.getContext('2d');
@@ -123,8 +109,8 @@ function landmarkSprite(style) {
   const teal='#3b8e87', jade='#75b9a4', gold='#e8ba61', cream='#f3d799', dark='#213b42';
   const clay='#b47852', lightClay='#d5a16b';
   oval(52,77,39,12,'#11252b72');
-  polygon([[12,68],[48,56],[85,67],[85,75],[49,87],[12,76]],'#5e6656');
-  polygon([[12,68],[48,55],[85,67],[49,80]],'#c3a980','#f5dba3');
+  polygon([[12,68],[48,56],[85,67],[85,75],[49,87],[12,76]],winterView?'#52677b':'#5e6656');
+  polygon([[12,68],[48,55],[85,67],[49,80]],winterView?'#c5dce4':'#c3a980',winterView?'#ebf4f2':'#f5dba3');
   if (style==='cathedral') {
     box(23,52,44,19,'#e5b65c','#a57543','#e5c981');
     for (let x=27;x<66;x+=8) opening(x,55,3.3,10,'#40676a');
@@ -439,7 +425,7 @@ function landmarkSprite(style) {
     for (const x of [29,35,60,68]) opening(x,56,3,9,'#51686a');
   }
   const sprite = {surface,url:surface.toDataURL('image/png')};
-  landmarkSprites.set(style,sprite);
+  landmarkSprites.set(key,sprite);
   return sprite;
 }
 
@@ -465,7 +451,7 @@ function drawLandmark(item,s) {
     ellipse(x,y+1,9,5,'#fff1aa64');
     ellipse(x,y+1,7,3.8,'#bbdac080');
   }
-  context.drawImage(landmarkSprite(item.style).surface,x-anchorX/s,y-anchorY/s,size/s,size/s);
+  context.drawImage(landmarkSprite(item.style,state.layer==='winter').surface,x-anchorX/s,y-anchorY/s,size/s,size/s);
 }
 function addLandmarkHit(city,s) {
   const item=mappedLandmark(city,s);

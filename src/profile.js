@@ -114,7 +114,7 @@ function cityFieldNote(city) {
     +'<span>'+hmsg("Locate on map")+'</span><i aria-hidden="true"></i></button>' :
     story ? '<a class="field-location" href="'+escape(story.source)+'" target="_blank" rel="noopener">'+hmsg("Source")+'</a>' :
       '<span class="field-scope">'+hmsg("110 km survey radius")+'</span>';
-  const art='<img src="'+landmarkSprite(landmark?.style ?? story?.style ?? landscapeStyle(city)).url+'" alt="" width="74" height="74">';
+  const art='<img src="'+landmarkSprite(landmark?.style ?? story?.style ?? landscapeStyle(city),state.layer==='winter').url+'" alt="" width="74" height="74">';
   const elevation=environment.centreElevation===null?'': '<div><dt>'+hmsg("Centre hex elevation")+'</dt><dd>'+hmsg("{elevation} m",{elevation:fmt.format(environment.centreElevation)})+'</dd></div>';
   return '<section class="city-field-note"><div class="field-copy">'+art+'<div><h3>'+title+'</h3><p>'+note+'</p>'+location+'</div></div>'
     +'<dl class="city-facts"><div><dt>'+hmsg("Population rank in atlas")+'</dt><dd>'+hmsg("{rank} of {total}",{rank:fmt.format(position),total:fmt.format(data.cities.length)})+'</dd></div>'+elevation+'</dl></section>';
@@ -265,6 +265,7 @@ function inspectTile(id) {
   requestDraw();
   atlasEvent('map_hex_inspected', {map_layer:state.layer});
 }
+let winterLegendExpanded=false;
 function renderMapLegend() {
   const legend=$('legend');
   const [name,period]=layerInfo[state.layer];
@@ -274,8 +275,20 @@ function renderMapLegend() {
   legend.classList.toggle('worldpop-legend',state.layer==='density');
   $('show-sites').disabled=state.layer==='density';
   if (state.layer==='winter') {
-    content+='<p>'+hmsg("Dec–Feb · {period}",{period:winter.source.period})+'</p>'
-      +winterBands.map(band=>dot(escape(band.label),band.color)).join('')+dot(hmsg("No land sample"),winterMissing);
+    const caption=escape(name)+' · °C';
+    const key='<p>'+hmsg("Dec–Feb · {period}",{period:winter.source.period})+'</p>'
+      +'<div class="winter-key">'+winterBands.map(band=>dot(escape(band.label),band.color)).join('')+'</div>'
+      +dot(hmsg("No land sample"),winterMissing)+'<p class="winter-texture-note">'+hmsg("Snow is schematic")+'</p>';
+    if (mobile.matches) {
+      legend.innerHTML='<details class="winter-legend"'+(winterLegendExpanded?' open':'')+'><summary>'+caption+'</summary>'+key+'</details>';
+      const disclosure=legend.firstElementChild;
+      disclosure.addEventListener('toggle',()=>{
+        winterLegendExpanded=disclosure.open;
+        requestDraw();
+      });
+      return;
+    }
+    content='<strong>'+caption+'</strong>'+key;
   } else if (state.layer==='density') {
     const entries=densityClasses.map(bin=>dot(escape(bin.label),bin.color));
     entries.push(dot(hmsg("No data"),densityNoData));

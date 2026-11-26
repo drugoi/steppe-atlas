@@ -138,41 +138,51 @@ function ellipse(x,y,rx,ry,color) {
 }
 const reliefAsset = JSON.parse($('terrain-relief').textContent);
 const reliefImage = new Image();
+const winterReliefImage = new Image();
 const outsideCountry = new Path2D(country);
 outsideCountry.rect(...reliefAsset.bounds);
 reliefImage.addEventListener('load', requestDraw, {once:true});
 reliefImage.src = reliefAsset.image;
 
-function drawReliefSurface() {
-  if (!['terrain','winter'].includes(state.layer) || !reliefImage.naturalWidth) return false;
-  context.drawImage(reliefImage,...reliefAsset.bounds);
-  context.fillStyle='#112c3340';
+function drawReliefSurface(winterView) {
+  if (!winterView && state.layer!=='terrain') return false;
+  if (winterView && !winterReliefImage.src) {
+    winterReliefImage.addEventListener('load',requestDraw,{once:true});
+    winterReliefImage.src=reliefAsset.winter;
+  }
+  const image=winterView ? winterReliefImage : reliefImage;
+  if (!image.naturalWidth) return false;
+  context.drawImage(image,...reliefAsset.bounds);
+  context.fillStyle=winterView?'#1c314994':'#112c3340';
   context.fill(outsideCountry,'evenodd');
   return true;
 }
 
 const bevelStyles = [[[2,3,4],'#f8e6ad52',.9],[[5,0,1],'#142b2e85',1.5]];
-function shadeHexEdge(x,y,scale,water) {
-  for (const [edges,color,width] of bevelStyles) {
+const winterBevelStyles = [[[2,3,4],'#f2faffad',1.25],[[5,0,1],'#1c345a79',2]];
+function shadeHexEdge(x,y,scale,water,winterView=false) {
+  const styles=winterView ? winterBevelStyles : bevelStyles;
+  for (const [edges,color,width] of styles) {
     context.beginPath();
     for (const edge of edges) {
       const [ax,ay]=hexOffsets[edge], [bx,by]=hexOffsets[(edge+1)%6];
       context.moveTo(x+ax*.966,y+ay*.966);
       context.lineTo(x+bx*.966,y+by*.966);
     }
-    context.strokeStyle=water && edges[0]===2 ? '#bae2d95c' : color;
+    context.strokeStyle=water && edges[0]===2 ? (winterView?'#a9d9f270':'#bae2d95c') : color;
     context.lineWidth=width/scale;
     context.stroke();
   }
 }
 
-function drawSurveyBorder(border,scale) {
+function drawSurveyBorder(border,scale,winterView=false) {
+  const colors=winterView ? ['#132e48ba','#577eabbe','#e0f4ff'] : ['#17363dae','#48a497ad','#b8f3d6'];
   context.save();
   context.lineCap='round';
   context.lineJoin='round';
-  for (const [width,color] of [[7,'#17363dae'],[4.4,'#48a497ad'],[1.45,'#b8f3d6']]) {
+  for (const [index,width] of [7,4.4,1.45].entries()) {
     context.lineWidth=width/scale;
-    context.strokeStyle=color;
+    context.strokeStyle=colors[index];
     context.stroke(border);
   }
   context.restore();
@@ -200,13 +210,14 @@ function tree(x,y,size,variant) {
   ellipse(x-.39*size,y-1.03*size,.33*size,.26*size,'#adc173');
 }
 
-function fieldStrip(x,y,w,h,tone,skew) {
+const fieldFurrows = ['#fff2ae85','#345d2f90'];
+function fieldStrip(x,y,w,h,tone,skew,furrows=fieldFurrows) {
   const [a,b,c,d]=[[x,y],[x+w,y+skew],[x+w-.55,y+h+skew],[x-.55,y+h]];
   shapeFill([a,b,c,d],tone,'#2b3c24a8',.17);
   context.lineWidth=.10;
   for (let row=1;row<7;row++) {
     const k=row/7;
-    context.strokeStyle=row%2 ? '#fff2ae85' : '#345d2f90';
+    context.strokeStyle=furrows[(row+1)%2];
     context.beginPath();
     context.moveTo(a[0]+(d[0]-a[0])*k,a[1]+(d[1]-a[1])*k);
     context.lineTo(b[0]+(c[0]-b[0])*k,b[1]+(c[1]-b[1])*k);
@@ -303,25 +314,33 @@ function building(x,y,w,d,h,style,pitched) {
     }
   }
 }
+const settlementPaint = [
+  ['#d4c19b','#8d856e','#a35d42'],['#a4c6be','#527e81','#d4dfc7'],
+  ['#d6ae7f','#896950','#b96f4a'],['#a5b9c4','#4c7386','#dce2ca']
+];
+const winterSettlementPaint = [
+  ['#a9b2b9','#627882','#dfe9ec'],['#aac7ce','#5c7f8f','#ebf1f2'],
+  ['#c6b6aa','#7c777c','#eaddd8'],['#a6b6c9','#61758c','#d7e8f0']
+];
 function drawSettlement(city,s) {
   const active = city.id===state.city;
   const [x,y] = city.xy;
   if (s<1.42) return;
+  const winterView=state.layer==='winter';
   const size=city.official ? (active ? 1.30 : 1.12) : city.seat ? .86 : .61;
   context.save();
   context.translate(x,y);
   context.scale(size,size);
   ellipse(1.1,2.25,7.6,4.15,'#1a302f96');
-  shapeFill([[-6.6,-1.7],[0,-4.65],[6.6,-1.7],[6.6,2.6],[0,5.52],[-6.6,2.6]],'#656b4d','#223b3b',.31);
-  const sitePlate = active ? {
+  shapeFill([[-6.6,-1.7],[0,-4.65],[6.6,-1.7],[6.6,2.6],[0,5.52],[-6.6,2.6]],winterView?'#586776':'#656b4d','#223b3b',.31);
+  const sitePlate = winterView ? '#b5cbd4' : active ? {
     waterside:'#8ba59a', woodland:'#7c9873', landscape:'#ab9b86',
     farmland:'#aa9d66', dryland:'#bba079', steppe:'#a39f74',
   }[landscapeStyle(city)] : '#ac9a69';
-  shapeFill([[-6.6,-1.7],[0,-4.65],[6.6,-1.7],[6.6,1.95],[0,4.85],[-6.6,1.95]],sitePlate,active?'#f0d499':'#ddc590af',.28);
-  shapeFill([[-6,1],[4.4,-1.9],[5.8,-1.2],[-4.75,2.13]],'#e7cf9587');
-  shapeFill([[-3.4,-2.85],[-2.7,-3.2],[3.7,2.38],[2.8,2.86]],'#e7cf9587');
-  const schemes = [['#d4c19b','#8d856e','#a35d42'],['#a4c6be','#527e81','#d4dfc7'],
-    ['#d6ae7f','#896950','#b96f4a'],['#a5b9c4','#4c7386','#dce2ca']];
+  shapeFill([[-6.6,-1.7],[0,-4.65],[6.6,-1.7],[6.6,1.95],[0,4.85],[-6.6,1.95]],sitePlate,winterView?'#e3f3f8':active?'#f0d499':'#ddc590af',.28);
+  shapeFill([[-6,1],[4.4,-1.9],[5.8,-1.2],[-4.75,2.13]],winterView?'#eff9f7b0':'#e7cf9587');
+  shapeFill([[-3.4,-2.85],[-2.7,-3.2],[3.7,2.38],[2.8,2.86]],winterView?'#eff9f7b0':'#e7cf9587');
+  const schemes=winterView ? winterSettlementPaint : settlementPaint;
   const houses=[[-1.75,-2.55,1.9,2.6],[.25,-2.2,1.62,2.2],[-4.4,-1.68,1.4,1.28],[2.55,-1.4,1.65,1.9],
     [-2.7,-.46,1.7,2.7],[.5,-.37,1.91,3.36],[4.25,.62,1.38,1.12],[-3.8,1.07,1.30,1.12],
     [2.38,1.08,1.70,2.85],[-1.4,1.38,1.54,1.71],[.65,2.89,1.35,1.13]];
@@ -546,7 +565,7 @@ function drawMinimap() {
   miniContext.setTransform(dpr,0,0,dpr,0,0);
   miniContext.fillStyle='#102832';miniContext.fillRect(0,0,width,height);
   miniContext.save();miniContext.translate(x,y);miniContext.scale(ratio,ratio);
-  miniContext.fillStyle='#8ba389';miniContext.fill(country,'evenodd');
+  miniContext.fillStyle=state.layer==='winter'?'#9fb9ce':'#8ba389';miniContext.fill(country,'evenodd');
   miniContext.strokeStyle='#324d49';
   miniContext.lineWidth=1/ratio;
   for (const r of regions) miniContext.stroke(paths.get(r.id));

@@ -6,7 +6,7 @@ const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 const [template, css, snapshot, ...scripts] = await Promise.all([
   'src/index.html', 'src/atlas.css', 'data/atlas-data.json',
-  'src/i18n.js', 'src/app.js', 'src/map.js', 'src/cities.js', 'src/profile.js', 'src/analytics.js', 'src/startup.js',
+  'src/i18n.js', 'src/app.js', 'src/map.js', 'src/winter-map.js', 'src/cities.js', 'src/profile.js', 'src/analytics.js', 'src/startup.js',
 ].map(read));
 
 const analyticsId = process.env.GA4_MEASUREMENT_ID?.trim() ?? '';
@@ -20,9 +20,10 @@ if (!atlas.tiles?.length || atlas.worldPop?.hexes?.length !== atlas.tiles.length
 }
 const javascript = scripts.join('');
 new Script(javascript, { filename: 'atlas.js' });
-const [relief, texture, font, fontLicense, landmarks, stories, winter] = await Promise.all([
+const [relief, texture, winterTexture, font, fontLicense, landmarks, stories, winter] = await Promise.all([
   read('data/terrain-relief.json'),
   readFile(new URL('src/assets/terrain-relief.webp', root)),
+  readFile(new URL('src/assets/winter-relief.webp', root)),
   readFile(new URL('src/assets/crimson-pro-latin.woff2', root)),
   read('src/assets/crimson-pro-OFL.txt'),
   read('data/city-landmarks.json').then(JSON.parse),
@@ -49,7 +50,8 @@ const embeddedJSON = value => JSON.stringify(value).replaceAll('</','<\\/');
 const values = {
   CSS: '/*\n'+fontLicense.trim()+'\n*/\n'+css.replace('__DISPLAY_FONT__', 'data:font/woff2;base64,'+font.toString('base64')),
   DATA: snapshot.trimEnd().replaceAll('</', '<\\/'),
-  RELIEF: JSON.stringify({...JSON.parse(relief), image:'data:image/webp;base64,'+texture.toString('base64')}),
+  RELIEF: embeddedJSON({...JSON.parse(relief),image:'data:image/webp;base64,'+texture.toString('base64'),
+    winter:'data:image/webp;base64,'+winterTexture.toString('base64')}),
   LANDMARKS: embeddedJSON(landmarks),
   STORIES: embeddedJSON(stories),
   WINTER: embeddedJSON(winter),

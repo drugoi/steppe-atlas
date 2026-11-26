@@ -160,10 +160,13 @@ const hexOffsets = Array.from({length:6},(_,i)=>{
   const angle = Math.PI*(i/3+1/6);
   return [Math.cos(angle)*(data.radius+.13),Math.sin(angle)*(data.radius+.13)];
 });
+function traceHex(target,x,y) {
+  hexOffsets.forEach(([dx,dy],i)=>i ? target.lineTo(x+dx,y+dy) : target.moveTo(x+dx,y+dy));
+  target.closePath();
+}
 function drawHex(x,y) {
   context.beginPath();
-  hexOffsets.forEach(([dx,dy],i)=> i ? context.lineTo(x+dx,y+dy) : context.moveTo(x+dx,y+dy));
-  context.closePath();
+  traceHex(context,x,y);
 }
 function draw() {
   frame = null;
@@ -171,10 +174,10 @@ function draw() {
   const dpr = window.devicePixelRatio || 1;
   const s = scale();
   context.setTransform(dpr,0,0,dpr,0,0);
-  context.fillStyle = '#213a37';
+  const winterView=state.layer==='winter';
+  context.fillStyle = winterView ? '#263c4e' : '#213a37';
   context.fillRect(0,0,view.width,view.height);
   const local=localCity();
-  const winterView=state.layer==='winter';
   const surveyBorder=local && (state.layer==='terrain' || winterView) ? new Path2D() : null;
   const cities=shownCityMarkers();
   const [left,top] = mapPoint(-20,-20);
@@ -183,36 +186,46 @@ function draw() {
   context.translate(view.width/2,view.height/2);
   context.scale(s,s);
   context.translate(-view.x,-view.y);
-  const hasRelief=drawReliefSurface();
+  const hasRelief=drawReliefSurface(winterView);
   const [reliefX,reliefY,reliefWidth,reliefHeight]=reliefAsset.bounds;
-  for (const [i,tile] of data.tiles.entries()) {
-    const [x,y,terrain,id,inside] = tile;
-    if (x<left || x>right || y<top || y>bottom) continue;
-    drawHex(x,y);
+  const visible=[];
+  for (const [index,tile] of data.tiles.entries()) {
+    const [x,y]=tile;
+    if (x>=left && x<=right && y>=top && y<=bottom) visible.push([index,tile]);
+  }
+  if (winterView) drawWinterTint(visible,hasRelief);
+  for (const [i,tile] of visible) {
+    const [x,y,terrain,,inside]=tile;
     const inSurvey=nearby(tile,local);
     const textured=hasRelief && x>=reliefX && x<=reliefX+reliefWidth && y>=reliefY && y<=reliefY+reliefHeight;
     if (winterView) {
-      const value=winterTemperature(i);
-      context.globalAlpha=textured ? (value===null ? .80 : .86) : 1;
-      context.fillStyle=winterTileColor(value);
-      context.fill();
-      context.globalAlpha=1;
-    } else if (!textured) {
-      context.fillStyle = state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
-      context.fill();
-    } else if (local) {
-      context.fillStyle=inSurvey ? '#e7dea024' : '#14293f35';
-      context.fill();
+      if (inside || s>=1.20) {
+        drawHex(x,y);
+        context.lineWidth=(s>=1.45 ? .90 : .64)/s;
+        context.strokeStyle=inside?'#20384d81':'#20384d43';
+        context.stroke();
+      }
+      if (textured && s>=1.45) shadeHexEdge(x,y,s,terrain===0 || tile[7]===80,true);
+      if (textured) drawWinterArtwork(tile,s);
+    } else {
+      drawHex(x,y);
+      if (!textured) {
+        context.fillStyle = state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
+        context.fill();
+      } else if (local) {
+        context.fillStyle=inSurvey ? '#e7dea024' : '#14293f35';
+        context.fill();
+      }
+      context.lineWidth = textured ? (s<1.2 ? .68 : .82)/s : view.zoom>2.45 ? .32 : .52;
+      context.strokeStyle = textured ? (s<1.2 ? '#263d333c' : '#263d334f') : inside ? '#243b2a76' : '#12251965';
+      context.stroke();
+      if (textured && s>=1.45) shadeHexEdge(x,y,s,terrain===0);
+      tileArtwork(tile,s);
     }
-    context.lineWidth = textured ? (s<1.2 ? .68 : .82)/s : view.zoom>2.45 ? .32 : .52;
-    context.strokeStyle = textured ? (s<1.2 ? '#263d333c' : '#263d334f') : inside ? '#243b2a76' : '#12251965';
-    context.stroke();
-    if (textured && s>=1.45) shadeHexEdge(x,y,s,terrain===0);
-    tileArtwork(tile,s);
     if (state.layer!=='density' && inSurvey) {
       drawHex(x,y);
       context.lineWidth=.26;
-      context.strokeStyle=surveyBorder ? '#e4edb57d' : '#f4de976d';
+      context.strokeStyle=winterView ? '#d9f5ff65' : surveyBorder ? '#e4edb57d' : '#f4de976d';
       context.stroke();
       for (let j=0;j<6;j++) {
         const [dx,dy]=hexOffsets[j], [ex,ey]=hexOffsets[(j+1)%6];
@@ -234,7 +247,7 @@ function draw() {
     }
     if (state.tile===i) {
       drawHex(x,y);
-      if (state.layer==='density') {
+      if (state.layer==='density' || winterView) {
         context.lineWidth=4.5/s;
         context.strokeStyle='#182b31';
         context.stroke();
@@ -244,13 +257,13 @@ function draw() {
       context.stroke();
     }
   }
-  if (surveyBorder) drawSurveyBorder(surveyBorder,s);
+  if (surveyBorder) drawSurveyBorder(surveyBorder,s,winterView);
   drawNetwork(s,local);
   context.lineWidth = 1.35/s;
-  context.strokeStyle = view.zoom>=2.5 ? '#5cb4c5c2' : '#66a5a183';
+  context.strokeStyle = winterView ? '#295978b8' : view.zoom>=2.5 ? '#5cb4c5c2' : '#66a5a183';
   context.stroke(rivers);
   context.lineWidth = .8/s;
-  context.strokeStyle = state.layer==='terrain' ? '#ddd1a557' : '#171e187c';
+  context.strokeStyle = winterView ? '#2e435953' : state.layer==='terrain' ? '#ddd1a557' : '#171e187c';
   for (const region of regions) context.stroke(paths.get(region.id));
   if (state.region) {
     const selected = paths.get(state.region);
@@ -261,10 +274,10 @@ function draw() {
     context.stroke(selected);
   }
   context.lineWidth = 3.6/s;
-  context.strokeStyle = '#203135d9';
+  context.strokeStyle = winterView ? '#253b50de' : '#203135d9';
   context.stroke(country);
   context.lineWidth = 1.65/s;
-  context.strokeStyle = '#dfc196c2';
+  context.strokeStyle = winterView ? '#d5e6edda' : '#dfc196c2';
   context.stroke(country);
   const featured=mappedLandmark(local,s);
   for (const city of cities) {

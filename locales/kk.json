@@ -10,7 +10,6 @@
   "2025 · dominant share": "2025 жыл · үлесі басым сала",
   "2025 · tenge": "2025 жыл · теңге",
   "2026 population · 2025 regional product": "2026 жылғы халық саны · 2025 жылғы ЖӨӨ",
-  "< −20 °C": "< −20 °C",
   "A district represents at least 2% of the division’s output and at least 1.15 times the activity’s national share. Map positions are schematic.": "Экономикалық аудан өңір экономикасының кемінде 2%-ын құрайтын саланы білдіреді. Саланың өңірдегі үлесі ел бойынша үлесінен кемінде 1,15 есе жоғары болуы керек. Картадағы орны шартты.",
   "About {percent}% of nearby land hexes are classified as {cover}.": "«{cover}» санатына жататын құрлық ұяшықтарының үлесі — шамамен {percent}%.",
   "Activity": "Қызмет түрі",
@@ -155,7 +154,7 @@
   "Net migration": "Көші-қон айырымы",
   "No WorldPop data": "WorldPop дерегі жоқ",
   "No data": "Дерек жоқ",
-  "No land sample": "Құрлық бойынша мән жоқ",
+  "No land sample": "Құрлық дерегі жоқ",
   "No places match your search.": "Сұрауыңыз бойынша ештеңе табылмады.",
   "No winter data": "Қысқы температура дерегі жоқ",
   "No winter temperature data": "Қысқы температура туралы дерек жоқ",
@@ -215,6 +214,7 @@
   "Sites": "Нысандар",
   "Six places ordered by population": "Халық саны бойынша реттелген алты елді мекен",
   "Snow and ice": "Қар мен мұз",
+  "Snow is schematic": "Қар шартты түрде көрсетілген",
   "Source": "Дереккөз",
   "Source record": "Дереккөзі",
   "Sources": "Дереккөздер",
@@ -570,10 +570,5 @@
   "{type} · {region}": "{type} · {region}",
   "© OpenStreetMap contributors": "OpenStreetMap қатысушыларының (©)",
   "×{ratio} the national share": "Ел бойынша үлестен {ratio} есе жоғары",
-  "₸24M": "₸24 млн",
-  "−10 to <−5 °C": "−10…<−5 °C",
-  "−15 to <−10 °C": "−15…<−10 °C",
-  "−20 to <−15 °C": "−20…<−15 °C",
-  "−5 to <0 °C": "−5…<0 °C",
-  "≥ 0 °C": "≥ 0 °C"
+  "₸24M": "₸24 млн"
 }

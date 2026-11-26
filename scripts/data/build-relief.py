@@ -1,4 +1,4 @@
-"""Render a shaded, georeferenced base texture for the atlas's Terrain layer."""
+"""Render georeferenced relief textures for the atlas’s Terrain and Winter layers."""
 import json
 from pathlib import Path
 
@@ -68,6 +68,22 @@ def surface_colors():
     return np.dstack((np.asarray(land),np.asarray(water)))
 
 
+def winter_surface(surface, z, shade, slope, region, mottling, brush, wind, grain, wet, shallows):
+    # Seasonal illustration on the same elevation and cover samples as the terrain.
+    woodland = np.clip((surface[..., 1] - surface[..., 0] - 6) / 30, 0, 1)
+    rock = np.clip((z-1050)/2100 + slope*.18, 0, 1)
+    ground = np.array([162, 168, 169]) + woodland[..., None]*np.array([-43, -22, -16])
+    ground += rock[..., None]*np.array([-28, -23, -19])
+    drift = np.clip(.76 + region*.61 + mottling*.46 + wind*.46 + brush*.12
+                    - woodland*.25 + np.clip(z/4300, 0, .40) - slope*.14, .22, .99)
+    land = ground*(1-drift[..., None]) + np.array([231, 238, 237])*drift[..., None]
+    land += shade[..., None]*np.array([231, 217, 194])
+    land += (mottling*11 + brush*12 + wind*17 + grain*6)[..., None]
+    water = np.array([43, 74, 99]) + shallows[..., None]*np.array([46, 62, 68])
+    water += (region*14 + mottling*12 + brush*8)[..., None]
+    return land*(1-wet[..., None]) + water*wet[..., None]
+
+
 def render():
     forward = Transformer.from_crs(4326, PROJECTION, always_xy=True)
     inverse = Transformer.from_crs(PROJECTION, 4326, always_xy=True)
@@ -99,8 +115,8 @@ def render():
                                                 np.append(LAND_COLORS[2],0))
 
     rng = np.random.default_rng(6718)
-    def cloud(step):
-        small = rng.integers(0, 255, (height//step+2,width//step+2), dtype=np.uint8)
+    def cloud(step, vertical=None):
+        small = rng.integers(0, 255, (height//(vertical or step)+2,width//step+2), dtype=np.uint8)
         return np.asarray(Image.fromarray(small).resize((width,height),Image.Resampling.BICUBIC), dtype=np.float32)/255-.5
 
     region, mottling = cloud(95), cloud(24)
@@ -131,8 +147,11 @@ def render():
     rgb = rgb*(1-wet[..., None]) + water_color*wet[..., None]
     image = Image.fromarray(np.clip(rgb,0,255).astype(np.uint8))
     image.save(ROOT/'src'/'assets'/'terrain-relief.webp',quality=83,method=6)
+    winter_rgb = winter_surface(surface, z, shade, slope, region, mottling, brush, cloud(27,10), grain, wet, shallows)
+    Image.fromarray(np.clip(winter_rgb,0,255).astype(np.uint8)).save(
+        ROOT/'src'/'assets'/'winter-relief.webp',quality=81,method=6)
     (ROOT/'data'/'terrain-relief.json').write_text(json.dumps(dict(bounds=AREA))+'\n')
-    print(f'Rendered {width}×{height} terrain relief')
+    print(f'Rendered {width}×{height} terrain and winter relief')
 
 
 if __name__ == '__main__':

@@ -168,6 +168,7 @@ canvas.over { cursor: pointer; }
 }
 .gradient { height: 7px; width: 145px; margin: 7px 0 4px; border-radius: 2px; }
 .range { display: flex; justify-content: space-between; gap: 8px; font: 11px var(--mono); }
+.legend .winter-texture-note { margin-top: 7px; padding-top: 5px; border-top: 1px solid #8fa5aa4d; color: var(--muted); }
 .worldpop-key { display: grid; grid-template-columns: 1fr 1fr; gap: 0 9px; }
 .worldpop-key p { white-space: nowrap; }
 
@@ -460,6 +461,11 @@ dialog li + li { margin-top: 9px; }
   .inspector { top: 91px; }
   .legend { min-width: 0; max-width: min(190px, 56%); padding: 5px 8px 7px; }
   .legend strong { font-size: 16px; margin-bottom: 4px; }
+  .legend:has(.winter-legend) { width: min(177px,54%); pointer-events: auto; }
+  .winter-legend summary { cursor: pointer; color: var(--text); font: 650 16px/1.12 var(--display); }
+  .winter-legend[open] summary { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #8fa5aa4d; }
+  .winter-key { display: grid; grid-template-columns: 1fr 1fr; gap: 0 5px; }
+  .winter-key p { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .legend p { gap: 5px; margin: 2px 0; }
   .swatch { width: 9px; height: 10px; }
   .minimap button { white-space: nowrap; font-size: 14px; }
