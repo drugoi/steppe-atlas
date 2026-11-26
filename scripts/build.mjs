@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { Script } from 'node:vm';
 
 const root = new URL('../', import.meta.url);
@@ -22,4 +22,7 @@ const values = {
 };
 const html = template.replace(/__(CSS|DATA|APP)__/g, (_, name) => values[name]);
 await mkdir(new URL('dist/', root), { recursive: true });
-await writeFile(new URL('dist/index.html', root), html);
+await Promise.all([
+  writeFile(new URL('dist/index.html', root), html),
+  copyFile(new URL('src/assets/social-card.jpg', root), new URL('dist/social-card.jpg', root)),
+]);
