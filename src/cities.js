@@ -1,5 +1,16 @@
-const cityLandmarks = new Map(JSON.parse($('city-landmarks').textContent).map(item=>[item.cityId,item]));
-const cityStories = new Map(JSON.parse($('city-stories').textContent).map(item=>[item.cityId,item]));
+function localizedStories(id) {
+  return new Map(JSON.parse($(id).textContent).map(item=>{
+    const key='story.'+item.cityId+'.';
+    const titleKey=item.name ? 'name' : 'title';
+    item[titleKey]=contentMessage(key+'title',item[titleKey]);
+    item.fact=contentMessage(key+'fact',item.fact);
+    if (item.city) item.city=cityDisplayName(cityById.get(item.cityId));
+    if (item.localName===item.name) item.localName=null;
+    return [item.cityId,item];
+  }));
+}
+const cityLandmarks = localizedStories('city-landmarks');
+const cityStories = localizedStories('city-stories');
 const landmarksByTile = new Map();
 for (const item of cityLandmarks.values()) {
   const tile=nearestTile(...item.xy);
@@ -9,15 +20,15 @@ for (const item of cityLandmarks.values()) {
 }
 const winter = JSON.parse($('winter-data').textContent);
 const winterBands = [
-  {label:'≥ 0 °C', color:'#edcf9d', min:0},
-  {label:'−5 to <0 °C', color:'#9fd6ca', min:-5},
-  {label:'−10 to <−5 °C', color:'#6ab4c4', min:-10},
-  {label:'−15 to <−10 °C', color:'#5188bc', min:-15},
-  {label:'−20 to <−15 °C', color:'#42568f', min:-20},
-  {label:'< −20 °C', color:'#514779', min:-Infinity},
+  {label:msg("≥ 0 °C"), color:'#edcf9d', min:0},
+  {label:msg("−5 to <0 °C"), color:'#9fd6ca', min:-5},
+  {label:msg("−10 to <−5 °C"), color:'#6ab4c4', min:-10},
+  {label:msg("−15 to <−10 °C"), color:'#5188bc', min:-15},
+  {label:msg("−20 to <−15 °C"), color:'#42568f', min:-20},
+  {label:msg("< −20 °C"), color:'#514779', min:-Infinity},
 ];
 const winterMissing = '#283c47';
-const temperature = new Intl.NumberFormat('en',{maximumFractionDigits:1,minimumFractionDigits:1,signDisplay:'exceptZero'});
+const temperature = new Intl.NumberFormat(numberLocale,{maximumFractionDigits:1,minimumFractionDigits:1,signDisplay:'exceptZero'});
 const celsius = value => temperature.format(value).replace('-', '−')+' °C';
 const winterTemperature = tile => winter.hexes[tile] ?? null;
 const winterTileColor = value => value===null ? winterMissing : winterBands.find(band=>value>=band.min).color;
@@ -49,11 +60,11 @@ function landscapeStory(city) {
   const {dominant,coverShare,span,waterShare} = cityEnvironment(city);
   const cover = coverLabel[dominant]?.toLowerCase();
   if (span && span[1]-span[0]>=800) {
-    return 'Nearby land hexes span '+fmt.format(span[0])+' to '+fmt.format(span[1])+' m in sampled elevation.';
+    return msg("Nearby land hexes span {low} to {high} m in sampled elevation.",{low:fmt.format(span[0]),high:fmt.format(span[1])});
   }
-  if (waterShare>=.20) return fmt.format(Math.round(waterShare*100))+'% of the surrounding hex centres fall on water.';
-  if (cover) return 'About '+Math.round(coverShare*100)+'% of nearby land hexes are classified as '+cover+'.';
-  return 'The January temperature normal at '+city.name+' is '+celsius(winter.cities[city.id][1])+'.';
+  if (waterShare>=.20) return msg("{percent}% of the surrounding hex centres fall on water.",{percent:fmt.format(Math.round(waterShare*100))});
+  if (cover) return msg("About {percent}% of nearby land hexes are classified as {cover}.",{percent:fmt.format(Math.round(coverShare*100)),cover});
+  return msg("The January temperature normal at {place} is {temperature}.",{place:cityDisplayName(city),temperature:celsius(winter.cities[city.id][1])});
 }
 
 function landscapeStyle(city) {

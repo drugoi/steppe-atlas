@@ -2,14 +2,14 @@ const localRadius = 110000 / data.metersPerUnit;
 const railPath = path(data.rail,false);
 const sitesById = new Map(data.sites.map(site=>[site.id,site]));
 const siteStyle = {
-  airport:{glyph:'✈',label:'Scheduled airport',color:'#97d8db'},
-  port:{glyph:'⚓',label:'Seaport',color:'#97d8db'},
-  energy:{glyph:'ϟ',label:'Power plant',color:'#eac279'},
-  heritage:{glyph:'✧',label:'World Heritage',color:'#e2acb8'}
+  airport:{glyph:'✈',label:msg("Scheduled airport"),color:'#97d8db'},
+  port:{glyph:'⚓',label:msg("Seaport"),color:'#97d8db'},
+  energy:{glyph:'ϟ',label:msg("Power plant"),color:'#eac279'},
+  heritage:{glyph:'✧',label:msg("World Heritage"),color:'#e2acb8'}
 };
 const coverLabel = {
-  0:'Unclassified',10:'Tree cover',20:'Shrubland',30:'Grassland',40:'Cropland',50:'Built-up',
-  60:'Bare or sparse vegetation',70:'Snow and ice',80:'Water',90:'Herbaceous wetland',95:'Mangroves',100:'Moss and lichen'
+  0:msg("Unclassified"),10:msg("Tree cover"),20:msg("Shrubland"),30:msg("Grassland"),40:msg("Cropland"),50:msg("Built-up"),
+  60:msg("Bare or sparse vegetation"),70:msg("Snow and ice"),80:msg("Water"),90:msg("Herbaceous wetland"),95:msg("Mangroves"),100:msg("Moss and lichen")
 };
 const coverColor = {
   0:[90,106,74],10:[61,107,70],20:[142,124,78],30:[110,133,76],40:[165,159,78],50:[152,129,109],
@@ -24,9 +24,9 @@ const densityClasses = [
   {label:'20–<100',color:'#a1ce8d',min:20},
   {label:'100–<500',color:'#dbd181',min:100},
   {label:'≥500',color:'#fae495',min:500}
-];
+].map(bin=>({...bin,label:bin.label.replace(/\d+\.\d+/g,value=>fmt.format(Number(value)))}));
 const densityNoData = '#202b29';
-const densityNumber = new Intl.NumberFormat('en',{maximumFractionDigits:2});
+const densityNumber = new Intl.NumberFormat(numberLocale,{maximumFractionDigits:2});
 
 function hexDensity([people,area]) { return people/area; }
 
@@ -44,16 +44,16 @@ function estimatedPeople(count) {
 }
 function describeDensity(sample) {
   const density=hexDensity(sample);
-  return (density>0 && density<.01 ? '<0.01' : densityNumber.format(density))+' people/km²';
+  return msg("{density} people/km²",{density:(density>0 && density<.01 ? '<'+densityNumber.format(.01) : densityNumber.format(density))});
 }
 const layerColor = {
-  population:{start:[58,88,83],end:[227,177,77],max:2.4e6,key:'pop',ends:['0','2.4M']},
-  economy:{start:[62,80,108],end:[201,151,207],max:24e6,key:'capita',ends:['₸0','₸24M']},
-  industry:{start:[70,129,132],end:[202,119,65],ends:['Manufacturing','Mining']},
-  migration:{start:[162,73,67],mid:[107,101,83],end:[82,175,137],max:60000,key:'migration',ends:['−60K','+60K']},
-  labor:{start:[61,135,130],end:[196,107,72],max:6,min:3.5,ends:['3.5%','6.0%']}
+  population:{start:[58,88,83],end:[227,177,77],max:2.4e6,key:'pop',ends:['0',compact.format(2.4e6)]},
+  economy:{start:[62,80,108],end:[201,151,207],max:24e6,key:'capita',ends:['₸0',msg("₸24M")]},
+  industry:{start:[70,129,132],end:[202,119,65],ends:[msg("Manufacturing"),msg("Mining")]},
+  migration:{start:[162,73,67],mid:[107,101,83],end:[82,175,137],max:60000,key:'migration',ends:['−'+compact.format(60000),'+'+compact.format(60000)]},
+  labor:{start:[61,135,130],end:[196,107,72],max:6,min:3.5,ends:[pct(3.5),pct(6)]}
 };
-const activity = new Map(data.activities.map(([id,name,glyph,color])=>[id,{id,name,glyph,color}]));
+const activity = new Map(data.activities.map(([id,name,glyph,color])=>[id,{id,name:contentMessage('activity.'+id,name),glyph,color}]));
 const tileRows = new Map();
 data.tiles.forEach((tile,i)=>{
   const row = Math.round(tile[1]/(data.radius*1.5));
@@ -463,11 +463,11 @@ function drawDensityLabels(cities) {
     const [x,y]=viewPoint(city.xy);
     if (x<16 || x>view.width-16 || y<30 || y>view.height-25) continue;
     context.font='600 11px system-ui';
-    const halfWidth=context.measureText(city.name).width/2+4;
+    const halfWidth=context.measureText(cityDisplayName(city)).width/2+4;
     if (taken.some(([px,py,w])=>Math.abs(py-y)<15 && Math.abs(px-x)<w+halfWidth)) continue;
     taken.push([x,y,halfWidth]);
     const active=city.id===state.city;
-    label(city.name,x,y-9,active?'750 14px system-ui':'600 11px system-ui',active?'#ffe0a2':'#f3efe1','#263238');
+    label(cityDisplayName(city),x,y-9,active?'750 14px system-ui':'600 11px system-ui',active?'#ffe0a2':'#f3efe1','#263238');
     if (active) ellipse(x,y,4.4,4.4,'#1d333d');
     ellipse(x,y,active?2.7:1.8,active?'#ffdf9a':'#f3efe1');
   }
@@ -491,8 +491,8 @@ function drawCityBanners(cities) {
     const size=active?17:large?15:13;
     let baseline=y-(sharesHex ? landmarkBox(s).anchorY : s>=1.42 ?
       (city.official?(active?10.5:8.7):city.seat?5.9:4.2)*s : 7)-11;
-    const name=(active||city.official)?city.name.toUpperCase():city.name;
-    const nameFont='650 '+size+'px "Crimson Pro", Georgia, serif';
+    const name=(active||city.official)?cityDisplayName(city).toLocaleUpperCase(locale):cityDisplayName(city);
+    const nameFont='650 '+size+'px '+(locale==='en'?'"Crimson Pro", Georgia, serif':'Georgia, serif');
     context.font=nameFont;
     const textWidth=context.measureText(name).width;
     const people=city.pop ? compact.format(city.pop) : '—';
@@ -563,11 +563,11 @@ function drawMinimap() {
 }
 function drawMapTitle() {
   const city=localCity(),r=regionById(state.region);
-  $('map-kicker').textContent=city?'Local survey':r?'Administrative division':'Қазақстан';
-  $('map-title').textContent=city?.name || r?.name || 'Kazakhstan';
+  $('map-kicker').textContent=city?msg("Local survey"):r?msg("Administrative division"):msg("Kazakhstan");
+  $('map-title').textContent=city?cityDisplayName(city):regionDisplayName(r);
   $('subtitle').textContent=state.layer==='winter'?
-    (city ? 'Jan '+celsius(winter.cities[city.id][1]) : 'Dec–Feb climate')+' · '+winter.source.period:
-    state.layer==='density'?'Select a hex · WorldPop '+data.worldPop.year:
-    city?'110 km survey radius · select a hex or site':
-    data.cities.length+' places · '+regions.length+' divisions';
+    (city ? msg("Jan {temperature}",{temperature:celsius(winter.cities[city.id][1])}) : msg("Dec–Feb climate"))+' · '+winter.source.period:
+    state.layer==='density'?msg("Select a hex · WorldPop {year}",{year:data.worldPop.year}):
+    city?msg("110 km survey radius · select a hex or site"):
+    msg("{places} places · {divisions} divisions",{places:data.cities.length,divisions:regions.length});
 }

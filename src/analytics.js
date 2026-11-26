@@ -85,7 +85,7 @@ if (analyticsAvailable) {
     }
     setAtlasAnalytics(allow);
     analyticsPanel.hidden = true;
-    $('announcement').textContent = allow ? 'Analytics allowed.' : 'Analytics declined.';
+    $('announcement').textContent = allow ? msg("Analytics allowed.") : msg("Analytics declined.");
   }
   $('analytics-allow').onclick = () => saveAnalyticsChoice(true);
   $('analytics-decline').onclick = () => saveAnalyticsChoice(false);

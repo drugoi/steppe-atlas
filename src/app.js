@@ -1,32 +1,48 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const data = JSON.parse($('atlas-data').textContent);
+for (const site of data.sites) {
+  site.originalName=site.name;
+  site.name=contentMessage('site.'+site.id+'.name',site.name);
+}
 const regions = Object.values(data.regions);
+const regionDisplayName = region => placeName(region) ?? msg("Kazakhstan");
+const cityDisplayName = city => placeName(city);
+const hmsg = (source,values) => escape(msg(source,values));
 const regionById = id => data.regions[id];
 const cityById = new Map(data.cities.map(city => [city.id, city]));
 const cityNameCounts = new Map();
-for (const city of data.cities) cityNameCounts.set(city.name,(cityNameCounts.get(city.name) ?? 0)+1);
-const repeatedCityName = city => cityNameCounts.get(city.name)>1;
-const qualifiedPlaceType = city => placeTypeLabel(city)+' · '+regionById(city.region).name;
+for (const city of data.cities) cityNameCounts.set(cityDisplayName(city),(cityNameCounts.get(cityDisplayName(city)) ?? 0)+1);
+const repeatedCityName = city => cityNameCounts.get(cityDisplayName(city))>1;
+const qualifiedPlaceType = city => msg("{type} · {region}",{type:placeTypeLabel(city),region:regionDisplayName(regionById(city.region))});
 const canvas = $('map');
 const context = canvas.getContext('2d');
 const maxZoom = 9;
 const mobile = matchMedia('(max-width:760px)');
-const fmt = new Intl.NumberFormat('en');
-const compact = new Intl.NumberFormat('en', {notation:'compact', maximumFractionDigits:1});
+// Match Kazakhstan's statistical releases where the browser's Kazakh formatter uses English punctuation.
+const numberLocale = locale==='kk' ? 'ru-KZ' : locale;
+const fmt = new Intl.NumberFormat(numberLocale);
+const compactNumber = new Intl.NumberFormat(numberLocale,{notation:'compact',maximumFractionDigits:1});
+const shortNumber = new Intl.NumberFormat(numberLocale,{maximumFractionDigits:1});
+const kazakhUnits = [[1e12,'трлн'],[1e9,'млрд'],[1e6,'млн'],[1e3,'мың']];
+const compact = {format(value) {
+  if (locale!=='kk') return compactNumber.format(value);
+  const unit=kazakhUnits.find(([scale])=>Math.abs(value)>=scale);
+  return unit ? shortNumber.format(value/unit[0])+'\u00a0'+unit[1] : shortNumber.format(value);
+}};
 const terrainColors = [[48,98,103],[111,126,82],[163,139,92],[125,111,85],[172,157,128]];
 const layerInfo = {
-  terrain: ['Elevation and terrain', ''],
-  winter: ['Winter temperature', ''],
-  population: ['Population by division', '1 Oct 2026'],
-  economy: ['GRP per person', '2025 · tenge'],
-  industry: ['Industrial value added', '2025 · dominant share'],
-  land:['Land cover','2021'],
-  density:['Population density','WorldPop 2025'],
-  migration:['Net migration','January–September 2026'],
-  labor:['Unemployment rate','2025'],
-  transport:['Transport connections',''],
-  heritage:['World Heritage','']
+  terrain: [msg("Elevation and terrain"), ''],
+  winter: [msg("Winter temperature"), ''],
+  population: [msg("Population by division"), msg("1 Oct 2026")],
+  economy: [msg("GRP per person"), msg("2025 · tenge")],
+  industry: [msg("Industrial value added"), msg("2025 · dominant share")],
+  land:[msg("Land cover"),'2021'],
+  density:[msg("Population density"),msg("WorldPop 2025")],
+  migration:[msg("Net migration"),msg("January–September 2026")],
+  labor:[msg("Unemployment rate"),'2025'],
+  transport:[msg("Transport connections"),''],
+  heritage:[msg("World Heritage"),'']
 };
 const state = {layer:'terrain', mode:'cities', city:null, region:null, tab:'people', site:null, tile:null, district:null, landmark:null};
 const view = {width:0,height:0,fit:1,zoom:1,x:data.width/2,y:data.height/2};
@@ -37,7 +53,9 @@ const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
 const sign = value => (value>=0 ? '+' : '−') + fmt.format(Math.abs(value));
 const money = (millions) => '₸' + compact.format(millions * 1e6);
 const shareOf = (part,total) => total ? 100*part/total : 0;
-const pct = number => number.toFixed(1) + '%';
+const decimal = new Intl.NumberFormat(numberLocale,{minimumFractionDigits:1,maximumFractionDigits:1});
+const ratio = new Intl.NumberFormat(numberLocale,{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = number => decimal.format(number)+'%';
 const countryStats = data.national;
 const buttons = selector => [...document.querySelectorAll(selector)];
 
@@ -262,7 +280,7 @@ function draw() {
   const scaleBar = document.querySelector('.scale');
   const approx = data.metersPerUnit / s * Math.min(88,scaleBar.clientWidth) / 1000;
   const km = [10,20,25,50,100,200,250,500,1000,2000].filter(x=>x<=approx).at(-1) || 5;
-  scaleBar.firstElementChild.textContent = km+' km';
+  scaleBar.firstElementChild.textContent = msg("{distance} km",{distance:fmt.format(km)});
   scaleBar.lastElementChild.style.width = (km*1000/data.metersPerUnit*s)+'px';
   $('zoom-in').disabled = view.zoom>=maxZoom;
   $('zoom-out').disabled = view.zoom<=.8;
@@ -285,14 +303,14 @@ function drawLabels(cities,local) {
       const [x,y] = viewPoint(xy);
       if (x<58 || x>view.width-58 || y<18 || y>view.height-18) continue;
       const water = name.includes('Sea') || name.includes('Lake');
-      label(name,x,y,water ? 'italic 13px Georgia' : '10px monospace',water?'#abd1c6':'#a6b895','#263b31');
+      label(contentMessage('geography.'+name,name),x,y,water ? 'italic 13px Georgia' : '10px monospace',water?'#abd1c6':'#a6b895','#263b31');
     }
   }
   if (view.zoom<2.45 && (state.layer!=='terrain' || state.mode==='regions')) {
     for (const r of regions) {
       if (r.kind==='city' || (mobile.matches && view.zoom<1.45)) continue;
       const [x,y] = viewPoint(r.xy);
-      label(r.name.replace(' Region',''),x,y,'600 11px system-ui','#f0e8c2','#3a4739');
+      label(regionDisplayName(r).replace(/ Region$/,''),x,y,'600 11px system-ui','#f0e8c2','#3a4739');
     }
   }
   if (state.layer==='density') drawDensityLabels(cities);
@@ -337,26 +355,26 @@ function updateTooltip(x,y) {
   hover = keyTarget(x,y);
   if (!hover) {hideTooltip(); return;}
   const t = $('tooltip');
-  if (hover.city) t.textContent=cityById.get(hover.city).name;
+  if (hover.city) t.textContent=cityDisplayName(cityById.get(hover.city));
   else if (hover.landmark) t.textContent=cityLandmarks.get(hover.landmark).name;
   else if (hover.site) {
     const site=sitesById.get(hover.site);
     t.textContent=site.name+' · '+siteLabel(site);
-  } else if (hover.district) t.textContent=activity.get(hover.district).name+' district · schematic';
+  } else if (hover.district) t.textContent=msg("{activity} district · schematic",{activity:activity.get(hover.district).name});
   else if (hover.tile!==undefined) {
     const tile=data.tiles[hover.tile];
     const sample=data.worldPop.hexes[hover.tile];
-    if (state.layer==='density') t.textContent=sample?describeDensity(sample):'No WorldPop data';
+    if (state.layer==='density') t.textContent=sample?describeDensity(sample):msg("No WorldPop data");
     else if (state.layer==='winter') {
       const value=winterTemperature(hover.tile);
-      t.textContent=value===null?'No winter temperature data':celsius(value)+' · Dec–Feb mean';
+      t.textContent=value===null?msg("No winter temperature data"):msg("{temperature} · Dec–Feb mean",{temperature:celsius(value)});
     }
-    else t.textContent=coverLabel[tile[7]]+(tile[2]===0?'':' · '+fmt.format(tile[6])+' m');
+    else t.textContent=coverLabel[tile[7]]+(tile[2]===0?'':' · '+msg("{elevation} m",{elevation:fmt.format(tile[6])}));
   } else {
     const r=regionById(hover.region);
-    const values={population:fmt.format(r.pop),economy:'₸'+compact.format(r.capita)+' per person',
-                  migration:sign(r.migration),labor:pct(unemployment(r)),industry:r.mining>r.manufacturing?'Mining':'Manufacturing'};
-    t.textContent=r.name+(values[state.layer]?' · '+values[state.layer]:'');
+    const values={population:fmt.format(r.pop),economy:msg("{amount} per person",{amount:'₸'+compact.format(r.capita)}),
+                  migration:sign(r.migration),labor:pct(unemployment(r)),industry:r.mining>r.manufacturing?msg("Mining"):msg("Manufacturing")};
+    t.textContent=regionDisplayName(r)+(values[state.layer]?' · '+values[state.layer]:'');
   }
   t.hidden = false;
   t.style.left = Math.max(5,Math.min(x+13,view.width-t.offsetWidth-5))+'px';
@@ -377,7 +395,7 @@ function select(type,id,focus=false) {
   state.tab='people';
   closeInspector(false);
   hideTooltip();
-  $('announcement').textContent = item.name+' selected';
+  $('announcement').textContent = msg("{place} selected",{place:type==='city'?cityDisplayName(item):regionDisplayName(item)});
   updateUI();
   atlasEvent('atlas_place_opened', {place_type:type});
   if (focus && mobile.matches) {
@@ -396,27 +414,27 @@ function delta(value) {
   return '<span class="'+(value>=0?'positive':'negative')+'">'+sign(value)+'</span>';
 }
 function industryChart(region) {
-  const industries = [[region.mining,'Mining'],[region.manufacturing,'Manufacturing'],
-    [Math.max(0,region.industrial-region.mining-region.manufacturing),'Utilities & other industry']].sort((a,b)=>b[0]-a[0]);
-  const drivers = [['oil','Oil & gas extraction'],['ores','Metal ore mining'],['coal','Coal mining'],
-    ['food','Food manufacturing'],['refining','Petroleum refining'],['chemicals','Chemical manufacturing'],['metallurgy','Metallurgy']];
+  const industries = [[region.mining,msg("Mining")],[region.manufacturing,msg("Manufacturing")],
+    [Math.max(0,region.industrial-region.mining-region.manufacturing),msg("Utilities & other industry")]].sort((a,b)=>b[0]-a[0]);
+  const drivers = [['oil',msg("Oil & gas extraction")],['ores',msg("Metal ore mining")],['coal',msg("Coal mining")],
+    ['food',msg("Food manufacturing")],['refining',msg("Petroleum refining")],['chemicals',msg("Chemical manufacturing")],['metallurgy',msg("Metallurgy")]];
   const top = drivers.sort((a,b)=>(region[b[0]]||0)-(region[a[0]]||0))[0];
   const bars = industries.map(([v,title])=>{
     const share = shareOf(v,region.industrial);
     return '<div><div class="bar-label"><span>'+title+'</span><em>'+pct(share)+'</em></div><div class="track"><i style="width:'+share+'%"></i></div></div>';
   }).join('');
-  return '<section class="section"><h3>Industry mix</h3><p class="chart-note">Share of industrial value added · 2025</p><div class="bars">'+bars+'</div>'
-    + (region[top[0]] ? '<div class="metric-grid">'+metric('Largest of 7 tracked subsectors',top[1])+metric('Value added',money(region[top[0]]))+'</div>' : '')+'</section>';
+  return '<section class="section"><h3>'+hmsg("Industry mix")+'</h3><p class="chart-note">'+hmsg("Share of industrial value added · 2025")+'</p><div class="bars">'+bars+'</div>'
+    + (region[top[0]] ? '<div class="metric-grid">'+metric(hmsg("Largest of 7 tracked subsectors"),escape(top[1]))+metric(hmsg("Value added"),money(region[top[0]]))+'</div>' : '')+'</section>';
 }
-function regionalEconomy(region,title='Economy') {
-  return '<section class="section"><h3>'+title+'</h3><p class="chart-note">2025 · current tenge</p><div class="metric-grid">'
-    +metric('Regional product',money(region.grp))+metric('Per person','₸'+compact.format(region.capita))
-    +metric('Real growth',delta(region.realGrowth)+'%')+'</div></section>'+industryChart(region);
+function regionalEconomy(region,title=msg("Economy")) {
+  return '<section class="section"><h3>'+escape(title)+'</h3><p class="chart-note">'+hmsg("2025 · current tenge")+'</p><div class="metric-grid">'
+    +metric(hmsg("Regional product"),money(region.grp))+metric(hmsg("Per person"),'₸'+compact.format(region.capita))
+    +metric(hmsg("Real growth"),delta(region.realGrowth)+'%')+'</div></section>'+industryChart(region);
 }
 function list(places,type) {
   return '<ul class="place-list">'+places.map(p=>{
     const qualifier=type==='city' && repeatedCityName(p) ? '<small class="place-qualifier">'+escape(qualifiedPlaceType(p))+'</small>' : '';
-    return '<li><button data-place="'+type+'" data-id="'+p.id+'"><span>'+escape(p.name)+qualifier+'</span><small>'
+    return '<li><button data-place="'+type+'" data-id="'+p.id+'"><span>'+escape(type==='city'?cityDisplayName(p):regionDisplayName(p))+qualifier+'</span><small>'
       +(p.pop ? compact.format(p.pop) : '—')+'</small></button></li>';
   }).join('')+'</ul>';
 }
@@ -425,9 +443,9 @@ function renderDetails() {
   const city=cityById.get(state.city);
   const region=regionById(state.region || city?.region);
   if (state.mode==='cities' && !city) {
-    detail.innerHTML='<div class="gov-list"><h2>Cities &amp; towns</h2><p class="sub">Ranked by reported population</p>'+list(data.cities,'city')+'</div>';
+    detail.innerHTML='<div class="gov-list"><h2>'+hmsg("Cities & towns")+'</h2><p class="sub">'+hmsg("Ranked by reported population")+'</p>'+list(data.cities,'city')+'</div>';
   } else if (state.mode==='regions' && !region) {
-    detail.innerHTML='<div class="gov-list"><h2>Regions</h2><p class="sub">17 regions and 3 cities of republican significance</p>'+list([...regions].sort((a,b)=>b.pop-a.pop),'region')+'</div>';
+    detail.innerHTML='<div class="gov-list"><h2>'+hmsg("Regions")+'</h2><p class="sub">'+hmsg("17 regions and 3 cities of republican significance")+'</p>'+list([...regions].sort((a,b)=>b.pop-a.pop),'region')+'</div>';
   } else detail.innerHTML=atlasProfile(region||countryStats,city);
   document.querySelector('.panel').scrollTop=0;
 }
@@ -445,12 +463,12 @@ const results = $('results');
 const normalized = value => value.normalize('NFKD').toLowerCase().replace(/[\u0300-\u036f]/g,'').trim();
 const places = [
   ...data.cities.map(item=>{
-    const names=[item.name,...item.aliases];
+    const names=new Set([item.name,cityDisplayName(item),...item.aliases]);
     const {name,kk,ru}=regionById(item.region);
-    return {item,type:'city',terms:[...names,...names.flatMap(alias=>[name,kk,ru].map(region=>alias+' '+region))]};
+    return {item,type:'city',terms:[...names,...[...names].flatMap(alias=>[name,kk,ru].map(region=>alias+' '+region))]};
   }),
   ...regions.map(item=>({item,type:'region',terms:[item.name,item.kk,item.ru]})),
-  ...data.sites.map(item=>({item,type:'site',terms:[item.name,item.tag]}))
+  ...data.sites.map(item=>({item,type:'site',terms:[item.originalName,item.name,item.tag]}))
 ].map(entry=>({...entry,terms:entry.terms.map(normalized)}));
 let matches = [], activeIndex = -1;
 function closeSearch() {
@@ -476,11 +494,12 @@ function renderSearch() {
   }).filter(entry=>entry.score<3).sort((a,b)=>a.score-b.score || (b.item.pop||0)-(a.item.pop||0)).slice(0,10);
   results.innerHTML = matches.length ? matches.map(({item,type},i)=>{
     const kind=type==='city' ? (repeatedCityName(item) ? qualifiedPlaceType(item) : placeTypeLabel(item)) :
-      type==='site' ? 'Site' : item.kind==='city' ? 'City division' : 'Region';
+      type==='site' ? msg("Site") : item.kind==='city' ? msg("City division") : msg("Region");
+    const name=type==='city'?cityDisplayName(item):type==='region'?regionDisplayName(item):item.name;
     return '<button type="button" tabindex="-1" role="option" id="result-'+i+'" data-match="'+i+'" aria-selected="false"><span>'
-      +escape(item.name)+'</span><small>'+escape(kind)+'</small></button>';
+      +escape(name)+'</span><small>'+escape(kind)+'</small></button>';
   }).join('') :
-    '<p role="status">No places match your search.</p>';
+    '<p role="status">'+hmsg("No places match your search.")+'</p>';
   results.hidden = false;
   search.setAttribute('aria-expanded','true');
   setActive(-1);
@@ -662,16 +681,16 @@ let shareTimer;
 $('share').onclick = async ()=>{
   updateLocation();
   const hash = location.hash;
-  const text = location.protocol==='file:' ? hash : location.href;
+  const text = location.protocol==='file:' ? (locale==='en' ? hash : '?lang='+locale+hash) : location.href;
   try {
     await navigator.clipboard.writeText(text);
-    $('share').textContent = 'Copied';
-    $('announcement').textContent = location.protocol==='file:' ? 'View fragment copied. Append it to your copy of the atlas.' : 'View link copied.';
+    $('share').textContent = msg("Copied");
+    $('announcement').textContent = location.protocol==='file:' ? msg("View fragment copied. Append it to your copy of the atlas.") : msg("View link copied.");
     clearTimeout(shareTimer);
-    shareTimer = setTimeout(()=>$('share').textContent='Copy link',1800);
+    shareTimer = setTimeout(()=>$('share').textContent=msg("Copy link"),1800);
     atlasEvent('share_link_copied');
   } catch {
-    window.prompt('Copy this atlas view',text);
+    window.prompt(msg("Copy this atlas view"),text);
   }
 };
-if (location.protocol==='file:') $('share').title = 'Copy the view fragment to append to a local copy of the atlas';
+if (location.protocol==='file:') $('share').title = msg("Copy the view fragment to append to a local copy of the atlas");

@@ -13,6 +13,12 @@ npm run build
 
 Open `dist/index.html` directly in a browser. The output embeds the styles, scripts and data, so the map works offline. Edit the HTML, CSS and JavaScript in `src/`. The build reads the committed snapshot from `data/atlas-data.json`.
 
+## Language editions
+
+English is served at `/`, Kazakh at `/kk/`, and Russian at `/ru/`. Each edition has its own title and link preview. The selector keeps the map position, layer, and selected place when switching languages. The standalone HTML also embeds all three languages and switches using a query parameter.
+
+The Kazakh and Russian copy lives in `locales/`. Each entry is keyed by its English message or by a stable data identifier. Keep placeholders such as `{place}` and `{link1}` when editing a message. The build checks coverage and placeholders against the interface, map data, and city stories. City and region names use their existing Kazakh and Russian registry fields.
+
 ## Refresh the data
 
 Use Python 3.13 or newer. From the repository root:
@@ -41,7 +47,7 @@ Each landmark in `data/city-landmarks.json` has a short account, a source and a 
 
 ## Deployment
 
-GitHub Actions builds changes on pull requests. On pushes to `main` and manual runs on `main`, Wrangler deploys `dist/` to the existing Cloudflare Pages project `steppe-atlas`. The workflow verifies that the custom domain serves the same HTML it built.
+GitHub Actions builds changes on pull requests. On pushes to `main` and manual runs on `main`, Wrangler deploys `dist/` to the existing Cloudflare Pages project `steppe-atlas`. The workflow verifies that the custom domain serves each language edition it built.
 
 The repository uses the Actions variable `CLOUDFLARE_ACCOUNT_ID` and encrypted secret `CLOUDFLARE_API_TOKEN`. The token needs account-level Pages Write. For a manual deployment from an authenticated development machine, run `npm run build` followed by `npm run deploy`.
 

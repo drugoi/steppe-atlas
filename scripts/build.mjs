@@ -1,11 +1,12 @@
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { Script } from 'node:vm';
+import { localizeDocument, readLocalizations, translationInventory } from './localization.mjs';
 
 const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 const [template, css, snapshot, ...scripts] = await Promise.all([
   'src/index.html', 'src/atlas.css', 'data/atlas-data.json',
-  'src/app.js', 'src/map.js', 'src/cities.js', 'src/profile.js', 'src/analytics.js', 'src/startup.js',
+  'src/i18n.js', 'src/app.js', 'src/map.js', 'src/cities.js', 'src/profile.js', 'src/analytics.js', 'src/startup.js',
 ].map(read));
 
 const analyticsId = process.env.GA4_MEASUREMENT_ID?.trim() ?? '';
@@ -42,6 +43,8 @@ if (new Set(editorialIds).size !== editorialIds.length ||
     !atlas.cities.every(city => winter.cities[city.id]?.length === 3)) {
   throw new Error('Place names, stories or winter data do not match the atlas snapshot.');
 }
+const inventory = translationInventory(template,javascript,atlas,[...landmarks,...stories]);
+const locales = await readLocalizations(root,inventory);
 const embeddedJSON = value => JSON.stringify(value).replaceAll('</','<\\/');
 const values = {
   CSS: '/*\n'+fontLicense.trim()+'\n*/\n'+css.replace('__DISPLAY_FONT__', 'data:font/woff2;base64,'+font.toString('base64')),
@@ -50,12 +53,15 @@ const values = {
   LANDMARKS: embeddedJSON(landmarks),
   STORIES: embeddedJSON(stories),
   WINTER: embeddedJSON(winter),
+  LANGUAGES: embeddedJSON(locales),
   GA4: analyticsId,
   APP: javascript,
 };
-const html = template.replace(/__(CSS|DATA|RELIEF|LANDMARKS|STORIES|WINTER|GA4|APP)__/g, (_, name) => values[name]);
-await mkdir(new URL('dist/', root), { recursive: true });
-await Promise.all([
-  writeFile(new URL('dist/index.html', root), html),
-  copyFile(new URL('src/assets/social-card.jpg', root), new URL('dist/social-card.jpg', root)),
-]);
+await Promise.all(['en',...Object.keys(locales)].map(async locale=>{
+  const directory=new URL(locale==='en'?'dist/':'dist/'+locale+'/',root);
+  const localized=localizeDocument(template,locale,locales);
+  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|STORIES|WINTER|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
+  await mkdir(directory,{recursive:true});
+  await writeFile(new URL('index.html',directory),html);
+}));
+await copyFile(new URL('src/assets/social-card.jpg',root),new URL('dist/social-card.jpg',root));

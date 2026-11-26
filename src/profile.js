@@ -1,14 +1,14 @@
 const defaultCity = 1526384;
-const profileTabs = {people:'People',districts:'Districts',economy:'Economy',sites:'Sites',compare:'Compare'};
+const profileTabs = {people:msg("People"),districts:msg("Districts"),economy:msg("Economy"),sites:msg("Sites"),compare:msg("Compare")};
 const zoomCity = () => mobile.matches ? 8.0 : 6.35;
-const placeTypeLabel = city => city.placeType==='village'?'Village':city.placeType==='settlement'?'Settlement':'City';
-const profileScope = city => city.capital?'National capital':city.official?'City of republican significance':
-  city.id===1521368?'City with special status':city.seat?'Regional centre':placeTypeLabel(city);
-const populationSource = city => city.popDate==='2026-10-01' ? '1 Oct 2026' :
-  city.popDate==='2025-01-01' ? '1 Jan 2025' : 'GeoNames estimate';
-const categoryRanks = [['pop','People'],['grp','Output'],['capita','Per person'],['realGrowth','Growth']];
+const placeTypeLabel = city => city.placeType==='village'?msg("Village"):city.placeType==='settlement'?msg("Settlement"):msg("City");
+const profileScope = city => city.capital?msg("National capital"):city.official?msg("City of republican significance"):
+  city.id===1521368?msg("City with special status"):city.seat?msg("Regional centre"):placeTypeLabel(city);
+const populationSource = city => city.popDate==='2026-10-01' ? msg("1 Oct 2026") :
+  city.popDate==='2025-01-01' ? msg("1 Jan 2025") : msg("GeoNames estimate");
+const categoryRanks = [['pop',msg("People")],['grp',msg("Output")],['capita',msg("Per person")],['realGrowth',msg("Growth")]];
 function populationGlyphs(percent) {
-  return '<div class="dots" aria-label="'+pct(percent)+' urban">'+Array.from({length:20},(_,i)=>
+  return '<div class="dots" aria-label="'+hmsg("{percent} urban",{percent:pct(percent)})+'">'+Array.from({length:20},(_,i)=>
     '<span aria-hidden="true" '+(i<Math.round(percent/5)?'class="filled"':'')+'>●</span>').join('')+'</div>';
 }
 function timeline(values,labels,heading) {
@@ -24,37 +24,37 @@ function timeline(values,labels,heading) {
 }
 function peopleProfile(region) {
   const share=shareOf(region.urban,region.pop);
-  const division=region.id?escape(region.name):'Kazakhstan';
-  return '<section class="section"><h3>Population &amp; migration</h3><p class="chart-note">'+division+' · January–September 2026</p>'
-    +timeline([region.startPop,region.pop],['Jan 2026','Oct 2026'],'Population')
-    +'<div class="metric-grid">'+metric('Net migration',delta(region.migration))+metric('Natural increase',delta(region.natural))
-    +metric('Urban population',fmt.format(region.urban))+metric('Rural population',fmt.format(region.pop-region.urban))+'</div></section>'
-    +'<section class="section"><h3>Urban share · '+pct(share)+'</h3>'+populationGlyphs(share)
-    +'<p class="chart-note">Each dot represents roughly 5% of residents.</p></section>'
-    +'<section class="section"><h3>Labour market</h3><p class="chart-note">2025 · Labour Force Survey</p>'
-    +'<div class="metric-grid">'+metric('Employed residents',fmt.format(region.labor.employed.at(-1)))
-    +metric('Unemployment rate',pct(unemployment(region)))+metric('Labour force',fmt.format(region.labor.force.at(-1)))
-    +metric('National unemployment',pct(unemployment(countryStats)))+'</div>'
-    +timeline(region.labor.employed,['2022','2023','2024','2025'],'Employed residents')+'</section>';
+  const division=escape(regionDisplayName(region));
+  return '<section class="section"><h3>'+hmsg("Population & migration")+'</h3><p class="chart-note">'+division+' · '+hmsg("January–September 2026")+'</p>'
+    +timeline([region.startPop,region.pop],[hmsg("Jan 2026"),hmsg("Oct 2026")],hmsg("Population"))
+    +'<div class="metric-grid">'+metric(hmsg("Net migration"),delta(region.migration))+metric(hmsg("Natural increase"),delta(region.natural))
+    +metric(hmsg("Urban population"),fmt.format(region.urban))+metric(hmsg("Rural population"),fmt.format(region.pop-region.urban))+'</div></section>'
+    +'<section class="section"><h3>'+hmsg("Urban share · {percent}",{percent:pct(share)})+'</h3>'+populationGlyphs(share)
+    +'<p class="chart-note">'+hmsg("Each dot represents roughly 5% of residents.")+'</p></section>'
+    +'<section class="section"><h3>'+hmsg("Labour market")+'</h3><p class="chart-note">'+hmsg("2025 · Labour Force Survey")+'</p>'
+    +'<div class="metric-grid">'+metric(hmsg("Employed residents"),fmt.format(region.labor.employed.at(-1)))
+    +metric(hmsg("Unemployment rate"),pct(unemployment(region)))+metric(hmsg("Labour force"),fmt.format(region.labor.force.at(-1)))
+    +metric(hmsg("National unemployment"),pct(unemployment(countryStats)))+'</div>'
+    +timeline(region.labor.employed,['2022','2023','2024','2025'],hmsg("Employed residents"))+'</section>';
 }
 function districtProfile(region,isCity) {
   const top=specializations(region);
   const cards=top.map(a=>'<button '+(isCity?'data-district="'+a.id+'"':'disabled')+' aria-pressed="'+(state.district===a.id)+'" style="--district:'+a.color+'">'
-    +'<span class="district-icon" aria-hidden="true">'+a.glyph+'</span><span><strong>'+a.name+'</strong><small>'+money(a.value)+' · '+pct(a.share)+' of output</small></span>'
-    +'<b>×'+a.lq.toFixed(2)+'</b></button>').join('');
+    +'<span class="district-icon" aria-hidden="true">'+a.glyph+'</span><span><strong>'+escape(a.name)+'</strong><small>'+hmsg("{amount} · {percent} of output",{amount:money(a.value),percent:pct(a.share)})+'</small></span>'
+    +'<b>×'+ratio.format(a.lq)+'</b></button>').join('');
   const ranked=districts(region).sort((a,b)=>b.lq-a.lq);
-  return '<section class="section"><h3>Economic districts</h3><p class="chart-note">'+escape(region.name)+' · 2025</p>'
-    +(top.length ? '<div class="district-list">'+cards+'</div>' : '<p class="dataset-note">This division has no district that meets both cutoffs.</p>')
-    +'<p class="dataset-note">A district represents at least 2% of the division’s output and at least 1.15 times the activity’s national share. Map positions are schematic.</p></section>'
-    +'<section class="section"><h3>Specialization by activity</h3><table class="comparison"><thead><tr><th scope="col">Activity</th><th scope="col">Local share</th><th scope="col">Vs. KZ</th></tr></thead><tbody>'
-    +ranked.map(a=>'<tr><th scope="row">'+a.name+'</th><td>'+pct(a.share)+'</td><td>×'+a.lq.toFixed(2)+'</td></tr>').join('')
+  return '<section class="section"><h3>'+hmsg("Economic districts")+'</h3><p class="chart-note">'+escape(regionDisplayName(region))+' · 2025</p>'
+    +(top.length ? '<div class="district-list">'+cards+'</div>' : '<p class="dataset-note">'+hmsg("This division has no district that meets both cutoffs.")+'</p>')
+    +'<p class="dataset-note">'+hmsg("A district represents at least 2% of the division’s output and at least 1.15 times the activity’s national share. Map positions are schematic.")+'</p></section>'
+    +'<section class="section"><h3>'+hmsg("Specialization by activity")+'</h3><table class="comparison"><thead><tr><th scope="col">'+hmsg("Activity")+'</th><th scope="col">'+hmsg("Local share")+'</th><th scope="col">'+hmsg("Vs. KZ")+'</th></tr></thead><tbody>'
+    +ranked.map(a=>'<tr><th scope="row">'+escape(a.name)+'</th><td>'+pct(a.share)+'</td><td>×'+ratio.format(a.lq)+'</td></tr>').join('')
     +'</tbody></table></section>';
 }
 function outputStructure(region) {
   const industries=districts(region).sort((a,b)=>b.share-a.share);
-  return '<section class="section"><h3>Output by activity</h3><p class="chart-note">Share of 2025 output · markers show national shares</p><div class="bars bns-bars">'
-    +industries.map(a=>'<div><div class="bar-label"><span>'+a.name+'</span><em>'+money(a.value)+' · '+pct(a.share)+'</em></div>'
-      +'<div class="track"><i style="width:'+a.share+'%"></i><span class="baseline" style="left:'+a.national+'%" title="Kazakhstan '+pct(a.national)+'"></span></div></div>').join('')
+  return '<section class="section"><h3>'+hmsg("Output by activity")+'</h3><p class="chart-note">'+hmsg("Share of 2025 output · markers show national shares")+'</p><div class="bars bns-bars">'
+    +industries.map(a=>'<div><div class="bar-label"><span>'+escape(a.name)+'</span><em>'+money(a.value)+' · '+pct(a.share)+'</em></div>'
+      +'<div class="track"><i style="width:'+a.share+'%"></i><span class="baseline" style="left:'+a.national+'%" title="'+hmsg("Kazakhstan {percent}",{percent:pct(a.national)})+'"></span></div></div>').join('')
     +'</div></section>';
 }
 function getSites(region,city) {
@@ -63,38 +63,41 @@ function getSites(region,city) {
     .sort((a,b)=>city?a.dist-b.dist:a.kind.localeCompare(b.kind)||a.name.localeCompare(b.name));
 }
 function siteLabel(site) {
-  return site.mw?fmt.format(site.mw)+' MW':site.tag;
+  return site.mw?msg("{power} MW",{power:fmt.format(site.mw)}):contentMessage('site.tag.'+site.tag,site.tag);
 }
 function sitesProfile(region,city) {
   const points=getSites(region,city);
-  return '<section class="section"><h3>'+points.length+' '+(city?'nearby ':'')+'mapped '+(points.length===1?'site':'sites')+'</h3>'
-    +'<p class="chart-note">'+(city?'Within 160 km of '+escape(city.name):escape(region.name||'Kazakhstan'))+' · select a site to locate it</p>'
+  const count=fmt.format(points.length);
+  const heading=city ? (points.length===1 ? msg("{count} nearby mapped site",{count}) : msg("{count} nearby mapped sites",{count}))
+    : (points.length===1 ? msg("{count} mapped site",{count}) : msg("{count} mapped sites",{count}));
+  return '<section class="section"><h3>'+escape(heading)+'</h3>'
+    +'<p class="chart-note">'+(city?hmsg("Within 160 km of {place}",{place:cityDisplayName(city)}):escape(regionDisplayName(region)))+' · '+hmsg("Select a site to locate it")+'</p>'
     +(points.length?'<ul class="place-list site-list">'+points.map(p=>
       '<li><button data-site="'+p.id+'"><span><i class="site-glyph" aria-hidden="true">'+siteStyle[p.kind].glyph+'</i>'+escape(p.name)+'</span>'
-      +'<small>'+escape(siteLabel(p))+(city?' · '+Math.round(p.dist)+' km':'')+'</small></button></li>').join('')+'</ul>':
-      '<p class="dataset-note">The current site inventory has no qualifying records here.</p>')
-    +'<p class="dataset-note">The inventory covers scheduled airports, selected heritage sites, a port and archived power plants.</p></section>';
+      +'<small>'+escape(siteLabel(p))+(city?' · '+hmsg("{distance} km",{distance:fmt.format(Math.round(p.dist))}):'')+'</small></button></li>').join('')+'</ul>':
+      '<p class="dataset-note">'+hmsg("The current site inventory has no qualifying records here.")+'</p>')
+    +'<p class="dataset-note">'+hmsg("The inventory covers scheduled airports, selected heritage sites, a port and archived power plants.")+'</p></section>';
 }
 function cityComparison(city) {
   const nearest=data.cities.filter(c=>c!==city).sort((a,b)=>Math.abs(a.pop-city.pop)-Math.abs(b.pop-city.pop)).slice(0,5);
-  return '<section class="section"><h3>Similar-sized settlements</h3><p class="chart-note">Six places ordered by population</p><table class="comparison">'
-    +'<thead><tr><th scope="col">Settlement</th><th scope="col">Population</th><th scope="col">Reference</th></tr></thead><tbody>'
+  return '<section class="section"><h3>'+hmsg("Similar-sized settlements")+'</h3><p class="chart-note">'+hmsg("Six places ordered by population")+'</p><table class="comparison">'
+    +'<thead><tr><th scope="col">'+hmsg("Locality")+'</th><th scope="col">'+hmsg("Population")+'</th><th scope="col">'+hmsg("Reference")+'</th></tr></thead><tbody>'
     +[city,...nearest].sort((a,b)=>b.pop-a.pop).map(c=>'<tr '+(c===city?'class="current"':'')+'><th scope="row"><button data-place="city" data-id="'+c.id+'">'
-      +escape(c.name)+'</button></th><td>'+fmt.format(c.pop)+'</td><td>'+populationSource(c)+'</td></tr>').join('')+'</tbody></table></section>';
+      +escape(cityDisplayName(c))+'</button></th><td>'+fmt.format(c.pop)+'</td><td>'+escape(populationSource(c))+'</td></tr>').join('')+'</tbody></table></section>';
 }
 function divisionsComparison(region) {
   const choices=region.id ? [region,...regions.filter(r=>r.id!==region.id).sort((a,b)=>Math.abs(a.pop-region.pop)-Math.abs(b.pop-region.pop)).slice(0,5)] : regions;
-  return '<section class="section"><h3>'+ (region.id?'Comparable divisions':'Administrative divisions')+'</h3><p class="chart-note">2026 population · 2025 regional product</p><table class="comparison">'
-    +'<thead><tr><th scope="col">Division</th><th scope="col">People</th><th scope="col">GRP/person</th><th scope="col">Real growth</th></tr></thead><tbody>'
+  return '<section class="section"><h3>'+ (region.id?hmsg("Comparable divisions"):hmsg("Administrative divisions"))+'</h3><p class="chart-note">'+hmsg("2026 population · 2025 regional product")+'</p><table class="comparison">'
+    +'<thead><tr><th scope="col">'+hmsg("Division")+'</th><th scope="col">'+hmsg("People")+'</th><th scope="col">'+hmsg("GRP/person")+'</th><th scope="col">'+hmsg("Real growth")+'</th></tr></thead><tbody>'
     +choices.sort((a,b)=>b.pop-a.pop).map(r=>'<tr '+(r===region?'class="current"':'')+'><th scope="row"><button data-place="region" data-id="'+r.id+'">'
-      +escape(r.name)+'</button></th><td>'+compact.format(r.pop)+'</td><td>₸'+compact.format(r.capita)+'</td><td>'+delta(r.realGrowth)+'%</td></tr>').join('')
+      +escape(regionDisplayName(r))+'</button></th><td>'+compact.format(r.pop)+'</td><td>₸'+compact.format(r.capita)+'</td><td>'+delta(r.realGrowth)+'%</td></tr>').join('')
     +'</tbody></table></section>';
 }
 function winterCityProfile(city) {
   const months=winter.cities[city.id];
-  return '<section class="city-winter"><h3>Winter in '+escape(city.name)+'</h3>'
-    +'<p>Monthly mean air temperature · '+escape(winter.source.period)+'</p>'
-    +'<dl>'+['Dec','Jan','Feb'].map((month,i)=>'<div><dt>'+month+'</dt><dd>'+celsius(months[i])+'</dd></div>').join('')+'</dl>'
+  return '<section class="city-winter"><h3>'+hmsg("Winter in {place}",{place:cityDisplayName(city)})+'</h3>'
+    +'<p>'+hmsg("Monthly mean air temperature · {period}",{period:winter.source.period})+'</p>'
+    +'<dl>'+[msg("Dec"),msg("Jan"),msg("Feb")].map((month,i)=>'<div><dt>'+escape(month)+'</dt><dd>'+celsius(months[i])+'</dd></div>').join('')+'</dl>'
     +'<a href="'+escape(winter.source.url)+'" target="_blank" rel="noopener">'+escape(winter.source.name)+'</a></section>';
 }
 function cityFieldNote(city) {
@@ -102,33 +105,41 @@ function cityFieldNote(city) {
   const story=cityStories.get(city.id);
   const environment=cityEnvironment(city);
   const position=data.cities.indexOf(city)+1;
-  const title=escape(landmark?.name ?? story?.title ?? 'Around '+city.name);
+  const fieldName=landmark?.name ?? story?.title ?? msg("Around {place}",{place:cityDisplayName(city)});
+  const title=escape(fieldName);
   const note=escape(landmark?.fact ?? story?.fact ?? landscapeStory(city));
   const distance=landmark ? Math.round(landmarkDistance(city,landmark)) : 0;
-  const location=landmark ? (distance>=7 ? '<span class="field-scope field-distance">'+distance+' km from the atlas centre</span>' : '')
-    +'<button class="field-location" data-landmark="'+city.id+'" aria-label="Locate '+title+' on map">'
-    +'<span>Locate on map</span><i aria-hidden="true"></i></button>' :
-    story ? '<a class="field-location" href="'+escape(story.source)+'" target="_blank" rel="noopener">Source</a>' :
-      '<span class="field-scope">110 km survey radius</span>';
+  const location=landmark ? (distance>=7 ? '<span class="field-scope field-distance">'+hmsg("{distance} km from the atlas centre",{distance:fmt.format(distance)})+'</span>' : '')
+    +'<button class="field-location" data-landmark="'+city.id+'" aria-label="'+hmsg("Locate {landmark} on map",{landmark:fieldName})+'">'
+    +'<span>'+hmsg("Locate on map")+'</span><i aria-hidden="true"></i></button>' :
+    story ? '<a class="field-location" href="'+escape(story.source)+'" target="_blank" rel="noopener">'+hmsg("Source")+'</a>' :
+      '<span class="field-scope">'+hmsg("110 km survey radius")+'</span>';
   const art='<img src="'+landmarkSprite(landmark?.style ?? story?.style ?? landscapeStyle(city)).url+'" alt="" width="74" height="74">';
-  const elevation=environment.centreElevation===null?'': '<div><dt>Centre hex elevation</dt><dd>'+fmt.format(environment.centreElevation)+' m</dd></div>';
+  const elevation=environment.centreElevation===null?'': '<div><dt>'+hmsg("Centre hex elevation")+'</dt><dd>'+hmsg("{elevation} m",{elevation:fmt.format(environment.centreElevation)})+'</dd></div>';
   return '<section class="city-field-note"><div class="field-copy">'+art+'<div><h3>'+title+'</h3><p>'+note+'</p>'+location+'</div></div>'
-    +'<dl class="city-facts"><div><dt>Population rank in atlas</dt><dd>'+position+' of '+data.cities.length+'</dd></div>'+elevation+'</dl></section>';
+    +'<dl class="city-facts"><div><dt>'+hmsg("Population rank in atlas")+'</dt><dd>'+hmsg("{rank} of {total}",{rank:fmt.format(position),total:fmt.format(data.cities.length)})+'</dd></div>'+elevation+'</dl></section>';
+}
+function placePopulationLabel(city) {
+  if (city.placeType==='village') return msg("Village population");
+  if (city.placeType==='settlement') return msg("Settlement population");
+  return msg("City population");
 }
 function atlasProfile(region,city) {
-  const title=city?.name || region.name || 'Kazakhstan';
-  const detailScope=city ? profileScope(city) : region.id ? 'Division profile' : 'National profile';
+  const title=city?cityDisplayName(city):regionDisplayName(region);
+  const detailScope=city ? profileScope(city) : region.id ? msg("Division profile") : msg("National profile");
   const pop=city ? city.pop : region.pop;
-  const nativeNames=city ? '<p class="sub city-names"><span lang="kk">'+escape(city.kk)+'</span>'
-    +(city.ru!==city.kk?' <span aria-hidden="true">·</span> <span lang="ru">'+escape(city.ru)+'</span>':'')+'</p>' : '';
-  const subtitle=city ? (city.official?'':'Statistics for '+region.name) : (region.kk||'Қазақстан Республикасы');
-  const ranks=region.id ? '<div class="rank-row" aria-label="Division rankings">'+categoryRanks.map(([key,name])=>'<p><strong>#'+rankMetric(region,key)+'</strong>'+name+'</p>').join('')+'</div>' : '';
-  const header='<header class="profile"><h2>'+escape(title)+'</h2>'+nativeNames+'<p class="sub">'+detailScope
+  const nativeNames=city ? (city.kk===city.ru?['kk']:['kk','ru'])
+    .filter(language=>locale==='en'||city[language]!==title)
+    .map(language=>'<span lang="'+language+'">'+escape(city[language])+'</span>').join(' <span aria-hidden="true">·</span> ') : '';
+  const nativeLine=nativeNames ? '<p class="sub city-names">'+nativeNames+'</p>' : '';
+  const subtitle=city ? (city.official?'':msg("Statistics for {region}",{region:regionDisplayName(region)})) : (locale==='en'?(region.kk||'Қазақстан Республикасы'):region.id?'':msg("Republic of Kazakhstan"));
+  const ranks=region.id ? '<div class="rank-row" aria-label="'+hmsg("Division rankings")+'">'+categoryRanks.map(([key,name])=>'<p><strong>#'+rankMetric(region,key)+'</strong>'+escape(name)+'</p>').join('')+'</div>' : '';
+  const header='<header class="profile"><h2>'+escape(title)+'</h2>'+nativeLine+'<p class="sub">'+escape(detailScope)
     +(subtitle?' <span aria-hidden="true">·</span> '+escape(subtitle):'')+'</p>'
-    +'<div class="profile-metrics">'+primary(city?placeTypeLabel(city)+' population':'Population',pop===null?'—':fmt.format(pop),city?populationSource(city):'1 Oct 2026')
-    +primary(region.id?'Regional product':'GDP',money(region.grp),'₸'+compact.format(region.capita)+' per person · 2025')+'</div>'+ranks+'</header>';
-  const tabs='<div class="panel-tabs" role="group" aria-label="Profile sections">'+Object.entries(profileTabs).map(([id,title])=>
-    '<button data-tab="'+id+'" aria-pressed="'+(state.tab===id)+'">'+title+'</button>').join('')+'</div>';
+    +'<div class="profile-metrics">'+primary(escape(city?placePopulationLabel(city):msg("Population")),pop===null?'—':fmt.format(pop),city?escape(populationSource(city)):hmsg("1 Oct 2026"))
+    +primary(region.id?hmsg("Regional product"):hmsg("GDP"),money(region.grp),hmsg("{amount} per person · 2025",{amount:'₸'+compact.format(region.capita)}))+'</div>'+ranks+'</header>';
+  const tabs='<div class="panel-tabs" role="group" aria-label="'+hmsg("Profile sections")+'">'+Object.entries(profileTabs).map(([id,title])=>
+    '<button data-tab="'+id+'" aria-pressed="'+(state.tab===id)+'">'+escape(title)+'</button>').join('')+'</div>';
   let body;
   if (state.tab==='districts') body=districtProfile(region,!!city);
   else if (state.tab==='economy') body=outputStructure(region)+regionalEconomy(region);
@@ -136,10 +147,10 @@ function atlasProfile(region,city) {
   else if (state.tab==='compare') body=(city?cityComparison(city):'')+divisionsComparison(region);
   else body=peopleProfile(region);
   const scope = city && !city.official && ['people','districts','economy'].includes(state.tab) ?
-    '<p class="dataset-note">Charts and division rankings use '+escape(region.name)+' data.</p>' : '';
+    '<p class="dataset-note">'+hmsg("Charts and division rankings use {region} data.",{region:regionDisplayName(region)})+'</p>' : '';
   const fieldNote=city && state.tab==='people' ? cityFieldNote(city) : '';
   const climate=city && state.layer==='winter' ? winterCityProfile(city) : '';
-  return header+tabs+'<div class="tab-body">'+climate+fieldNote+scope+body+'<p class="data-link"><button class="link-button" data-credits>Data and methods</button></p></div>';
+  return header+tabs+'<div class="tab-body">'+climate+fieldNote+scope+body+'<p class="data-link"><button class="link-button" data-credits>'+hmsg("Data and methods")+'</button></p></div>';
 }
 function selectProfileTab(tab,restoreFocus=false) {
   if (!Object.hasOwn(profileTabs,tab)) return;
@@ -159,47 +170,47 @@ function renderInspector() {
   if (state.landmark) {
     const item=cityLandmarks.get(state.landmark);
     const distance=Math.round(landmarkDistance(cityById.get(item.cityId),item));
-    const place=distance>=7 ? distance+' km from '+item.city : item.city;
+    const place=distance>=7 ? msg("{distance} km from {place}",{distance:fmt.format(distance),place:item.city}) : item.city;
     body='<strong>'+escape(item.name)+'</strong><p>'+escape(place)+(item.localName?' · '+escape(item.localName):'')+'</p>'
-      +'<p>'+escape(item.fact)+'</p><small>Schematic miniature at the published location</small>'
-      +'<p><a href="'+escape(item.source)+'" target="_blank" rel="noopener">Landmark record</a> · '
-      +'<a href="'+escape(item.coordinateSource)+'" target="_blank" rel="noopener">Coordinates</a></p>';
+      +'<p>'+escape(item.fact)+'</p><small>'+hmsg("Schematic miniature at the published location")+'</small>'
+      +'<p><a href="'+escape(item.source)+'" target="_blank" rel="noopener">'+hmsg("Landmark record")+'</a> · '
+      +'<a href="'+escape(item.coordinateSource)+'" target="_blank" rel="noopener">'+hmsg("Coordinates")+'</a></p>';
   } else if (state.site) {
     const s=sitesById.get(state.site);
-    const subtitle=s.kind==='energy'?'Archived nameplate capacity · WRI v1.3.0':
-      s.kind==='heritage'?'UNESCO World Heritage · inscribed '+s.year:
-      s.kind==='airport'?'Scheduled airport · OurAirports':'Port · public records';
-    body='<strong>'+escape(s.name)+'</strong><p>'+escape(siteLabel(s))+'</p><p>'+subtitle+'</p>'
-      +'<a href="'+escape(s.source)+'" target="_blank" rel="noopener">Source record</a>';
+    const subtitle=s.kind==='energy'?msg("Archived nameplate capacity · WRI v1.3.0"):
+      s.kind==='heritage'?msg("UNESCO World Heritage · inscribed {year}",{year:s.year}):
+      s.kind==='airport'?msg("Scheduled airport · OurAirports"):msg("Port · public records");
+    body='<strong>'+escape(s.name)+'</strong><p>'+escape(siteLabel(s))+'</p><p>'+escape(subtitle)+'</p>'
+      +'<a href="'+escape(s.source)+'" target="_blank" rel="noopener">'+hmsg("Source record")+'</a>';
   } else if (state.district) {
     const city=cityById.get(state.city);
     const d=city && districts(regionById(city.region)).find(a=>a.id===state.district);
-    if (d) body='<strong>'+d.name+' district</strong><p>'+money(d.value)+' · '+pct(d.share)+' of division output</p>'
-      +'<p>×'+d.lq.toFixed(2)+' the national share</p><small>Schematic pin · 2025 data</small>';
+    if (d) body='<strong>'+hmsg("{activity} district",{activity:d.name})+'</strong><p>'+money(d.value)+' · '+hmsg("{percent} of division output",{percent:pct(d.share)})+'</p>'
+      +'<p>'+hmsg("×{ratio} the national share",{ratio:ratio.format(d.lq)})+'</p><small>'+hmsg("Schematic pin · 2025 data")+'</small>';
   } else if (state.tile!==null) {
     const tile=data.tiles[state.tile];
     if (tile) {
       const r=regionById(tile[3]);
-      const range=tile[2]===0?'':fmt.format(tile[6])+' m sampled elevation';
+      const range=tile[2]===0?'':hmsg("{elevation} m sampled elevation",{elevation:fmt.format(tile[6])});
       const sample=data.worldPop.hexes[state.tile];
       const population=sample
-        ? '<strong>'+escape(estimatedPeople(sample[0]))+' residents</strong><span>'+escape(describeDensity(sample))+'</span>'
-        : '<span>Population unavailable for this hex</span>';
+        ? '<strong>'+hmsg("{count} residents",{count:estimatedPeople(sample[0])})+'</strong><span>'+escape(describeDensity(sample))+'</span>'
+        : '<span>'+hmsg("Population unavailable for this hex")+'</span>';
       const temperature=winterTemperature(state.tile);
       const winterDetails=state.layer==='winter' ? '<div class="hex-population"><strong>'
-        +(temperature===null?'No winter data':celsius(temperature))+'</strong><span>Dec–Feb mean · '+escape(winter.source.period)+'</span></div>' : '';
+        +(temperature===null?hmsg("No winter data"):celsius(temperature))+'</strong><span>'+hmsg("Dec–Feb mean · {period}",{period:winter.source.period})+'</span></div>' : '';
       const landmarks=(landmarksByTile.get(state.tile) ?? []).map(item=>'<p><button class="link-button" data-inspect-landmark="'
         +item.cityId+'">'+escape(item.name)+'</button></p>').join('');
-      body='<strong>'+coverLabel[tile[7]]+'</strong><p>'+[range,r?'Hex centre: '+escape(r.name):'',r?'<button class="link-button" data-inspect-region="'+r.id+'">Division profile</button>':''].filter(Boolean).join(' · ')+'</p>'
+      body='<strong>'+escape(coverLabel[tile[7]])+'</strong><p>'+[range,r?hmsg("Hex centre: {region}",{region:regionDisplayName(r)}):'' ,r?'<button class="link-button" data-inspect-region="'+r.id+'">'+hmsg("Division profile")+'</button>':''].filter(Boolean).join(' · ')+'</p>'
         +winterDetails
         +'<div class="hex-population">'+population
-        +'<a href="https://hub.worldpop.org/doi/10.5258/SOTON/WP00840" target="_blank" rel="noopener">WorldPop '+data.worldPop.year+' · modeled estimate</a></div>'
+        +'<a href="https://hub.worldpop.org/doi/10.5258/SOTON/WP00840" target="_blank" rel="noopener">'+hmsg("WorldPop {year} · modeled estimate",{year:data.worldPop.year})+'</a></div>'
         +landmarks
-        +'<small>Generalized land cover · ESA 2021</small>';
+        +'<small>'+hmsg("Generalized land cover · ESA 2021")+'</small>';
     }
   }
   $('inspector').hidden=!body;
-  if (body) $('inspector').innerHTML='<button data-inspect-close title="Close map inspection" aria-label="Close map inspection">×</button>'+body;
+  if (body) $('inspector').innerHTML='<button data-inspect-close title="'+hmsg("Close map inspection")+'" aria-label="'+hmsg("Close map inspection")+'">×</button>'+body;
 }
 function inspectLandmark(id,focus) {
   const item=cityLandmarks.get(id);
@@ -248,8 +259,8 @@ function inspectTile(id) {
   renderInspector();
   const sample=data.worldPop.hexes[id];
   $('announcement').textContent=sample
-    ? estimatedPeople(sample[0])+' residents. '+describeDensity(sample)+'. WorldPop '+data.worldPop.year+'.'
-    : 'Population unavailable for this hex.';
+    ? msg("{count} residents. {density}. WorldPop {year}.",{count:estimatedPeople(sample[0]),density:describeDensity(sample),year:data.worldPop.year})
+    : msg("Population unavailable for this hex.");
   updateLocation();
   requestDraw();
   atlasEvent('map_hex_inspected', {map_layer:state.layer});
@@ -257,30 +268,30 @@ function inspectTile(id) {
 function renderMapLegend() {
   const legend=$('legend');
   const [name,period]=layerInfo[state.layer];
-  let content='<strong>'+name+'</strong>';
+  let content='<strong>'+escape(name)+'</strong>';
   const dot=(title,color)=>'<p><i class="swatch" style="background:'+color+'"></i>'+title+'</p>';
   const scheme=layerColor[state.layer];
   legend.classList.toggle('worldpop-legend',state.layer==='density');
   $('show-sites').disabled=state.layer==='density';
   if (state.layer==='winter') {
-    content+='<p>Dec–Feb · '+escape(winter.source.period)+'</p>'
-      +winterBands.map(band=>dot(band.label,band.color)).join('')+dot('No land sample',winterMissing);
+    content+='<p>'+hmsg("Dec–Feb · {period}",{period:winter.source.period})+'</p>'
+      +winterBands.map(band=>dot(escape(band.label),band.color)).join('')+dot(hmsg("No land sample"),winterMissing);
   } else if (state.layer==='density') {
     const entries=densityClasses.map(bin=>dot(escape(bin.label),bin.color));
-    entries.push(dot('No data',densityNoData));
-    content+='<p>People/km² · WorldPop '+data.worldPop.year+'</p><div class="worldpop-key">'+entries.join('')+'</div>';
+    entries.push(dot(hmsg("No data"),densityNoData));
+    content+='<p>'+hmsg("People/km² · WorldPop {year}",{year:data.worldPop.year})+'</p><div class="worldpop-key">'+entries.join('')+'</div>';
   } else if (scheme) {
     const colors=[scheme.start,scheme.mid,scheme.end].filter(Boolean).map(rgbText);
-    content+='<p>'+period+'</p><div class="gradient" style="background:linear-gradient(90deg,'+colors.join(',')+')"></div>'
-      +'<div class="range"><span>'+scheme.ends[0]+'</span><span>'+scheme.ends[1]+'</span></div>';
+    content+='<p>'+escape(period)+'</p><div class="gradient" style="background:linear-gradient(90deg,'+colors.join(',')+')"></div>'
+      +'<div class="range"><span>'+escape(scheme.ends[0])+'</span><span>'+escape(scheme.ends[1])+'</span></div>';
   } else if (state.layer==='transport') {
-    content+=[['Railway','#d1b886'],['Airport / port','#9ddadd']].map(([n,c])=>dot(n,c)).join('');
+    content+=[[hmsg("Railway"),'#d1b886'],[hmsg("Airport / port"),'#9ddadd']].map(([n,c])=>dot(n,c)).join('');
   } else if (state.layer==='heritage') {
-    content+='<p>'+data.sites.filter(s=>s.kind==='heritage').length+' selected sites</p>'+dot('UNESCO','#e2acb8');
+    content+='<p>'+hmsg("{count} selected sites",{count:data.sites.filter(s=>s.kind==='heritage').length})+'</p>'+dot(hmsg("UNESCO"),'#e2acb8');
   } else {
     const covers=state.layer==='land'?[10,20,30,40,50,60,70,80,90]:[10,30,40,60,80];
-    content+=covers.map(id=>dot(coverLabel[id],rgbText(coverColor[id]))).join('');
-    if (state.layer==='land') content+='<p class="tool-note">ESA WorldCover 2021</p>';
+    content+=covers.map(id=>dot(escape(coverLabel[id]),rgbText(coverColor[id]))).join('');
+    if (state.layer==='land') content+='<p class="tool-note">'+hmsg("ESA WorldCover 2021")+'</p>';
   }
   legend.innerHTML=content;
 }

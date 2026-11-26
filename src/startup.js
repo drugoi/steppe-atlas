@@ -1,9 +1,9 @@
 $('national').innerHTML = [
-  ['●',compact.format(countryStats.pop),'Population','National population'],
-  ['₸',compact.format(countryStats.grp*1e6),'GDP','National GDP'],
-  ['◆',compact.format(countryStats.labor.employed.at(-1)),'Employment','Employed residents'],
-  ['◒',pct(unemployment(countryStats)),'Unemployment','Unemployment rate']
-].map(([glyph,value,label,name])=>'<button title="'+name+'" aria-label="'+name+' '+value+'"><i aria-hidden="true">'+glyph+'</i><span><small>'+label+'</small><strong>'+value+'</strong></span></button>').join('');
+  ['●',compact.format(countryStats.pop),msg("Population"),msg("National population")],
+  ['₸',compact.format(countryStats.grp*1e6),msg("GDP"),msg("National GDP")],
+  ['◆',compact.format(countryStats.labor.employed.at(-1)),msg("Employment"),msg("Employed residents")],
+  ['◒',pct(unemployment(countryStats)),msg("Unemployment"),msg("Unemployment rate")]
+].map(([glyph,value,label,name])=>'<button title="'+escape(name)+'" aria-label="'+hmsg("{label} {value}",{label:name,value})+'"><i aria-hidden="true">'+glyph+'</i><span><small>'+escape(label)+'</small><strong>'+value+'</strong></span></button>').join('');
 $('national').onclick = event=>{
   if (event.target.closest('button')) document.querySelector('[data-mode="overview"]').click();
 };

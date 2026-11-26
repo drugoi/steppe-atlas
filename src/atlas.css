@@ -79,6 +79,7 @@ button:disabled { opacity: .45; cursor: default; }
 .national small { display: block; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .national strong { display: block; font: 650 19px/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
 
+.language-picker { max-width: 125px; }
 .search { position: relative; margin-left: auto; width: min(280px, 26vw); min-width: 150px; }
 .search input {
   width: 100%; background: #0e232c; color: var(--text); caret-color: var(--gold);
@@ -288,7 +289,7 @@ canvas.over { cursor: pointer; }
 .positive { color: #1d6256; }
 .negative { color: #8a3725; }
 .rank-row { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
-.rank-row p { margin: 0; text-align: center; color: var(--muted); font-size: 11px; }
+.rank-row p { margin: 0; text-align: center; color: var(--muted); font-size: 12px; }
 .rank-row p + p { border-left: 1px solid #bca97e91; }
 .rank-row strong { display: block; color: #694b26; font: 650 21px/1 var(--display); }
 
@@ -427,6 +428,10 @@ dialog li + li { margin-top: 9px; }
   .layers .overlay-action { margin-right: 3px; }
   .layer-icon { display: none; }
   .legend { min-width: 145px; }
+  html:is([lang=kk],[lang=ru]) { --map-dock: 87px; --minimap-bottom: 97px; }
+  html:is([lang=kk],[lang=ru]) .layers {
+    display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-rows: repeat(2,minmax(0,1fr));
+  }
 }
 @media (max-width: 760px) {
   :root { --bar-height: 55px; --map-dock: 51px; --map-inset: 9px; --minimap-width: 99px; --minimap-bottom: 61px; }
@@ -437,6 +442,11 @@ dialog li + li { margin-top: 9px; }
   .brand strong { font-size: 20px; }
   .brand small { display: none; }
   .search { width: auto; min-width: 0; flex: 1; }
+  .topbar:has(.language-picker:not([hidden])) {
+    display: grid; grid-template-columns: minmax(0,1fr) auto auto; height: auto; gap: 6px; padding-block: 7px;
+  }
+  .topbar:has(.language-picker:not([hidden])) .search { grid-area: 2 / 1 / 3 / -1; margin: 0; }
+  .topbar:has(.language-picker:not([hidden])) .results { min-width: 100%; }
   .search input { padding: 7px 6px 7px 25px; font-size: 13px; }
   .search-symbol { left: 8px; }
   .search kbd { display: none; }

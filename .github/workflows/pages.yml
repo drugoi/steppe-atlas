@@ -44,13 +44,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Verify the production domain
         run: |
-          for attempt in $(seq 1 18); do
-            if curl --fail --silent --show-error --max-time 10 \
-              https://kazakhstan.drugoi.dev/ -o "$RUNNER_TEMP/deployed-atlas.html" &&
-              cmp -s dist/index.html "$RUNNER_TEMP/deployed-atlas.html"; then
-              exit 0
-            fi
-            sleep 5
+          for file in index.html kk/index.html ru/index.html; do
+            route="${file%index.html}"
+            for attempt in $(seq 1 18); do
+              if curl --fail --silent --show-error --max-time 10 \
+                "https://kazakhstan.drugoi.dev/$route" -o "$RUNNER_TEMP/deployed-atlas.html" &&
+                cmp -s "dist/$file" "$RUNNER_TEMP/deployed-atlas.html"; then
+                break
+              fi
+              if [ "$attempt" = 18 ]; then
+                echo "::error::Production domain did not return the deployed atlas at /$route."
+                exit 1
+              fi
+              sleep 5
+            done
           done
-          echo "::error::Production domain did not return the deployed atlas."
-          exit 1
