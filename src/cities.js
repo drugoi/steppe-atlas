@@ -474,6 +474,10 @@ function landmarkSprite(style,winterView=false,cityScene=false) {
 function cityHexArtVisible(s) {
   return view.zoom>=2.5 && s>=1.42 && ['terrain','winter'].includes(state.layer);
 }
+function visibleOutlyingLandmark(s) {
+  return cityHexArtVisible(s) && state.landmark!==null && !cityHexLandmarks.has(state.landmark)
+    ? cityLandmarks.get(state.landmark) : null;
+}
 function landmarkDistance(city,item) {
   return Math.hypot(city.xy[0]-item.xy[0],city.xy[1]-item.xy[1])*data.metersPerUnit/1000;
 }

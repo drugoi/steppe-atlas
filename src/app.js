@@ -279,12 +279,11 @@ function draw() {
   context.lineWidth = 1.65/s;
   context.strokeStyle = winterView ? '#d5e6edda' : '#dfc196c2';
   context.stroke(country);
-  const markers=cityMapMarkers(cities,s);
-  const outlying=cityHexArtVisible(s) && state.landmark!==null && !cityHexLandmarks.has(state.landmark)
-    ? cityLandmarks.get(state.landmark) : null;
-  for (const {city,xy,landmark} of [...markers].reverse()) {
+  const outlying=visibleOutlyingLandmark(s);
+  const markers=cityMapMarkers(cities,s,outlying);
+  for (const {city,xy,landmark,pointOnly} of [...markers].reverse()) {
     const [x,y]=xy;
-    if (state.layer==='density' || x<left || x>right || y<top || y>bottom) continue;
+    if (pointOnly || state.layer==='density' || x<left || x>right || y<top || y>bottom) continue;
     if (landmark) drawLandmark(landmark,xy,s,true);
     else drawSettlement(city,xy,s);
   }

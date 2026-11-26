@@ -407,8 +407,12 @@ function shownCityMarkers() {
   const chunk = data.cities.slice(0,limit);
   return main ? [main,...chunk.filter(c=>c!==main)] : chunk;
 }
-function cityMapMarkers(cities,s) {
+function mapBoundsOverlap(a,b) {
+  return a[0]<b[2] && a[2]>b[0] && a[1]<b[3] && a[3]>b[1];
+}
+function cityMapMarkers(cities,s,outlying=visibleOutlyingLandmark(s)) {
   const detailed=cityHexArtVisible(s);
+  const outlyingBox=outlying ? landmarkBounds(outlying.xy,s,false) : null;
   const occupied=new Set();
   const markers=[];
   for (const city of cities) {
@@ -422,7 +426,12 @@ function cityMapMarkers(cities,s) {
       const scale=settlementScale(city)*s;
       box=landmark ? landmarkBounds(xy,s,true) : [x-8*scale,y-7.5*scale,x+9*scale,y+5.6*scale];
     }
-    markers.push({city,xy,landmark,box,x,y});
+    const pointOnly=Boolean(box && outlyingBox && mapBoundsOverlap(box,outlyingBox));
+    if (pointOnly) {
+      const dotBox=[x-4,y-4,x+5,y+6];
+      box=mapBoundsOverlap(dotBox,outlyingBox) ? null : dotBox;
+    }
+    markers.push({city,xy,landmark:pointOnly?null:landmark,box,x,y,pointOnly});
     if (detailed && tile!==undefined) occupied.add(tile);
   }
   return markers;
@@ -523,7 +532,8 @@ function drawCityBanners(markers) {
   taken.push(...hits.filter(hit=>hit.box).map(hit=>hit.box));
   const dockTop=document.querySelector('.layers').offsetTop;
   const s=scale();
-  for (const {city,x,y,box} of markers) {
+  const detailed=cityHexArtVisible(s);
+  for (const {city,x,y,box,pointOnly} of markers) {
     if (x<-100||x>view.width+100||y<-30||y>view.height+55) continue;
     const active=city.id===state.city, large=active||city.official;
     const size=active?17:large?15:13;
@@ -538,12 +548,12 @@ function drawCityBanners(markers) {
     const w=textWidth+numberWidth+17;
     const left=x-w/2;
     const fitsAt=baseline=>left-4>=4 && left+w+4<=view.width-4 && baseline-10>=4 &&
-      baseline+10<=dockTop-4 && !taken.some(([a,b,c,d])=>
-        left-4<c && left+w+4>a && baseline-10<d && baseline+10>b);
+      baseline+10<=dockTop-4 && !taken.some(bounds=>
+        mapBoundsOverlap([left-4,baseline-10,left+w+4,baseline+10],bounds));
     const above=top-11;
     const below=(box?.[3] ?? y+7)+12;
     const levels=active ? [above,below,above-23,below+22] : [above];
-    const baseline=levels.find(fitsAt) ?? (active ? above : null);
+    const baseline=levels.find(fitsAt) ?? (active && !detailed ? above : null);
     if (baseline!==null) {
       const bounds=[left-4,baseline-10,left+w+4,baseline+10];
       taken.push(bounds);
@@ -561,8 +571,9 @@ function drawCityBanners(markers) {
       context.font=nameFont;
       context.fillText(name,left+numberWidth+6+textWidth/2,baseline+.65);
       hits.push({city:city.id,x,y,r:Math.max(10,s*5.8),box:bounds});
-    } else if (!box) hits.push({city:city.id,x,y,r:Math.max(6,s*4)});
-    if (s<1.42) marker(x,y,city.capital?'✧':'·',active?'#ffe3a7':'#e8d397',{r:large?5.2:3.3,active});
+    } else if (!box && !pointOnly) hits.push({city:city.id,x,y,r:Math.max(6,s*4)});
+    if (pointOnly && box) marker(x,y,'·',active?'#ffe3a7':'#e8d397',{r:4,active});
+    else if (s<1.42) marker(x,y,city.capital?'✧':'·',active?'#ffe3a7':'#e8d397',{r:large?5.2:3.3,active});
   }
 }
 const minimap=$('minimap');
