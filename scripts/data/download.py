@@ -70,7 +70,7 @@ if __name__ == '__main__':
     files = FILES.items()
     if args.relief:
         files = [
-            (name, FILES[name]) for name in ('country.geojson', 'cover.png')
+            (name, FILES[name]) for name in ('country.geojson', 'cover.png', 'ocean.geojson')
         ] + [
             (f'dem-7/{x}-{y}.png', f'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/7/{x}/{y}.png')
             for x, y in RELIEF_TILES

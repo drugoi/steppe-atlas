@@ -17,7 +17,7 @@ const repeatedCityName = city => cityNameCounts.get(cityDisplayName(city))>1;
 const qualifiedPlaceType = city => msg("{type} · {region}",{type:placeTypeLabel(city),region:regionDisplayName(regionById(city.region))});
 const canvas = $('map');
 const context = canvas.getContext('2d');
-const maxZoom = 9;
+const maxZoom = 16;
 const mobile = matchMedia('(max-width:760px)');
 // Match Kazakhstan's statistical releases where the browser's Kazakh formatter uses English punctuation.
 const numberLocale = locale==='kk' ? 'ru-KZ' : locale;
@@ -179,6 +179,7 @@ function draw() {
   context.fillRect(0,0,view.width,view.height);
   const local=localCity();
   const surveyBorder=local && (state.layer==='terrain' || winterView) ? new Path2D() : null;
+  const focusTile=surveyBorder ? cityHexes.get(local.id) : null;
   const cities=shownCityMarkers();
   const [left,top] = mapPoint(-20,-20);
   const [right,bottom] = mapPoint(view.width+12,view.height+12);
@@ -186,18 +187,29 @@ function draw() {
   context.translate(view.width/2,view.height/2);
   context.scale(s,s);
   context.translate(-view.x,-view.y);
-  const hasRelief=drawReliefSurface(winterView);
+  const relief=mapReliefImage(winterView);
   const [reliefX,reliefY,reliefWidth,reliefHeight]=reliefAsset.bounds;
+  const margin=reliefAsset.edgeFade+data.radius;
   const visible=[];
   for (const [index,tile] of data.tiles.entries()) {
     const [x,y]=tile;
     if (x>=left && x<=right && y>=top && y<=bottom) visible.push([index,tile]);
   }
-  if (winterView) drawWinterTint(visible,hasRelief);
+  for (const [i,tile] of visible) {
+    const [x,y]=tile;
+    if (relief && x>=reliefX+margin && x<=reliefX+reliefWidth-margin &&
+        y>=reliefY+margin && y<=reliefY+reliefHeight-margin) continue;
+    drawHex(x,y);
+    context.fillStyle = winterView ? winterGroundColor(tile) :
+      state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
+    context.fill();
+  }
+  if (relief) context.drawImage(relief,...reliefAsset.bounds);
+  if (winterView) drawWinterTint(visible,Boolean(relief));
   for (const [i,tile] of visible) {
     const [x,y,terrain,,inside]=tile;
     const inSurvey=nearby(tile,local);
-    const textured=hasRelief && x>=reliefX && x<=reliefX+reliefWidth && y>=reliefY && y<=reliefY+reliefHeight;
+    const textured=relief && x>=reliefX && x<=reliefX+reliefWidth && y>=reliefY && y<=reliefY+reliefHeight;
     if (winterView) {
       if (inside || s>=1.20) {
         drawHex(x,y);
@@ -206,13 +218,9 @@ function draw() {
         context.stroke();
       }
       if (textured && s>=1.45) shadeHexEdge(x,y,s,terrain===0 || tile[7]===80,true);
-      if (textured) drawWinterArtwork(tile,s);
     } else {
       drawHex(x,y);
-      if (!textured) {
-        context.fillStyle = state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
-        context.fill();
-      } else if (local) {
+      if (textured && local) {
         context.fillStyle=inSurvey ? '#e7dea024' : '#14293f35';
         context.fill();
       }
@@ -220,8 +228,8 @@ function draw() {
       context.strokeStyle = textured ? (s<1.2 ? '#263d333c' : '#263d334f') : inside ? '#243b2a76' : '#12251965';
       context.stroke();
       if (textured && s>=1.45) shadeHexEdge(x,y,s,terrain===0);
-      tileArtwork(tile,s);
     }
+    drawTerrainDetail(tile,i,s,local,inSurvey);
     if (state.layer!=='density' && inSurvey) {
       drawHex(x,y);
       context.lineWidth=.26;
@@ -254,6 +262,14 @@ function draw() {
       }
       context.lineWidth=2/s;
       context.strokeStyle=state.layer==='density'?'#fff5d2':'#f8dc94';
+      context.stroke();
+    } else if (i===focusTile && s>=2.55) {
+      drawHex(x,y);
+      context.lineWidth=3.5/s;
+      context.strokeStyle=winterView ? '#2c4e64b8' : '#3a4433ba';
+      context.stroke();
+      context.lineWidth=1.6/s;
+      context.strokeStyle='#f2d396e8';
       context.stroke();
     }
   }

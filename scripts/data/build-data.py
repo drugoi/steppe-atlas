@@ -182,12 +182,14 @@ assert len({c['id'] for c in cities}) == len(cities)
 print('City population sources:',{date:sum(c['popDate']==date for c in cities) for date in ['2025-01-01','2026-10-01',None]})
 
 extent = box(35,33,99,65)
-water_shapes=[]
-for feature in read_geo('lakes') + read_geo('ocean'):
-    geom = make_valid(shape(feature['geometry'])).intersection(extent)
-    if not geom.is_empty:
-        water_shapes.append(transform(projection.transform,geom))
-water = [prep(g) for g in water_shapes]
+def water_shapes(source):
+    for feature in read_geo(source):
+        geom = make_valid(shape(feature['geometry'])).intersection(extent)
+        if not geom.is_empty:
+            yield prep(transform(projection.transform,geom))
+
+ocean = list(water_shapes('ocean'))
+water = list(water_shapes('lakes')) + ocean
 is_country = prep(country)
 prepared_regions = [(id,prep(geom)) for id,geom in region_shapes.items()]
 rivers = []
@@ -237,7 +239,13 @@ def land_sample(lon,lat):
     py=int((61-lat)*30)
     if not (0<=px<cover_image.width and 0<=py<cover_image.height):
         return 0
-    return nearest_land_code(cover_image.getpixel((px,py)))
+    rgb = cover_image.getpixel((px,py))
+    # The WMS's neutral background is close to its snow class in RGB space.
+    if rgb == (250, 250, 250):
+        sample = Point(*projection.transform(lon,lat))
+        if any(region.covers(sample) for region in ocean):
+            return 80
+    return nearest_land_code(rgb)
 
 def land_profile(lon,lat):
     samples = Counter(land_sample(lon+dx,lat+dy) for dx in (-.13,-.065,0,.065,.13)

@@ -97,7 +97,7 @@ function terrainColor(tile,local) {
   const [x,y,terrain,id,inside,shade,z,cover] = tile;
   const coverRGB = coverColor[cover];
   let rgb = cover ? coverRGB : terrainColors[terrain];
-  if (cover!==80) {
+  if (cover!==80 && terrain!==0) {
     if (z>=1100 && state.layer!=='land') {
       rgb = mix(rgb, z>=2700 ? [190,172,139] : [133,125,97],clamp((z-800)/2200,0,.83));
     }
@@ -139,23 +139,27 @@ function ellipse(x,y,rx,ry,color) {
 const reliefAsset = JSON.parse($('terrain-relief').textContent);
 const reliefImage = new Image();
 const winterReliefImage = new Image();
-const outsideCountry = new Path2D(country);
-outsideCountry.rect(...reliefAsset.bounds);
 reliefImage.addEventListener('load', requestDraw, {once:true});
 reliefImage.src = reliefAsset.image;
 
-function drawReliefSurface(winterView) {
-  if (!winterView && state.layer!=='terrain') return false;
+function mapReliefImage(winterView) {
+  if (!winterView && state.layer!=='terrain') return null;
   if (winterView && !winterReliefImage.src) {
     winterReliefImage.addEventListener('load',requestDraw,{once:true});
     winterReliefImage.src=reliefAsset.winter;
   }
   const image=winterView ? winterReliefImage : reliefImage;
-  if (!image.naturalWidth) return false;
-  context.drawImage(image,...reliefAsset.bounds);
-  context.fillStyle=winterView?'#1c314994':'#112c3340';
-  context.fill(outsideCountry,'evenodd');
-  return true;
+  return image.naturalWidth ? image : null;
+}
+
+function winterGroundColor(tile) {
+  const [x,y,terrain,,inside,shade,,cover]=tile;
+  const water=terrain===0 || cover===80;
+  const colder=water ? [54,79,104] : [164,177,180];
+  const ground=cover ? coverColor[cover] : terrainColors[terrain];
+  const rgb=mix(ground,colder,.76);
+  const light=shade*.34+(rasterNoise(x,y)-.5)*7;
+  return rgbText(rgb.map(channel=>channel+light-(inside?0:11)));
 }
 
 const bevelStyles = [[[2,3,4],'#f8e6ad52',.9],[[5,0,1],'#142b2e85',1.5]];
@@ -188,114 +192,6 @@ function drawSurveyBorder(border,scale,winterView=false) {
   context.restore();
 }
 
-function tree(x,y,size,variant) {
-  ellipse(x+.91*size,y+.36*size,1.54*size,.43*size,'#102e2d7d');
-  ellipse(x+.23*size,y+.37*size,.88*size,.29*size,'#153a2b8f');
-  context.fillStyle='#66503a';
-  context.fillRect(x-.1*size,y-.48*size,.20*size,.95*size);
-  if (variant) {
-    for (let branch=0;branch<3;branch++) {
-      const top=y-(1.12+branch*.36)*size;
-      const base=y+(.37-branch*.40)*size;
-      const width=(.66-branch*.14)*size;
-      shapeFill([[x-width,base],[x-.09*size,top],[x+width,base-.09*size]],'#265243','#193d38',.10);
-      shapeFill([[x-width,base],[x-.09*size,top],[x+.04*size,base-.12*size]],'#658953');
-    }
-    return;
-  }
-  ellipse(x+.10*size,y-.53*size,.90*size,.79*size,'#1c4937');
-  ellipse(x+.43*size,y-.59*size,.65*size,.62*size,'#326449');
-  ellipse(x-.28*size,y-.77*size,.73*size,.66*size,'#60904c');
-  ellipse(x+.18*size,y-1.03*size,.66*size,.52*size,'#57834a');
-  ellipse(x-.39*size,y-1.03*size,.33*size,.26*size,'#adc173');
-}
-
-const fieldFurrows = ['#fff2ae85','#345d2f90'];
-function fieldStrip(x,y,w,h,tone,skew,furrows=fieldFurrows) {
-  const [a,b,c,d]=[[x,y],[x+w,y+skew],[x+w-.55,y+h+skew],[x-.55,y+h]];
-  shapeFill([a,b,c,d],tone,'#2b3c24a8',.17);
-  context.lineWidth=.10;
-  for (let row=1;row<7;row++) {
-    const k=row/7;
-    context.strokeStyle=furrows[(row+1)%2];
-    context.beginPath();
-    context.moveTo(a[0]+(d[0]-a[0])*k,a[1]+(d[1]-a[1])*k);
-    context.lineTo(b[0]+(c[0]-b[0])*k,b[1]+(c[1]-b[1])*k);
-    context.stroke();
-  }
-}
-
-const landscapeLayers = new Set(['terrain','land','transport','heritage']);
-function tileArtwork(tile,s) {
-  const [x,y,terrain,,,shade,z,cover,trees,crops] = tile;
-  if (s<1.20 || !landscapeLayers.has(state.layer)) return;
-  const detail=clamp((s-1.20)/.90,0,1);
-  const choice=rasterNoise(x,y,12);
-  context.save();
-  context.globalAlpha=detail*(state.layer==='terrain'?1:.58);
-  if (cover===80 || terrain===0) {
-    context.lineWidth=.16;
-    for (let i=0;i<6;i++) {
-      const ox=(rasterNoise(x,y,i)-.5)*10,oy=(rasterNoise(x,y,i+9)-.5)*8;
-      const w=.9+rasterNoise(x,y,i+13)*2.5;
-      context.beginPath();
-      context.moveTo(x+ox-w/2,y+oy);
-      context.quadraticCurveTo(x+ox,y+oy-.32,x+ox+w/2,y+oy+.06);
-      context.strokeStyle=i%3?'#b0dfd577':'#163f626f';
-      context.stroke();
-    }
-  } else {
-    if (crops>=5 && z<1750) {
-      const colors=['#bd9b48','#d1b269','#739744','#97a958'];
-      const ox=(choice-.5)*2, oy=(rasterNoise(x,y,11)-.5)*2;
-      const tilt=(rasterNoise(x,y,16)-.5)*1.7;
-      const width=1.70 + Math.min(crops,25)*.094;
-      context.save();
-      context.translate(x+ox,y+oy);
-      context.rotate((rasterNoise(x,y,27)-.5)*1.26);
-      fieldStrip(-4,-.65,width,1.15+choice*.65,colors[Math.floor(choice*4)],tilt);
-      fieldStrip(-.65,-.5+tilt,width*.96,1.6,colors[Math.floor(choice*4+.9)%4],tilt*.6);
-      if (crops>=10) fieldStrip(-3.92,1.38,width+.42,1.34+choice*.34,colors[1],tilt*.5);
-      if (crops>=17) fieldStrip(.16,1.38+tilt*.5,width*.82,1.55,colors[2],tilt);
-      context.restore();
-    }
-    if (trees) {
-      const count=Math.min(17,Math.ceil(trees*.77));
-      const ox=(choice-.5)*3,oy=(rasterNoise(x,y,31)-.5)*3;
-      const grove=Array.from({length:count},(_,i)=>[
-        x+ox+(rasterNoise(x,y,i+40)-.5)*7.3,
-        y+oy+(rasterNoise(x,y,i+57)-.5)*6.1,
-        .60+rasterNoise(x,y,i+70)*.77,
-      ]).sort((a,b)=>a[1]-b[1]);
-      for (const [tx,ty,size] of grove) tree(tx,ty,size,z>1250);
-    }
-    if (crops<6 && trees<4 && z<2300) {
-      const dry=cover===60 || cover===20;
-      const marks=cover===30 || cover===90 ? 5+Math.floor(choice*3) : dry ? 4 : 0;
-      for (let i=0;i<marks;i++) {
-        const ox=(rasterNoise(x,y,i+23)-.5)*10,oy=(rasterNoise(x,y,i+35)-.5)*9;
-        const width=.55+rasterNoise(x,y,i+89)*1.35;
-        context.lineWidth=dry?.19:.15;
-        context.lineCap='round';
-        context.beginPath();
-        context.moveTo(x+ox-width*.5,y+oy+.15);
-        context.quadraticCurveTo(x+ox,y+oy-.65,x+ox+width*.5,y+oy+.07);
-        context.strokeStyle=dry?'#815f408c':'#294b3699';
-        context.stroke();
-        if (shade>-8) {
-          context.beginPath();
-          context.moveTo(x+ox-width*.5,y+oy);
-          context.quadraticCurveTo(x+ox,y+oy-.66,x+ox+width*.5,y+oy-.05);
-          context.moveTo(x+ox,y+oy-.15);
-          context.quadraticCurveTo(x+ox+width*.03,y+oy-.50,x+ox+width*.24,y+oy-.67);
-          context.strokeStyle=dry?'#f1d1979e':'#c1cf77c2';
-          context.stroke();
-        }
-      }
-    }
-  }
-  context.restore();
-}
 function building(x,y,w,d,h,style,pitched) {
   const [face,side,roof] = style;
   const front=y-h, left=x-w*.53, right=x+w*.33, back=x+w*.61;

@@ -1,6 +1,11 @@
 const defaultCity = 1526384;
 const profileTabs = {people:msg("People"),districts:msg("Districts"),economy:msg("Economy"),sites:msg("Sites"),compare:msg("Compare")};
-const zoomCity = () => mobile.matches ? 8.0 : 6.35;
+function zoomCity() {
+  const previous=mobile.matches ? 8 : 6.35;
+  if (view.fit<=0 || !['terrain','winter'].includes(state.layer)) return previous;
+  const radius=clamp(view.width*.073,23,66);
+  return clamp(radius/(view.fit*data.radius),previous,maxZoom);
+}
 const placeTypeLabel = city => city.placeType==='village'?msg("Village"):city.placeType==='settlement'?msg("Settlement"):msg("City");
 const profileScope = city => city.capital?msg("National capital"):city.official?msg("City of republican significance"):
   city.id===1521368?msg("City with special status"):city.seat?msg("Regional centre"):placeTypeLabel(city);

@@ -61,6 +61,6 @@ $('inspector').addEventListener('click',event=>{
 window.addEventListener('hashchange',()=>{readLocation();updateUI(false);});
 mobile.addEventListener('change',renderMapLegend);
 new ResizeObserver(resize).observe(canvas);
+resize();
 readLocation();
 updateUI(false);
-resize();

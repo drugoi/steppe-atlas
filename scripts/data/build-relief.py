@@ -5,13 +5,14 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
 from pyproj import CRS, Transformer
-from shapely import transform
+from shapely import contains_xy, prepare, transform, union_all
 from shapely.geometry import shape
 
 from download import CACHE, RELIEF_TILES
 
 ROOT = Path(__file__).resolve().parents[2]
 AREA = (-210, -215, 1540, 1060)
+EDGE_FADE = 40
 PIXELS_PER_UNIT = 1.8
 PROJECTION = CRS.from_proj4('+proj=lcc +lat_1=43 +lat_2=53 +lat_0=48 +lon_0=67 +datum=WGS84 +units=m')
 # The first palette is the WMS legend. The second is the atlas's terrestrial palette.
@@ -61,6 +62,13 @@ def surface_colors():
         difference = np.sum((pixels - color)**2, axis=2, dtype=np.int32)
         np.copyto(classes, i, where=difference < best)
         np.minimum(difference, best, out=best)
+    # Fill the WMS's neutral ocean background from Natural Earth's coastline.
+    rows, columns = np.nonzero(np.all(pixels == 250, axis=2))
+    if rows.size:
+        features = json.loads((CACHE / 'ocean.geojson').read_text())['features']
+        ocean = union_all([shape(feature['geometry']) for feature in features])
+        water_pixels = contains_xy(ocean, 38+(columns+.5)/30, 61-(rows+.5)/30)
+        classes[rows[water_pixels],columns[water_pixels]] = WATER
     coast_land = LAND_COLORS.copy()
     coast_land[WATER] = LAND_COLORS[2]
     land = Image.fromarray(coast_land[classes].astype(np.uint8)).filter(ImageFilter.GaussianBlur(.95))
@@ -84,17 +92,31 @@ def winter_surface(surface, z, shade, slope, region, mottling, brush, wind, grai
     return land*(1-wet[..., None]) + water*wet[..., None]
 
 
+def save_relief(rgb, outside, alpha, tint, strength, filename, quality):
+    rgb[outside] = rgb[outside]*(1-strength) + np.array(tint)*strength
+    image = Image.fromarray(np.dstack((np.clip(rgb,0,255).astype(np.uint8), alpha)))
+    image.save(ROOT/'src'/'assets'/filename,quality=quality,method=6)
+
+
 def render():
     forward = Transformer.from_crs(4326, PROJECTION, always_xy=True)
     inverse = Transformer.from_crs(PROJECTION, 4326, always_xy=True)
     boundary = shape(json.loads((CACHE / 'country.geojson').read_text())['features'][0]['geometry'])
-    west, _, east, north = transform(boundary, forward.transform, interleaved=False).bounds
+    projected_country = transform(boundary, forward.transform, interleaved=False)
+    west, _, east, north = projected_country.bounds
     atlas_width = json.loads((ROOT / 'data' / 'atlas-data.json').read_text())['width']
     scale = atlas_width / (east - west)
     left, top, w, h = AREA
     width, height = round(w * PIXELS_PER_UNIT), round(h * PIXELS_PER_UNIT)
-    x = west + (left + (np.arange(width)+.5)*w/width)/scale
-    y = north - (top + (np.arange(height)+.5)*h/height)/scale
+    px = (np.arange(width)+.5)*w/width
+    py = (np.arange(height)+.5)*h/height
+    x = west + (left + px)/scale
+    y = north - (top + py)/scale
+    prepare(projected_country)
+    outside = ~contains_xy(projected_country, x[None,:], y[:,None])
+    edge = np.minimum(np.minimum(px,w-px)[None,:],np.minimum(py,h-py)[:,None])
+    fade = np.clip(edge/EDGE_FADE,0,1)
+    alpha = np.round(255*fade*fade*(3-2*fade)).astype(np.uint8)
     mosaic = height_mosaic()
     cover = surface_colors()
     z = np.empty((height,width), dtype=np.float32)
@@ -145,12 +167,10 @@ def render():
     waves = np.sin(np.arange(height)[:, None]*1.6 + mottling*6.5)*1.25
     water_color += (region*13 + mottling*9 + brush*5 + waves)[..., None]
     rgb = rgb*(1-wet[..., None]) + water_color*wet[..., None]
-    image = Image.fromarray(np.clip(rgb,0,255).astype(np.uint8))
-    image.save(ROOT/'src'/'assets'/'terrain-relief.webp',quality=83,method=6)
+    save_relief(rgb, outside, alpha, (17,44,51), .25, 'terrain-relief.webp', 83)
     winter_rgb = winter_surface(surface, z, shade, slope, region, mottling, brush, cloud(27,10), grain, wet, shallows)
-    Image.fromarray(np.clip(winter_rgb,0,255).astype(np.uint8)).save(
-        ROOT/'src'/'assets'/'winter-relief.webp',quality=81,method=6)
-    (ROOT/'data'/'terrain-relief.json').write_text(json.dumps(dict(bounds=AREA))+'\n')
+    save_relief(winter_rgb, outside, alpha, (28,49,73), .58, 'winter-relief.webp', 81)
+    (ROOT/'data'/'terrain-relief.json').write_text(json.dumps(dict(bounds=AREA, edgeFade=EDGE_FADE))+'\n')
     print(f'Rendered {width}×{height} terrain and winter relief')
 
 

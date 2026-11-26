@@ -482,7 +482,7 @@ function landmarkDistance(city,item) {
   return Math.hypot(city.xy[0]-item.xy[0],city.xy[1]-item.xy[1])*data.metersPerUnit/1000;
 }
 function landmarkDimensions(s,cityScene) {
-  const size=cityScene ? Math.min(92,data.radius*1.78*s) : clamp(16*s,47,86);
+  const size=cityScene ? Math.min(132,data.radius*1.78*s) : clamp(16*s,47,86);
   return {size,anchorX:size*.50,anchorY:size*.77};
 }
 function landmarkBounds(xy,s,cityScene) {

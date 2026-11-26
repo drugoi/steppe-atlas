@@ -6,7 +6,8 @@ const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 const [template, css, snapshot, ...scripts] = await Promise.all([
   'src/index.html', 'src/atlas.css', 'data/atlas-data.json',
-  'src/i18n.js', 'src/app.js', 'src/map.js', 'src/winter-map.js', 'src/cities.js', 'src/profile.js', 'src/analytics.js', 'src/startup.js',
+  'src/i18n.js', 'src/app.js', 'src/map.js', 'src/terrain-detail.js', 'src/winter-map.js',
+  'src/cities.js', 'src/profile.js', 'src/analytics.js', 'src/startup.js',
 ].map(read));
 
 const analyticsId = process.env.GA4_MEASUREMENT_ID?.trim() ?? '';
