@@ -12,7 +12,7 @@ const temperature = new Intl.NumberFormat(numberLocale,{maximumFractionDigits:1,
 const celsius = value => temperature.format(value).replace('-', '−')+' °C';
 const winterTemperature = tile => winter.hexes[tile] ?? null;
 
-function drawWinterTint(visible,textured) {
+function drawWinterTint(visible,reliefOpacity) {
   const palette=[...winterBands,{color:winterMissing,tint:winterMissing}];
   const areas=palette.map(()=>new Path2D());
   for (const [index,tile] of visible) {
@@ -22,9 +22,16 @@ function drawWinterTint(visible,textured) {
     traceHex(areas[band],tile[0],tile[1]);
   }
   for (const [index,area] of areas.entries()) {
-    context.globalAlpha=textured ? (index===winterBands.length ? .51 : .53) : 1;
-    context.fillStyle=textured ? palette[index].tint : palette[index].color;
-    context.fill(area);
+    if (reliefOpacity<1) {
+      context.globalAlpha=1-reliefOpacity;
+      context.fillStyle=palette[index].color;
+      context.fill(area);
+    }
+    if (reliefOpacity) {
+      context.globalAlpha=reliefOpacity*(index===winterBands.length ? .51 : .53);
+      context.fillStyle=palette[index].tint;
+      context.fill(area);
+    }
   }
   context.globalAlpha=1;
 }

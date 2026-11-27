@@ -165,6 +165,17 @@ function easeOutProgress(progress) {
   }
   return coordinate((low+high)/2,1,1);
 }
+const imageReadyAt = new WeakMap();
+function revealLoadedImage(event) {
+  imageReadyAt.set(event.currentTarget,performance.now());
+  requestDraw();
+}
+function revealOpacity(readyAt,timestamp,duration) {
+  if (readyAt===undefined || reducedMotion.matches) return 1;
+  const progress=clamp((timestamp-readyAt)/duration,0,1);
+  if (progress<1) requestDraw();
+  return easeOutProgress(progress);
+}
 function advanceWheelZoom(timestamp) {
   if (!wheelZoom) return;
   const {start,target,x,y,anchor,started} = wheelZoom;
@@ -230,6 +241,7 @@ function draw(timestamp=performance.now()) {
   context.scale(s,s);
   context.translate(-view.x,-view.y);
   const relief=mapReliefImage(winterView);
+  const reliefOpacity=relief ? revealOpacity(imageReadyAt.get(relief),timestamp,280) : 0;
   const [reliefX,reliefY,reliefWidth,reliefHeight]=reliefAsset.bounds;
   const margin=reliefAsset.edgeFade+data.radius;
   const visible=[];
@@ -239,16 +251,20 @@ function draw(timestamp=performance.now()) {
   }
   for (const [i,tile] of visible) {
     const [x,y]=tile;
-    if (relief && x>=reliefX+margin && x<=reliefX+reliefWidth-margin &&
+    if (reliefOpacity===1 && x>=reliefX+margin && x<=reliefX+reliefWidth-margin &&
         y>=reliefY+margin && y<=reliefY+reliefHeight-margin) continue;
     drawHex(x,y);
     context.fillStyle = winterView ? winterGroundColor(tile) :
       state.layer==='density' ? densityColor(i) : terrainColor(tile,local);
     context.fill();
   }
-  if (relief) context.drawImage(relief,...reliefAsset.bounds);
-  if (winterView) drawWinterTint(visible,Boolean(relief));
-  beginTerrainDetails(s);
+  if (reliefOpacity) {
+    context.globalAlpha=reliefOpacity;
+    context.drawImage(relief,...reliefAsset.bounds);
+    context.globalAlpha=1;
+  }
+  if (winterView) drawWinterTint(visible,reliefOpacity);
+  beginTerrainDetails(s,timestamp);
   for (const [i,tile] of visible) {
     const [x,y,terrain,,inside]=tile;
     const inSurvey=nearby(tile,local);
@@ -357,7 +373,7 @@ function draw(timestamp=performance.now()) {
   context.lineWidth = 1.65/s;
   context.strokeStyle = winterView ? '#d5e6edda' : '#dfc196c2';
   context.stroke(country);
-  drawRoads(s,left,top,right,bottom);
+  const roadOpacity=drawRoads(s,left,top,right,bottom,timestamp);
   drawRailNetwork(s,local);
   const outlying=visibleOutlyingLandmark(s);
   const markers=cityMapMarkers(cities,s,outlying);
@@ -369,7 +385,7 @@ function draw(timestamp=performance.now()) {
   }
   if (outlying) drawLandmark(outlying,outlying.xy,s);
   context.restore();
-  drawLabels(cities,local,markers,outlying);
+  drawLabels(cities,local,markers,outlying,roadOpacity);
   drawMinimap();
   drawMapTitle();
   const scaleBar = document.querySelector('.scale');
@@ -391,7 +407,7 @@ function label(text,x,y,style,fill,shadow) {
   context.fillStyle = fill;
   context.fillText(text,x,y);
 }
-function drawLabels(cities,local,markers,outlying) {
+function drawLabels(cities,local,markers,outlying,roadOpacity) {
   hits = [];
   if (view.zoom<2.75 && (!mobile.matches || view.zoom>=1.6)) {
     for (const [name,xy] of data.labels) {
@@ -418,7 +434,7 @@ function drawLabels(cities,local,markers,outlying) {
     }
     drawCityBanners(markers);
     drawAssets(local);
-    drawRouteShields();
+    drawRouteShields(roadOpacity);
   }
 }
 function keyTarget(x,y,allowTile=true) {
@@ -558,9 +574,8 @@ function renderDetails() {
   } else detail.innerHTML=atlasProfile(region||countryStats,city);
   const backdrop=detail.querySelector('.plate-ground');
   if (backdrop) {
-    const relief=state.layer==='winter' ? winterReliefImage : reliefImage;
-    mapReliefImage(state.layer==='winter');
-    if (relief.naturalWidth) paintCityBackdrop(backdrop,city);
+    const relief=loadReliefImage(state.layer==='winter');
+    if (relief.complete && relief.naturalWidth) paintCityBackdrop(backdrop,city);
     else relief.decode().then(()=>{if (backdrop.isConnected) paintCityBackdrop(backdrop,city);}).catch(()=>{});
   }
   document.querySelector('.panel').scrollTop=0;

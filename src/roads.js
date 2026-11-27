@@ -1,4 +1,3 @@
-const osmRoads = JSON.parse($('osm-roads').textContent);
 const roadStyles = [
   {day:'#ffc65f',snow:'#fbd080',edge:'#423125',width:2.55,casing:1.7,transport:0,scenery:1.10},
   {day:'#eaa259',snow:'#eeb071',edge:'#49372d',width:2.05,casing:1.42,transport:0,scenery:1.10},
@@ -8,14 +7,45 @@ const roadStyles = [
   {day:'#b9b49d',snow:'#9caeb6',edge:'#4f605b',width:.62,casing:.28,transport:3.72,scenery:6.4},
 ];
 const roadBlockCache = new Map();
-const routeShields = osmRoads.labels.map(([kind,sourceRef,x,y])=>[
-  kind,
-  // Some OSM ref values use Cyrillic letters in the officially Latin prefix.
-  sourceRef.replace(/^[KК]([AА]?)[ZЗ]\s*(?=\d)/iu,(_,middle)=>middle ? 'KAZ' : 'KZ'),
-  x,y,
-]);
+let osmRoads;
+let routeShields;
+let roadsReadyAt;
+let roadRequest;
+let retryRoadsAt=0;
 let roadViewport = null;
 let overviewRoads;
+
+function setRoadData(roads) {
+  routeShields=roads.labels.map(([kind,sourceRef,x,y])=>[
+    kind,
+    // Some OSM ref values use Cyrillic letters in the officially Latin prefix.
+    sourceRef.replace(/^[KК]([AА]?)[ZЗ]\s*(?=\d)/iu,(_,middle)=>middle ? 'KAZ' : 'KZ'),
+    x,y,
+  ]);
+  osmRoads=roads;
+}
+
+function loadRoads() {
+  if (osmRoads || roadRequest || performance.now()<retryRoadsAt) return;
+  const embedded=$('osm-roads').textContent;
+  if (embedded) {
+    setRoadData(JSON.parse(embedded));
+    return;
+  }
+  roadRequest=fetch('/osm-roads.json').then(response=>{
+    if (!response.ok) throw new Error('Road data request failed ('+response.status+')');
+    return response.json();
+  }).then(roads=>{
+    setRoadData(roads);
+    roadsReadyAt=performance.now();
+    requestDraw();
+  }).catch(error=>{
+    retryRoadsAt=performance.now()+5000;
+    console.warn('Could not load road data',error);
+  }).finally(()=>{
+    roadRequest=null;
+  });
+}
 
 function addRoadLines(path,lines) {
   const unit=osmRoads.quantization;
@@ -65,9 +95,13 @@ function roadView(s) {
     (state.layer==='terrain' || state.layer==='winter') ? 'scenery' : null;
 }
 
-function drawRoads(s,left,top,right,bottom) {
+function drawRoads(s,left,top,right,bottom,timestamp) {
   const mode=roadView(s);
-  if (!mode) return;
+  if (!mode) return 0;
+  loadRoads();
+  if (!osmRoads) return 0;
+  const opacity=revealOpacity(roadsReadyAt,timestamp,260);
+  if (!opacity) return 0;
   const maxClass=roadStyles.findLastIndex(style=>s>=style[mode]);
   const paths=roadPaths(s,left,top,right,bottom,maxClass);
   const snow=state.layer==='winter';
@@ -78,7 +112,7 @@ function drawRoads(s,left,top,right,bottom) {
     const style=roadStyles[kind], path=paths[kind];
     if (!path || s<style[mode]) continue;
     const width=style.width*scaleWidth;
-    context.globalAlpha=kind===5 ? .58 : mode==='scenery' && kind>2 ? .74 : .95;
+    context.globalAlpha=opacity*(kind===5 ? .58 : mode==='scenery' && kind>2 ? .74 : .95);
     context.lineWidth=(width+style.casing*scaleWidth)/s;
     context.strokeStyle=snow ? '#3c4d56' : style.edge;
     context.stroke(path);
@@ -87,11 +121,13 @@ function drawRoads(s,left,top,right,bottom) {
     context.stroke(path);
   }
   context.restore();
+  return opacity;
 }
 
-function drawRouteShields() {
+function drawRouteShields(opacity) {
+  if (!opacity) return;
   const s=scale(),mode=roadView(s);
-  if (!mode || s<(mode==='transport' ? 1.16 : 3.5)) return;
+  if (s<(mode==='transport' ? 1.16 : 3.5)) return;
   const mapRect=canvas.getBoundingClientRect();
   const occupied=Array.from(document.querySelectorAll('.map :is(.title,.legend,.minimap,.controls,.winter-toggle,.inspector:not([hidden]))'),element=>{
     const rect=element.getBoundingClientRect();
@@ -106,6 +142,7 @@ function drawRouteShields() {
   const limit=mobile.matches ? 3 : mode==='transport' ? 8 : 5;
   const unit=osmRoads.quantization;
   context.save();
+  context.globalAlpha=opacity;
   context.font='700 10px system-ui';
   context.textAlign='center';
   context.textBaseline='middle';

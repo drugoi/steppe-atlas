@@ -139,17 +139,20 @@ function ellipse(x,y,rx,ry,color) {
 const reliefAsset = JSON.parse($('terrain-relief').textContent);
 const reliefImage = new Image();
 const winterReliefImage = new Image();
-reliefImage.addEventListener('load', requestDraw, {once:true});
-reliefImage.src = reliefAsset.image;
+
+function loadReliefImage(winterView) {
+  const image=winterView ? winterReliefImage : reliefImage;
+  if (!image.src) {
+    image.addEventListener('load',revealLoadedImage,{once:true});
+    image.src=winterView ? reliefAsset.winter : reliefAsset.image;
+  }
+  return image;
+}
 
 function mapReliefImage(winterView) {
   if (!winterView && state.layer!=='terrain') return null;
-  if (winterView && !winterReliefImage.src) {
-    winterReliefImage.addEventListener('load',requestDraw,{once:true});
-    winterReliefImage.src=reliefAsset.winter;
-  }
-  const image=winterView ? winterReliefImage : reliefImage;
-  return image.naturalWidth ? image : null;
+  const image=loadReliefImage(winterView);
+  return image.complete && image.naturalWidth ? image : null;
 }
 
 function winterGroundColor(tile) {

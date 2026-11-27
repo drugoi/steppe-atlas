@@ -17,7 +17,7 @@ function seasonalMaterials(winterView) {
   const season=winterView?'winter':'summer';
   if (!materialSheets.has(season)) {
     const sheet=new Image();
-    sheet.onload=requestDraw;
+    sheet.onload=revealLoadedImage;
     sheet.onerror=()=>{materialSheets.set(season,null);requestDraw();};
     materialSheets.set(season,sheet);
     sheet.src=materialSources[season];
@@ -59,10 +59,12 @@ materialMask.width=materialMask.height=scenerySize;
   mask.fillRect(0,0,scenerySize,scenerySize);
 }
 
-function beginTerrainDetails(s) {
-  sceneryPass = s>1.2 && sceneryLayers.has(state.layer)
-    ? {visible:new Set(), remaining:sceneryBatchSize, generationMs:0, pending:false}
-    : null;
+function beginTerrainDetails(s,timestamp) {
+  sceneryPass=null;
+  if (s<=1.2 || !sceneryLayers.has(state.layer)) return;
+  const sheet=materialSheets.get(state.layer==='winter' ? 'winter' : 'summer');
+  const opacity=sheet ? revealOpacity(imageReadyAt.get(sheet),timestamp,240) : 1;
+  sceneryPass={visible:new Set(), remaining:sceneryBatchSize, generationMs:0, pending:false,opacity};
 }
 
 function finishTerrainDetails() {
@@ -317,7 +319,7 @@ function scenerySprite(kind,woods,fields,variant,winterView) {
     return null;
   }
   const sheet=seasonalMaterials(winterView);
-  if (sheet && !sheet.naturalWidth) return null;
+  if (sheet && (!sheet.complete || !sheet.naturalWidth)) return null;
   const start=performance.now();
   const surface=document.createElement('canvas');
   surface.width=surface.height=scenerySize;
@@ -368,7 +370,7 @@ function drawTerrainDetail(tile,index,s,local,inSurvey) {
   const fade=clamp((s-1.2)/1.35,0,1);
   const baseOpacity=winterView ? .60 : state.layer==='terrain' ? .88 : state.layer==='land' ? .36 : .52;
   const sceneOpacity=citiesByTile.has(index) ? .43 : local && !inSurvey ? .69 : 1;
-  context.globalAlpha=fade*baseOpacity*sceneOpacity;
+  context.globalAlpha=fade*baseOpacity*sceneOpacity*sceneryPass.opacity;
   context.drawImage(sprite,x-data.radius,y-data.radius,sceneryExtent,sceneryExtent);
   context.globalAlpha=1;
 }

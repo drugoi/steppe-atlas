@@ -11,7 +11,7 @@ npm ci
 npm run build
 ```
 
-Open `dist/index.html` directly in a browser. The output embeds the styles, scripts and data, so the map works offline. Edit the HTML, CSS and JavaScript in `src/`. The build reads the committed snapshot from `data/atlas-data.json`.
+Open `dist/standalone.html` directly in a browser to use the atlas offline. To preview the hosted editions, serve `dist/` over HTTP, for example with `python3 -m http.server --directory dist 8000`. Edit the HTML, CSS and JavaScript in `src/`. The build reads the committed snapshot from `data/atlas-data.json`.
 
 ## Language editions
 

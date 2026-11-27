@@ -21,10 +21,8 @@ if (!atlas.tiles?.length || atlas.worldPop?.hexes?.length !== atlas.tiles.length
 }
 const javascript = scripts.join('');
 new Script(javascript, { filename: 'atlas.js' });
-const [relief, texture, winterTexture, font, fontLicense, landmarks, stories, winter, roads] = await Promise.all([
-  read('data/terrain-relief.json'),
-  readFile(new URL('src/assets/terrain-relief.webp', root)),
-  readFile(new URL('src/assets/winter-relief.webp', root)),
+const [relief, font, fontLicense, landmarks, stories, winter, roads] = await Promise.all([
+  read('data/terrain-relief.json').then(JSON.parse),
   readFile(new URL('src/assets/crimson-pro-latin.woff2', root)),
   read('src/assets/crimson-pro-OFL.txt'),
   read('data/city-landmarks.json').then(JSON.parse),
@@ -73,43 +71,65 @@ for (const city of atlas.cities) {
     .filter(site=>site.km<=110).sort((a,b)=>a.km-b.km).slice(0,2);
   neighboringCities.push({cityId:city.id,centreId:centre.id,sites:nearby.map(site=>site.id)});
 }
-const imageData=async path=>'data:image/webp;base64,'+(await readFile(new URL(path,root))).toString('base64');
-const cityPlates=await Promise.all([...majorCities,...neighboringCities].map(async plate=>{
-  const base='src/assets/city-plates/'+plate.cityId;
-  const [image,winterImage]=await Promise.all([imageData(base+'.webp'),imageData(base+'-winter.webp')]);
-  const result={...plate,image,winterImage};
-  // Saryagash's mineral springs are in Kokterek. Give the town its own settlement art.
-  if (plate.cityId===1519673) {
-    result.settlement={image:await imageData(base+'-town.webp'),winterImage:await imageData(base+'-town-winter.webp')};
-  }
-  return result;
-}));
-const materials={summer:await imageData('src/assets/ground-summer.webp'),winter:await imageData('src/assets/ground-winter.webp')};
 const inventory = translationInventory(template,javascript,atlas,[...landmarks,...stories]);
 for (const plate of majorCities) inventory.set('city.theme.'+plate.cityId,plate.theme);
 const locales = await readLocalizations(root,inventory);
 const embeddedJSON = value => JSON.stringify(value).replaceAll('</','<\\/');
+async function artwork(imageSource) {
+  const seasonalPair=async base=>{
+    const [image,winterImage]=await Promise.all([imageSource(base+'.webp'),imageSource(base+'-winter.webp')]);
+    return {image,winterImage};
+  };
+  const [cityPlates, terrain, ground]=await Promise.all([
+    Promise.all([...majorCities,...neighboringCities].map(async plate=>{
+      const base='city-plates/'+plate.cityId;
+      const result={...plate,...await seasonalPair(base)};
+      // Saryagash's mineral springs are in Kokterek. Give the town its own settlement art.
+      if (plate.cityId===1519673) result.settlement=await seasonalPair(base+'-town');
+      return result;
+    })),
+    Promise.all([imageSource('terrain-relief.webp'),imageSource('winter-relief.webp')]),
+    Promise.all([imageSource('ground-summer.webp'),imageSource('ground-winter.webp')]),
+  ]);
+  return {
+    RELIEF: embeddedJSON({...relief,image:terrain[0],winter:terrain[1]}),
+    MATERIALS: embeddedJSON({summer:ground[0],winter:ground[1]}),
+    CITY_PLATES: embeddedJSON(cityPlates),
+  };
+}
+const imageFiles=new Set();
+const [hostedArtwork, standaloneArtwork]=await Promise.all([
+  artwork(path=>{
+    imageFiles.add(path);
+    return '/assets/'+path;
+  }),
+  artwork(async path=>'data:image/webp;base64,'+(await readFile(new URL('src/assets/'+path,root))).toString('base64')),
+]);
 const values = {
   CSS: '/*\n'+fontLicense.trim()+'\n*/\n'+css.replace('__DISPLAY_FONT__', 'data:font/woff2;base64,'+font.toString('base64')),
   DATA: snapshot.trimEnd().replaceAll('</', '<\\/'),
-  RELIEF: embeddedJSON({...JSON.parse(relief),image:'data:image/webp;base64,'+texture.toString('base64'),
-    winter:'data:image/webp;base64,'+winterTexture.toString('base64')}),
-  MATERIALS: embeddedJSON(materials),
-  CITY_PLATES: embeddedJSON(cityPlates),
   LANDMARKS: embeddedJSON(landmarks),
   STORIES: embeddedJSON(stories),
   WINTER: embeddedJSON(winter),
-  ROADS: embeddedJSON(roads),
+  ROAD_TIMESTAMP: new Date(roads.source.timestamp).toISOString(),
   LANGUAGES: embeddedJSON(locales),
   GA4: analyticsId,
   APP: javascript,
 };
+function renderDocument(locale, variants) {
+  return localizeDocument(template,locale,locales)
+    .replace(/__(CSS|DATA|RELIEF|LANDMARKS|CITY_PLATES|MATERIALS|STORIES|WINTER|ROADS|ROAD_TIMESTAMP|LANGUAGES|GA4|APP)__/g,
+      (_, name) => variants[name] ?? values[name]);
+}
 await Promise.all(['en',...Object.keys(locales)].map(async locale=>{
   const directory=new URL(locale==='en'?'dist/':'dist/'+locale+'/',root);
-  const localized=localizeDocument(template,locale,locales);
-  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|CITY_PLATES|MATERIALS|STORIES|WINTER|ROADS|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
   await mkdir(directory,{recursive:true});
-  await writeFile(new URL('index.html',directory),html);
+  await writeFile(new URL('index.html',directory),renderDocument(locale,{...hostedArtwork,ROADS:''}));
 }));
-await copyFile(new URL('src/assets/social-card.jpg',root),new URL('dist/social-card.jpg',root));
-await copyFile(new URL('data/osm-roads.json',root),new URL('dist/osm-roads.json',root));
+await mkdir(new URL('dist/assets/city-plates/',root),{recursive:true});
+await Promise.all([
+  writeFile(new URL('dist/standalone.html',root),renderDocument('en',{...standaloneArtwork,ROADS:embeddedJSON(roads)})),
+  ...[...imageFiles].map(path=>copyFile(new URL('src/assets/'+path,root),new URL('dist/assets/'+path,root))),
+  copyFile(new URL('src/assets/social-card.jpg',root),new URL('dist/social-card.jpg',root)),
+  copyFile(new URL('data/osm-roads.json',root),new URL('dist/osm-roads.json',root)),
+]);

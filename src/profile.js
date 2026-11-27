@@ -414,7 +414,7 @@ function renderMapLegend() {
     const line=(title,color,width,style='solid')=>'<p><i class="route-swatch" aria-hidden="true" style="border-top:'
       +width+'px '+style+' '+color+'"></i>'+title+'</p>';
     const date=new Intl.DateTimeFormat(locale,{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'})
-      .format(new Date(osmRoads.source.timestamp));
+      .format(new Date($('osm-roads').dataset.timestamp));
     const roads=mapOverlay.roads ? line(hmsg("Motorways"),roadStyles[0].day,3)
       +line(hmsg("Main routes"),roadStyles[1].day,2.5)
       +line(hmsg("Regional roads"),roadStyles[3].day,1.75)
