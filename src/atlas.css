@@ -529,7 +529,6 @@ dialog li + li { margin-top: 9px; }
   width: 100%; padding: 0; border: 0; background: transparent; line-height: 0;
 }
 .plate-model img { width: 100%; max-height: 195px; object-fit: contain; }
-.plate-winter .plate-model img { filter: saturate(.57) brightness(1.13); }
 .plate-model:focus-visible, .plate-picker select:focus-visible { outline: 2px solid #ffdf9a; outline-offset: -2px; }
 .plate-location {
   display: flex; justify-content: space-between; align-items: baseline; gap: 8px;

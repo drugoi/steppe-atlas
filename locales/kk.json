@@ -613,5 +613,7 @@
   "Explore another city": "Басқа қалаға өту",
   "January mean": "Қаңтардың орташа температурасы",
   "City portraits": "Қала келбеті",
-  "The 20 city portraits use AI-generated illustrations. Each landmark record links to its coordinates and historical sources.": "20 қаланың көрінісі жасанды интеллект көмегімен салынды. Әр көрнекті орынның карточкасында координаттары мен тарихи дереккөздеріне сілтемелер бар."
+  "City portraits and seasonal terrain textures use AI-generated illustrations. Each landmark record links to its coordinates and historical sources.": "Қала көріністері мен жер бедерінің маусымдық суреттері жасанды интеллект көмегімен жасалды. Координаттар мен тарихи дереккөздер әр нысанның карточкасында берілген.",
+  "Nearby cities": "Маңайдағы қалалар",
+  "Regional centres and republican cities": "Облыс орталықтары және республикалық маңызы бар қалалар"
 }

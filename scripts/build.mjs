@@ -60,10 +60,31 @@ if (seats.length!==20 || majorCities.length!==seats.length || !seats.every(city=
   return plate?.theme && landmarks.some(item=>item.cityId===city.id) && plate.sites.length &&
     plate.sites.every(id=>sites.has(id));
 })) throw new Error('Each regional centre and republican city needs a landmark, a theme and mapped sites.');
-const cityPlates=await Promise.all(majorCities.map(async plate=>{
-  const art=await readFile(new URL('src/assets/city-plates/'+plate.cityId+'.webp',root));
-  return {...plate,image:'data:image/webp;base64,'+art.toString('base64')};
+// Use the same projected 110 km survey radius as the city map.
+const distanceKm=(a,b)=>Math.hypot(a.xy[0]-b.xy[0],a.xy[1]-b.xy[1])*atlas.metersPerUnit/1000;
+const landmarkIds=new Set(landmarks.map(landmark=>landmark.cityId));
+const neighboringCities=[];
+for (const city of atlas.cities) {
+  if (city.placeType!=='city' || plates.has(city.id)) continue;
+  const centre=seats.reduce((best,next)=>distanceKm(city,next)<distanceKm(city,best)?next:best);
+  if (distanceKm(city,centre)>110) continue;
+  if (!landmarkIds.has(city.id)) throw new Error(`Missing portrait landmark for ${city.name} (${city.id}).`);
+  const nearby=atlas.sites.map(site=>({id:site.id,km:distanceKm(city,site)}))
+    .filter(site=>site.km<=110).sort((a,b)=>a.km-b.km).slice(0,2);
+  neighboringCities.push({cityId:city.id,centreId:centre.id,sites:nearby.map(site=>site.id)});
+}
+const imageData=async path=>'data:image/webp;base64,'+(await readFile(new URL(path,root))).toString('base64');
+const cityPlates=await Promise.all([...majorCities,...neighboringCities].map(async plate=>{
+  const base='src/assets/city-plates/'+plate.cityId;
+  const [image,winterImage]=await Promise.all([imageData(base+'.webp'),imageData(base+'-winter.webp')]);
+  const result={...plate,image,winterImage};
+  // Saryagash's mineral springs are in Kokterek. Give the town its own settlement art.
+  if (plate.cityId===1519673) {
+    result.settlement={image:await imageData(base+'-town.webp'),winterImage:await imageData(base+'-town-winter.webp')};
+  }
+  return result;
 }));
+const materials={summer:await imageData('src/assets/ground-summer.webp'),winter:await imageData('src/assets/ground-winter.webp')};
 const inventory = translationInventory(template,javascript,atlas,[...landmarks,...stories]);
 for (const plate of majorCities) inventory.set('city.theme.'+plate.cityId,plate.theme);
 const locales = await readLocalizations(root,inventory);
@@ -73,6 +94,7 @@ const values = {
   DATA: snapshot.trimEnd().replaceAll('</', '<\\/'),
   RELIEF: embeddedJSON({...JSON.parse(relief),image:'data:image/webp;base64,'+texture.toString('base64'),
     winter:'data:image/webp;base64,'+winterTexture.toString('base64')}),
+  MATERIALS: embeddedJSON(materials),
   CITY_PLATES: embeddedJSON(cityPlates),
   LANDMARKS: embeddedJSON(landmarks),
   STORIES: embeddedJSON(stories),
@@ -85,7 +107,7 @@ const values = {
 await Promise.all(['en',...Object.keys(locales)].map(async locale=>{
   const directory=new URL(locale==='en'?'dist/':'dist/'+locale+'/',root);
   const localized=localizeDocument(template,locale,locales);
-  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|CITY_PLATES|STORIES|WINTER|ROADS|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
+  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|CITY_PLATES|MATERIALS|STORIES|WINTER|ROADS|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
   await mkdir(directory,{recursive:true});
   await writeFile(new URL('index.html',directory),html);
 }));

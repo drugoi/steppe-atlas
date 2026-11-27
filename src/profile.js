@@ -125,19 +125,23 @@ function cityFieldNote(city) {
     +'<dl class="city-facts"><div><dt>'+hmsg("Population rank in atlas")+'</dt><dd>'+hmsg("{rank} of {total}",{rank:fmt.format(position),total:fmt.format(data.cities.length)})+'</dd></div>'+elevation+'</dl></section>';
 }
 function cityPortraitGallery() {
-  const items=majorCityOrder.map(city=>{
-    const plate=cityPlates.get(city.id);
-    return '<button data-place="city" data-id="'+city.id+'"><img src="'+plate.image
-      +'" alt="" width="86" height="86" loading="lazy"><span>'+escape(cityDisplayName(city))+'</span></button>';
-  }).join('');
-  return '<details class="portrait-gallery" open><summary>'+hmsg("City portraits")+' <span>'
-    +fmt.format(majorCityOrder.length)+'</span></summary><div>'+items+'</div></details>';
+  const gallery=(cities,title,open)=>{
+    const items=cities.map(city=>{
+      const plate=cityPlates.get(city.id);
+      return '<button data-place="city" data-id="'+city.id+'"><img src="'+(state.layer==='winter'?plate.winterImage:plate.image)
+        +'" alt="" width="86" height="86" loading="lazy"><span>'+escape(cityDisplayName(city))+'</span></button>';
+    }).join('');
+    return '<details class="portrait-gallery"'+(open?' open':'')+'><summary>'+escape(title)+' <span>'
+      +fmt.format(cities.length)+'</span></summary><div>'+items+'</div></details>';
+  };
+  return gallery(majorCityOrder,msg("City portraits"),true)+gallery(nearbyCityOrder,msg("Nearby cities"),false);
 }
 function cityPlatePicker(selected) {
-  const options=majorCityOrder.map(city=>'<option value="'+city.id+'"'+(city.id===selected?' selected':'')+'>'
-    +escape(cityDisplayName(city))+'</option>').join('');
+  const group=(cities,label)=>'<optgroup label="'+escape(label)+'">'+cities.map(city=>'<option value="'+city.id+'"'
+    +(city.id===selected?' selected':'')+'>'+escape(cityDisplayName(city))+'</option>').join('')+'</optgroup>';
   return '<label class="plate-picker"><span>'+hmsg("City portraits")+'</span><select data-city-picker aria-label="'
-    +hmsg("Explore another city")+'">'+options+'</select></label>';
+    +hmsg("Explore another city")+'">'+group(majorCityOrder,msg("Regional centres and republican cities"))
+    +group(nearbyCityOrder,msg("Nearby cities"))+'</select></label>';
 }
 function cityPlateHeader(city,plate,nativeLine) {
   const land=cityLandmarks.get(city.id);
@@ -146,7 +150,7 @@ function cityPlateHeader(city,plate,nativeLine) {
   return '<header class="plate-header'+(state.layer==='winter'?' plate-winter':'')+'">'+cityPlatePicker(city.id)
     +'<div class="plate-scene"><canvas class="plate-ground" width="600" height="270" aria-hidden="true"></canvas><div class="plate-caption"><h2>'+escape(name)+'</h2>'+nativeLine
     +'<p>'+escape(plate.theme)+'</p></div><button class="plate-model" data-landmark="'+city.id+'" aria-label="'
-    +hmsg("Locate {landmark} on map",{landmark:land.name})+'"><img src="'+plate.image+'" alt=""></button></div>'
+    +hmsg("Locate {landmark} on map",{landmark:land.name})+'"><img src="'+(state.layer==='winter'?plate.winterImage:plate.image)+'" alt=""></button></div>'
     +'<div class="plate-location"><span>'+escape(profileScope(city))
     +(city.official?'':' · '+escape(regionDisplayName(regionById(city.region))))+'</span><span>'
     +city.lat.toFixed(2)+'° N · '+city.lon.toFixed(2)+'° E</span></div>'
@@ -180,8 +184,16 @@ function citySurroundings(city,plate) {
     return '<li><button data-site="'+id+'"><span>'+escape(site.name)+'</span><small>'+hmsg("{distance} km",{distance:fmt.format(distance)})
       +' <span aria-hidden="true">↗</span></small></button></li>';
   }).join('');
-  return '<section class="plate-survey"><h3>'+hmsg("City and surroundings")+'</h3><h4>'+hmsg("Selected places nearby")
-    +'</h4><p>'+hmsg("From the city centre · straight-line distance")+'</p><ul class="plate-sites">'+places+'</ul>'
+  const towns=plate.centreId ? [cityById.get(plate.centreId)] :
+    nearbyCityOrder.filter(town=>cityPlates.get(town.id).centreId===city.id);
+  const links=towns.map(town=>{
+    const km=Math.round(Math.hypot(town.xy[0]-city.xy[0],town.xy[1]-city.xy[1])*data.metersPerUnit/1000);
+    return '<li><button data-place="city" data-id="'+town.id+'"><span>'+escape(cityDisplayName(town))
+      +'</span><small>'+hmsg("{distance} km",{distance:fmt.format(km)})+'</small></button></li>';
+  }).join('');
+  return '<section class="plate-survey"><h3>'+hmsg("City and surroundings")+'</h3>'
+    +(links?'<h4>'+hmsg("Nearby cities")+'</h4><p>'+hmsg("From the city centre · straight-line distance")+'</p><ul class="plate-sites">'+links+'</ul>':'')
+    +(places?'<h4>'+hmsg("Selected places nearby")+'</h4><p>'+hmsg("From the city centre · straight-line distance")+'</p><ul class="plate-sites">'+places+'</ul>':'')
     +'<h4>'+hmsg("Land cover within 110 km")+'</h4><div class="plate-cover" aria-hidden="true">'+chart
     +'</div><ul class="plate-key">'+legend+'</ul><p>'+hmsg("Share of sampled hexes · ESA WorldCover 2021")+'</p></section>';
 }

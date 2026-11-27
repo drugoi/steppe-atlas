@@ -613,5 +613,7 @@
   "Explore another city": "Перейти к другому городу",
   "January mean": "Средняя за январь",
   "City portraits": "Портреты городов",
-  "The 20 city portraits use AI-generated illustrations. Each landmark record links to its coordinates and historical sources.": "Иллюстрации для 20 портретов городов созданы с помощью ИИ. Координаты и исторические источники указаны в карточке каждой достопримечательности."
+  "City portraits and seasonal terrain textures use AI-generated illustrations. Each landmark record links to its coordinates and historical sources.": "Городские миниатюры и сезонные текстуры созданы с помощью ИИ. Координаты и исторические источники указаны в карточках достопримечательностей.",
+  "Nearby cities": "Города поблизости",
+  "Regional centres and republican cities": "Областные центры и города республиканского значения"
 }

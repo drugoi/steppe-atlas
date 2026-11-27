@@ -12,35 +12,24 @@ function localizedStories(id) {
 const cityLandmarks = localizedStories('city-landmarks');
 const cityStories = localizedStories('city-stories');
 const cityPlates = new Map(JSON.parse($('city-plates').textContent).map(plate=>{
-  plate.theme=contentMessage('city.theme.'+plate.cityId,plate.theme);
+  plate.theme=plate.centreId ? cityLandmarks.get(plate.cityId).name : contentMessage('city.theme.'+plate.cityId,plate.theme);
   return [plate.cityId,plate];
 }));
-const majorCityOrder=[...cityPlates.keys()].map(id=>cityById.get(id))
+const portraitOrder=[...cityPlates.keys()].map(id=>cityById.get(id))
   .sort((a,b)=>cityDisplayName(a).localeCompare(cityDisplayName(b),locale));
+const majorCityOrder=portraitOrder.filter(city=>!cityPlates.get(city.id).centreId);
+const nearbyCityOrder=portraitOrder.filter(city=>cityPlates.get(city.id).centreId);
 
-// Decode only the cities visible at this zoom. A finished sprite schedules one redraw.
+// Decode a seasonal image only when its city enters the viewport.
 function cityPlateSurface(plate,winterView) {
-  if (!plate.surface) {
-    plate.surface=new Image();
-    plate.surface.onload=requestDraw;
-    plate.surface.src=plate.image;
+  const key=winterView ? 'winterSurface' : 'surface';
+  if (!plate[key]) {
+    const image=new Image();
+    plate[key]=image;
+    image.onload=requestDraw;
+    image.src=winterView ? plate.winterImage : plate.image;
   }
-  if (!plate.surface.naturalWidth) return null;
-  if (!winterView) return plate.surface;
-  if (!plate.winterSurface) {
-    const snow=document.createElement('canvas');
-    snow.width=plate.surface.naturalWidth;
-    snow.height=plate.surface.naturalHeight;
-    const paint=snow.getContext('2d');
-    paint.filter='saturate(.57) brightness(1.13)';
-    paint.drawImage(plate.surface,0,0);
-    paint.filter='none';
-    paint.globalCompositeOperation='source-atop';
-    paint.fillStyle='rgba(174,206,230,.13)';
-    paint.fillRect(0,0,snow.width,snow.height);
-    plate.winterSurface=snow;
-  }
-  return plate.winterSurface;
+  return plate[key].naturalWidth ? plate[key] : null;
 }
 const cityHexes = new Map();
 const citiesByTile = new Map();

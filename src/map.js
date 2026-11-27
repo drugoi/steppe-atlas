@@ -226,6 +226,15 @@ function drawSettlement(city,xy,s) {
   const [x,y] = xy;
   if (s<1.42) return;
   const winterView=state.layer==='winter';
+  const town=cityPlates.get(city.id)?.settlement;
+  if (town && cityHexArtVisible(s)) {
+    const surface=cityPlateSurface(town,winterView);
+    if (surface) {
+      const {size,anchorX,anchorY}=landmarkDimensions(s,true);
+      context.drawImage(surface,x-anchorX/s,y-anchorY/s,size/s,size/s);
+      return;
+    }
+  }
   const size=settlementScale(city);
   context.save();
   context.translate(x,y);
@@ -320,7 +329,7 @@ function cityMapMarkers(cities,s,outlying=visibleOutlyingLandmark(s)) {
     let box=null;
     if (detailed && x>=-100 && x<=view.width+100 && y>=-40 && y<=view.height+80) {
       const scale=settlementScale(city)*s;
-      box=landmark ? landmarkBounds(xy,s,true) : [x-8*scale,y-7.5*scale,x+9*scale,y+5.6*scale];
+      box=(landmark || cityPlates.get(city.id)?.settlement) ? landmarkBounds(xy,s,true) : [x-8*scale,y-7.5*scale,x+9*scale,y+5.6*scale];
     }
     const pointOnly=Boolean(box && outlyingBox && mapBoundsOverlap(box,outlyingBox));
     if (pointOnly) {

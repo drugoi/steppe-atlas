@@ -9,6 +9,56 @@ const sceneryClip = new Path2D();
 traceHex(sceneryClip,0,0);
 let sceneryPass = null;
 
+const materialSources=JSON.parse($('terrain-materials').textContent);
+const materialSheets=new Map();
+const materialIndex={steppe:0,sand:1,rock:2,alpine:3,marsh:4,water:5,forest:6,field:7,scrub:8};
+
+function seasonalMaterials(winterView) {
+  const season=winterView?'winter':'summer';
+  if (!materialSheets.has(season)) {
+    const sheet=new Image();
+    sheet.onload=requestDraw;
+    sheet.onerror=()=>{materialSheets.set(season,null);requestDraw();};
+    materialSheets.set(season,sheet);
+    sheet.src=materialSources[season];
+  }
+  return materialSheets.get(season);
+}
+
+// The directional light is baked into the painting. Vary the crop without rotating its shadows.
+function paintedMaterial(art,sheet,kind,woods,fields,variant,winterView) {
+  const flat=kind==='steppe' || kind==='scrub';
+  const material=flat && woods===3 ? 'forest' : flat && fields>=2 ? 'field' : kind;
+  const index=materialIndex[material];
+  const cell=sheet.naturalWidth/3, row=sheet.naturalHeight/3;
+  const fraction=.56+(variant%4)*.075;
+  const u=(variant*7%13)/12,v=(variant*5%11)/10;
+  const x=(index%3+(1-fraction)*u)*cell;
+  const y=(Math.floor(index/3)+(1-fraction)*v)*row;
+  art.drawImage(sheet,x,y,cell*fraction,row*fraction,-data.radius,-data.radius,sceneryExtent,sceneryExtent);
+  // In mixed cover keep small tree stands and cultivated strips visible.
+  const random=sceneryRandom(88427+variant*5591);
+  if (fields && material!=='field') fieldDetails(art,random,fields,winterView);
+  if (woods && material!=='forest') woodsDetails(art,random,woods,kind==='alpine'||kind==='rock',winterView);
+  art.globalCompositeOperation='destination-in';
+  art.drawImage(materialMask,-data.radius,-data.radius,sceneryExtent,sceneryExtent);
+  art.globalCompositeOperation='source-over';
+}
+
+// A feathered perimeter lets the real elevation shading run across adjacent hexes.
+const materialMask=document.createElement('canvas');
+materialMask.width=materialMask.height=scenerySize;
+{
+  const mask=materialMask.getContext('2d');
+  const middle=scenerySize/2;
+  const fade=mask.createRadialGradient(middle,middle,middle*.48,middle,middle,middle);
+  fade.addColorStop(0,'rgba(0,0,0,.92)');
+  fade.addColorStop(.63,'rgba(0,0,0,.72)');
+  fade.addColorStop(1,'rgba(0,0,0,.16)');
+  mask.fillStyle=fade;
+  mask.fillRect(0,0,scenerySize,scenerySize);
+}
+
 function beginTerrainDetails(s) {
   sceneryPass = s>1.2 && sceneryLayers.has(state.layer)
     ? {visible:new Set(), remaining:sceneryBatchSize, generationMs:0, pending:false}
@@ -266,6 +316,8 @@ function scenerySprite(kind,woods,fields,variant,winterView) {
     sceneryPass.pending=true;
     return null;
   }
+  const sheet=seasonalMaterials(winterView);
+  if (sheet && !sheet.naturalWidth) return null;
   const start=performance.now();
   const surface=document.createElement('canvas');
   surface.width=surface.height=scenerySize;
@@ -273,13 +325,14 @@ function scenerySprite(kind,woods,fields,variant,winterView) {
   const ratio=scenerySize/sceneryExtent;
   art.setTransform(ratio,0,0,ratio,scenerySize/2,scenerySize/2);
   art.lineJoin=art.lineCap='round';
-  art.scale(.94,.94);
   art.clip(sceneryClip);
   const random=sceneryRandom(88427+variant*5591);
-  if (kind==='water') {
+  if (sheet) {
+    paintedMaterial(art,sheet,kind,woods,fields,variant,winterView);
+  } else if (kind==='water') {
     waterDetails(art,random,winterView);
   } else {
-    groundDetails(art,kind,random,winterView);
+    groundDetails(art,kind==='scrub'?'steppe':kind,random,winterView);
     if (kind==='alpine' || kind==='rock') ridgeDetails(art,random,kind==='alpine',winterView);
     if (fields) fieldDetails(art,random,fields,winterView);
     if (woods) woodsDetails(art,random,woods,kind==='alpine' || kind==='rock',winterView);
@@ -296,22 +349,24 @@ function sceneryKind(tile) {
   if (z>2650 || cover===70) return 'alpine';
   if (z>1500 || (z>700 && Math.abs(shade)>12)) return 'rock';
   if (cover===90) return 'marsh';
-  if (cover===20 || cover===60) return 'sand';
+  if (cover===20) return 'scrub';
+  if (cover===60) return 'sand';
   return 'steppe';
 }
 
 function drawTerrainDetail(tile,index,s,local,inSurvey) {
   if (!sceneryPass) return;
   const [x,y,,,,,z,cover,trees,crops]=tile;
+  if ((!cover && tile[2]!==0) || cover===50) return;
   const kind=sceneryKind(tile);
   const winterView=state.layer==='winter';
   const woods=trees>=14 || cover===10 ? 3 : trees>=6 ? 2 : trees>=1 ? 1 : 0;
-  const fields=z<1750 ? (crops>=17 ? 3 : crops>=9 ? 2 : crops>=4 ? 1 : 0) : 0;
+  const fields=z<1750 ? (crops>=17 ? 3 : crops>=9 || cover===40 ? 2 : crops>=4 ? 1 : 0) : 0;
   const variant=Math.floor(rasterNoise(x,y,12)*12);
   const sprite=scenerySprite(kind,woods,fields,variant,winterView);
   if (!sprite) return;
   const fade=clamp((s-1.2)/1.35,0,1);
-  const baseOpacity=winterView || state.layer==='terrain' ? 1 : .57;
+  const baseOpacity=winterView ? .60 : state.layer==='terrain' ? .88 : state.layer==='land' ? .36 : .52;
   const sceneOpacity=citiesByTile.has(index) ? .43 : local && !inSurvey ? .69 : 1;
   context.globalAlpha=fade*baseOpacity*sceneOpacity;
   context.drawImage(sprite,x-data.radius,y-data.radius,sceneryExtent,sceneryExtent);
