@@ -451,10 +451,25 @@ function drawCityBanners(markers) {
     const above=top-11;
     const below=(box?.[3] ?? y+7)+12;
     const levels=active ? [above,below,above-23,below+22] : [above];
+    if (active && detailed && mobile.matches) {
+      for (let offset=44;offset<=110;offset+=22) levels.push(above-offset,below+offset);
+    }
     const baseline=levels.find(fitsAt) ?? (active && !detailed ? above : null);
     if (baseline!==null) {
       const bounds=[left-4,baseline-10,left+w+4,baseline+10];
       taken.push(bounds);
+      if (active && box && Math.min(Math.abs(baseline-above),Math.abs(baseline-below))>15) {
+        const end=baseline<y ? box[1] : box[3];
+        context.beginPath();
+        context.moveTo(x,baseline+(baseline<y?9:-9));
+        context.lineTo(x,end);
+        context.strokeStyle='#283831';
+        context.lineWidth=2.5;
+        context.stroke();
+        context.strokeStyle='#f6d58f';
+        context.lineWidth=1;
+        context.stroke();
+      }
       const banner=[[left-4,baseline],[left+2,baseline-9],[left+w-2,baseline-9],
         [left+w+4,baseline],[left+w-2,baseline+9],[left+2,baseline+9]];
       shapeFill(banner.map(([px,py])=>[px,py+2]),'#142d3c85');

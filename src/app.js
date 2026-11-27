@@ -552,10 +552,17 @@ function renderDetails() {
   const city=cityById.get(state.city);
   const region=regionById(state.region || city?.region);
   if (state.mode==='cities' && !city) {
-    detail.innerHTML='<div class="gov-list"><h2>'+hmsg("Cities & towns")+'</h2><p class="sub">'+hmsg("Ranked by reported population")+'</p>'+list(data.cities,'city')+'</div>';
+    detail.innerHTML='<div class="gov-list"><h2>'+hmsg("Cities & towns")+'</h2>'+cityPortraitGallery()+'<p class="sub">'+hmsg("Ranked by reported population")+'</p>'+list(data.cities,'city')+'</div>';
   } else if (state.mode==='regions' && !region) {
     detail.innerHTML='<div class="gov-list"><h2>'+hmsg("Regions")+'</h2><p class="sub">'+hmsg("17 regions and 3 cities of republican significance")+'</p>'+list([...regions].sort((a,b)=>b.pop-a.pop),'region')+'</div>';
   } else detail.innerHTML=atlasProfile(region||countryStats,city);
+  const backdrop=detail.querySelector('.plate-ground');
+  if (backdrop) {
+    const relief=state.layer==='winter' ? winterReliefImage : reliefImage;
+    mapReliefImage(state.layer==='winter');
+    if (relief.naturalWidth) paintCityBackdrop(backdrop,city);
+    else relief.decode().then(()=>{if (backdrop.isConnected) paintCityBackdrop(backdrop,city);}).catch(()=>{});
+  }
   document.querySelector('.panel').scrollTop=0;
 }
 function updateUI(save=true) {
@@ -785,6 +792,11 @@ buttons('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
   setFit(false);
   updateUI();
 }));
+$('detail').addEventListener('change',event=>{
+  if (!event.target.matches('[data-city-picker]')) return;
+  select('city',Number(event.target.value),true);
+  $('detail').querySelector('[data-city-picker]')?.focus({preventScroll:true});
+});
 $('detail').addEventListener('click',event=>{
   const byPointer=event.detail>0;
   const place = event.target.closest('[data-place]');

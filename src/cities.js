@@ -11,6 +11,37 @@ function localizedStories(id) {
 }
 const cityLandmarks = localizedStories('city-landmarks');
 const cityStories = localizedStories('city-stories');
+const cityPlates = new Map(JSON.parse($('city-plates').textContent).map(plate=>{
+  plate.theme=contentMessage('city.theme.'+plate.cityId,plate.theme);
+  return [plate.cityId,plate];
+}));
+const majorCityOrder=[...cityPlates.keys()].map(id=>cityById.get(id))
+  .sort((a,b)=>cityDisplayName(a).localeCompare(cityDisplayName(b),locale));
+
+// Decode only the cities visible at this zoom. A finished sprite schedules one redraw.
+function cityPlateSurface(plate,winterView) {
+  if (!plate.surface) {
+    plate.surface=new Image();
+    plate.surface.onload=requestDraw;
+    plate.surface.src=plate.image;
+  }
+  if (!plate.surface.naturalWidth) return null;
+  if (!winterView) return plate.surface;
+  if (!plate.winterSurface) {
+    const snow=document.createElement('canvas');
+    snow.width=plate.surface.naturalWidth;
+    snow.height=plate.surface.naturalHeight;
+    const paint=snow.getContext('2d');
+    paint.filter='saturate(.57) brightness(1.13)';
+    paint.drawImage(plate.surface,0,0);
+    paint.filter='none';
+    paint.globalCompositeOperation='source-atop';
+    paint.fillStyle='rgba(174,206,230,.13)';
+    paint.fillRect(0,0,snow.width,snow.height);
+    plate.winterSurface=snow;
+  }
+  return plate.winterSurface;
+}
 const cityHexes = new Map();
 const citiesByTile = new Map();
 for (const city of data.cities) {
@@ -56,7 +87,14 @@ function cityEnvironment(city) {
     const dominant = [...coverCounts].sort((a,b)=>b[1]-a[1])[0]?.[0];
     const elevations = land.map(tile=>tile[6]);
     const centre = data.tiles[nearestTile(...city.xy)];
+    const surfaceCounts=new Map();
+    for (const tile of tiles) {
+      const cover=tile[2]===0 ? 80 : tile[7];
+      surfaceCounts.set(cover,(surfaceCounts.get(cover) ?? 0)+1);
+    }
     environments.set(city.id,{
+      surfaceCounts:[...surfaceCounts].sort((a,b)=>b[1]-a[1]),
+      tileCount:tiles.length,
       dominant,
       coverShare: dominant ? coverCounts.get(dominant) / land.length : 0,
       waterShare: tiles.length ? (tiles.length-land.length)/tiles.length : 0,
@@ -496,6 +534,9 @@ function drawLandmark(item,xy,s,cityScene=false) {
   if (state.landmark===item.cityId) {
     ellipse(x,y+1,size*.48/s,size*.23/s,'#fff1aa80');
   }
-  context.drawImage(landmarkSprite(item.style,state.layer==='winter',cityScene).surface,
+  const winterView=state.layer==='winter';
+  const plate=cityPlates.get(item.cityId);
+  const surface=plate && cityPlateSurface(plate,winterView);
+  context.drawImage(surface || landmarkSprite(item.style,winterView,cityScene).surface,
     x-anchorX/s,y-anchorY/s,size/s,size/s);
 }

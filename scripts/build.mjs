@@ -51,7 +51,21 @@ if (new Set(editorialIds).size !== editorialIds.length ||
     !atlas.cities.every(city => winter.cities[city.id]?.length === 3)) {
   throw new Error('Place names, stories or winter data do not match the atlas snapshot.');
 }
+const majorCities=JSON.parse(await read('data/major-cities.json'));
+const seats=atlas.cities.filter(city=>city.seat && city.id!==1521368); // Baikonur has a separate status.
+const sites=new Set(atlas.sites.map(site=>site.id));
+const plates=new Map(majorCities.map(plate=>[plate.cityId,plate]));
+if (seats.length!==20 || majorCities.length!==seats.length || !seats.every(city=>{
+  const plate=plates.get(city.id);
+  return plate?.theme && landmarks.some(item=>item.cityId===city.id) && plate.sites.length &&
+    plate.sites.every(id=>sites.has(id));
+})) throw new Error('Each regional centre and republican city needs a landmark, a theme and mapped sites.');
+const cityPlates=await Promise.all(majorCities.map(async plate=>{
+  const art=await readFile(new URL('src/assets/city-plates/'+plate.cityId+'.webp',root));
+  return {...plate,image:'data:image/webp;base64,'+art.toString('base64')};
+}));
 const inventory = translationInventory(template,javascript,atlas,[...landmarks,...stories]);
+for (const plate of majorCities) inventory.set('city.theme.'+plate.cityId,plate.theme);
 const locales = await readLocalizations(root,inventory);
 const embeddedJSON = value => JSON.stringify(value).replaceAll('</','<\\/');
 const values = {
@@ -59,6 +73,7 @@ const values = {
   DATA: snapshot.trimEnd().replaceAll('</', '<\\/'),
   RELIEF: embeddedJSON({...JSON.parse(relief),image:'data:image/webp;base64,'+texture.toString('base64'),
     winter:'data:image/webp;base64,'+winterTexture.toString('base64')}),
+  CITY_PLATES: embeddedJSON(cityPlates),
   LANDMARKS: embeddedJSON(landmarks),
   STORIES: embeddedJSON(stories),
   WINTER: embeddedJSON(winter),
@@ -70,7 +85,7 @@ const values = {
 await Promise.all(['en',...Object.keys(locales)].map(async locale=>{
   const directory=new URL(locale==='en'?'dist/':'dist/'+locale+'/',root);
   const localized=localizeDocument(template,locale,locales);
-  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|STORIES|WINTER|ROADS|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
+  const html=localized.replace(/__(CSS|DATA|RELIEF|LANDMARKS|CITY_PLATES|STORIES|WINTER|ROADS|LANGUAGES|GA4|APP)__/g, (_, name) => values[name]);
   await mkdir(directory,{recursive:true});
   await writeFile(new URL('index.html',directory),html);
 }));

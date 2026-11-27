@@ -119,10 +119,71 @@ function cityFieldNote(city) {
     +'<span>'+hmsg("Locate on map")+'</span><i aria-hidden="true"></i></button>' :
     story ? '<a class="field-location" href="'+escape(story.source)+'" target="_blank" rel="noopener">'+hmsg("Source")+'</a>' :
       '<span class="field-scope">'+hmsg("110 km survey radius")+'</span>';
-  const art='<img src="'+landmarkSprite(landmark?.style ?? story?.style ?? landscapeStyle(city),state.layer==='winter').url+'" alt="" width="74" height="74">';
+  const art=cityPlates.has(city.id) ? '' : '<img src="'+landmarkSprite(landmark?.style ?? story?.style ?? landscapeStyle(city),state.layer==='winter').url+'" alt="" width="74" height="74">';
   const elevation=environment.centreElevation===null?'': '<div><dt>'+hmsg("Centre hex elevation")+'</dt><dd>'+hmsg("{elevation} m",{elevation:fmt.format(environment.centreElevation)})+'</dd></div>';
   return '<section class="city-field-note"><div class="field-copy">'+art+'<div><h3>'+title+'</h3><p>'+note+'</p>'+location+'</div></div>'
     +'<dl class="city-facts"><div><dt>'+hmsg("Population rank in atlas")+'</dt><dd>'+hmsg("{rank} of {total}",{rank:fmt.format(position),total:fmt.format(data.cities.length)})+'</dd></div>'+elevation+'</dl></section>';
+}
+function cityPortraitGallery() {
+  const items=majorCityOrder.map(city=>{
+    const plate=cityPlates.get(city.id);
+    return '<button data-place="city" data-id="'+city.id+'"><img src="'+plate.image
+      +'" alt="" width="86" height="86" loading="lazy"><span>'+escape(cityDisplayName(city))+'</span></button>';
+  }).join('');
+  return '<details class="portrait-gallery" open><summary>'+hmsg("City portraits")+' <span>'
+    +fmt.format(majorCityOrder.length)+'</span></summary><div>'+items+'</div></details>';
+}
+function cityPlatePicker(selected) {
+  const options=majorCityOrder.map(city=>'<option value="'+city.id+'"'+(city.id===selected?' selected':'')+'>'
+    +escape(cityDisplayName(city))+'</option>').join('');
+  return '<label class="plate-picker"><span>'+hmsg("City portraits")+'</span><select data-city-picker aria-label="'
+    +hmsg("Explore another city")+'">'+options+'</select></label>';
+}
+function cityPlateHeader(city,plate,nativeLine) {
+  const land=cityLandmarks.get(city.id);
+  const climate=winter.cities[city.id];
+  const name=cityDisplayName(city);
+  return '<header class="plate-header'+(state.layer==='winter'?' plate-winter':'')+'">'+cityPlatePicker(city.id)
+    +'<div class="plate-scene"><canvas class="plate-ground" width="600" height="270" aria-hidden="true"></canvas><div class="plate-caption"><h2>'+escape(name)+'</h2>'+nativeLine
+    +'<p>'+escape(plate.theme)+'</p></div><button class="plate-model" data-landmark="'+city.id+'" aria-label="'
+    +hmsg("Locate {landmark} on map",{landmark:land.name})+'"><img src="'+plate.image+'" alt=""></button></div>'
+    +'<div class="plate-location"><span>'+escape(profileScope(city))
+    +(city.official?'':' · '+escape(regionDisplayName(regionById(city.region))))+'</span><span>'
+    +city.lat.toFixed(2)+'° N · '+city.lon.toFixed(2)+'° E</span></div>'
+    +'<div class="plate-metrics">'+primary(escape(placePopulationLabel(city)),fmt.format(city.pop),escape(populationSource(city)))
+    +primary(hmsg("January mean"),celsius(climate[1]),escape(winter.source.name+' · '+winter.source.period))+'</div></header>';
+}
+function paintCityBackdrop(canvas,city) {
+  const relief=state.layer==='winter' ? winterReliefImage : reliefImage;
+  if (!relief) return;
+  const [left,top,width,height]=reliefAsset.bounds;
+  const [x,y]=city.xy;
+  const span=125;
+  const scaleX=relief.naturalWidth/width, scaleY=relief.naturalHeight/height;
+  const map=canvas.getContext('2d');
+  const extentY=span*canvas.height/canvas.width;
+  map.drawImage(relief,(x-left-span/2)*scaleX,(y-top-extentY/2)*scaleY,
+    span*scaleX,extentY*scaleY,0,0,canvas.width,canvas.height);
+}
+function citySurroundings(city,plate) {
+  const environment=cityEnvironment(city);
+  const counts=environment.surfaceCounts;
+  const entries=counts.slice(0,3).map(([id,count])=>[coverLabel[id],rgbText(coverColor[id]),count]);
+  const other=counts.slice(3).reduce((sum,entry)=>sum+entry[1],0);
+  if (other) entries.push([msg("Other land cover"),'#767a6d',other]);
+  const chart=entries.map(([,color,count])=>'<i style="background:'+color+';flex:'+count+'"></i>').join('');
+  const legend=entries.map(([name,color,count])=>'<li><i style="background:'+color+'"></i>'+escape(name)+'<b>'
+    +pct(shareOf(count,environment.tileCount))+'</b></li>').join('');
+  const places=plate.sites.map(id=>{
+    const site=sitesById.get(id);
+    const distance=Math.round(Math.hypot(site.xy[0]-city.xy[0],site.xy[1]-city.xy[1])*data.metersPerUnit/1000);
+    return '<li><button data-site="'+id+'"><span>'+escape(site.name)+'</span><small>'+hmsg("{distance} km",{distance:fmt.format(distance)})
+      +' <span aria-hidden="true">↗</span></small></button></li>';
+  }).join('');
+  return '<section class="plate-survey"><h3>'+hmsg("City and surroundings")+'</h3><h4>'+hmsg("Selected places nearby")
+    +'</h4><p>'+hmsg("From the city centre · straight-line distance")+'</p><ul class="plate-sites">'+places+'</ul>'
+    +'<h4>'+hmsg("Land cover within 110 km")+'</h4><div class="plate-cover" aria-hidden="true">'+chart
+    +'</div><ul class="plate-key">'+legend+'</ul><p>'+hmsg("Share of sampled hexes · ESA WorldCover 2021")+'</p></section>';
 }
 function placePopulationLabel(city) {
   if (city.placeType==='village') return msg("Village population");
@@ -139,7 +200,8 @@ function atlasProfile(region,city) {
   const nativeLine=nativeNames ? '<p class="sub city-names">'+nativeNames+'</p>' : '';
   const subtitle=city ? (city.official?'':msg("Statistics for {region}",{region:regionDisplayName(region)})) : (locale==='en'?(region.kk||'Қазақстан Республикасы'):region.id?'':msg("Republic of Kazakhstan"));
   const ranks=region.id ? '<div class="rank-row" aria-label="'+hmsg("Division rankings")+'">'+categoryRanks.map(([key,name])=>'<p><strong>#'+rankMetric(region,key)+'</strong>'+escape(name)+'</p>').join('')+'</div>' : '';
-  const header='<header class="profile"><h2>'+escape(title)+'</h2>'+nativeLine+'<p class="sub">'+escape(detailScope)
+  const plate=city && cityPlates.get(city.id);
+  const header=plate ? cityPlateHeader(city,plate,nativeLine) : '<header class="profile"><h2>'+escape(title)+'</h2>'+nativeLine+'<p class="sub">'+escape(detailScope)
     +(subtitle?' <span aria-hidden="true">·</span> '+escape(subtitle):'')+'</p>'
     +'<div class="profile-metrics">'+primary(escape(city?placePopulationLabel(city):msg("Population")),pop===null?'—':fmt.format(pop),city?escape(populationSource(city)):hmsg("1 Oct 2026"))
     +primary(region.id?hmsg("Regional product"):hmsg("GDP"),money(region.grp),hmsg("{amount} per person · 2025",{amount:'₸'+compact.format(region.capita)}))+'</div>'+ranks+'</header>';
@@ -155,7 +217,10 @@ function atlasProfile(region,city) {
     '<p class="dataset-note">'+hmsg("Charts and division rankings use {region} data.",{region:regionDisplayName(region)})+'</p>' : '';
   const fieldNote=city && state.tab==='people' ? cityFieldNote(city) : '';
   const climate=city && state.layer==='winter' ? winterCityProfile(city) : '';
-  return header+tabs+'<div class="tab-body">'+climate+fieldNote+scope+body+'<p class="data-link"><button class="link-button" data-credits>'+hmsg("Data and methods")+'</button></p></div>';
+  const survey=plate && state.tab==='people' ? citySurroundings(city,plate) : '';
+  const divisionSummary=plate ? '<section class="section"><h3>'+escape(regionDisplayName(region))+'</h3>'
+    +primary(hmsg("Regional product"),money(region.grp),hmsg("{amount} per person · 2025",{amount:'₸'+compact.format(region.capita)}))+ranks+'</section>' : '';
+  return header+tabs+'<div class="tab-body">'+(plate?fieldNote+climate:climate+fieldNote)+survey+scope+body+divisionSummary+'<p class="data-link"><button class="link-button" data-credits>'+hmsg("Data and methods")+'</button></p></div>';
 }
 function selectProfileTab(tab,restoreFocus=false) {
   if (!Object.hasOwn(profileTabs,tab)) return;
@@ -299,6 +364,7 @@ function inspectTile(id,point) {
   requestDraw();
   atlasEvent('map_hex_inspected', {map_layer:state.layer});
 }
+let terrainLegendExpanded=false;
 let winterLegendExpanded=false;
 let transportLegendExpanded=false;
 function renderMapLegend() {
@@ -360,7 +426,18 @@ function renderMapLegend() {
     content+='<p>'+hmsg("{count} selected sites",{count:data.sites.filter(s=>s.kind==='heritage').length})+'</p>'+dot(hmsg("UNESCO"),'#e2acb8');
   } else {
     const covers=state.layer==='land'?[10,20,30,40,50,60,70,80,90]:[10,30,40,60,80];
-    content+=covers.map(id=>dot(escape(coverLabel[id]),rgbText(coverColor[id]))).join('');
+    const key=covers.map(id=>dot(escape(coverLabel[id]),rgbText(coverColor[id]))).join('');
+    if (mobile.matches && state.layer==='terrain' && cityPlates.has(state.city)) {
+      legend.innerHTML='<details class="terrain-legend"'+(terrainLegendExpanded?' open':'')+'><summary>'
+        +escape(name)+'</summary>'+key+'</details>';
+      const disclosure=legend.firstElementChild;
+      disclosure.addEventListener('toggle',()=>{
+        terrainLegendExpanded=disclosure.open;
+        requestDraw();
+      });
+      return;
+    }
+    content+=key;
     if (state.layer==='land') content+='<p class="tool-note">'+hmsg("ESA WorldCover 2021")+'</p>';
   }
   legend.innerHTML=content;
